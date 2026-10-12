@@ -1,0 +1,44 @@
+LilSmokeOS Pre-Alpha Personal-Use License
+SPDX-License-Identifier: LicenseRef-LilSmokeOS-PreAlpha-Personal
+
+Copyright (c) 2026 Jose Pilas. All rights reserved.
+
+1. Scope
+This license applies only to original LilSmokeOS material for which Jose Pilas
+holds the necessary rights and has designated this license. It does not
+relicense Linux, emulators, libraries, firmware, artwork or other third-party
+material. Their retained licenses and permissions take precedence for those
+components. Public SM64-LilSmoke adaptation code is separately MPL-2.0.
+
+2. Personal use
+You may download an official LilSmokeOS Pre-Alpha binary release, install and
+run it on your own compatible devices for personal, non-commercial use, and
+make backup copies for that purpose. No commercial distribution, sale,
+sublicensing or public redistribution of the exclusively licensed original
+LilSmokeOS material is granted without written permission from Jose Pilas.
+Rights independently granted by third-party licenses are not restricted.
+
+3. Source and future versions
+The original OS source is kept private in initial versions for personal
+reasons. This license does not promise a source publication date. A future
+source release is intended to use MPL-2.0, but that future choice does not
+change the license of this release. This policy does not excuse compliance
+with source, relinking or notice obligations imposed by dependency licenses.
+
+4. Earlier permissions
+This license is not retroactive. It does not revoke any MIT, MPL-2.0 or other
+permissions already granted for earlier distributed files. Contributors'
+rights and retained per-file third-party notices remain unaffected.
+
+5. Warranty and liability
+THE LICENSED MATERIAL IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NON-INFRINGEMENT. TO THE EXTENT PERMITTED BY LAW, THE COPYRIGHT
+HOLDER IS NOT LIABLE FOR CLAIMS, DAMAGES OR OTHER LIABILITY ARISING FROM
+USE OR INABILITY TO USE IT. Back up your storage before flashing or updating.
+
+6. Ownership
+No trademark rights or endorsement are granted. All other rights in the
+exclusively licensed original LilSmokeOS material are reserved.
+
+Project: https://github.com/josepilas/LilSmokeOS

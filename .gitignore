@@ -1,0 +1,53 @@
+# Build artifacts
+/build/
+/output/
+
+# Buildroot download cache
+dl/
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.orig
+*.rej
+
+# Local config overrides
+local-config.mk
+
+# Owner-local firmware/game builds and generated releases
+/outputs/
+/test-results/
+**/_build/
+**/__pycache__/
+**/*.pyc
+/tools/device-adapter/build/
+/tools/device-adapter/release/
+/tools/device-adapter/tests/artifacts/
+/release-artifacts/
+*.img
+*.7z
+*.lilpck
+*.syspck
+*.z64
+*.n64
+*.v64
+*.sfc
+*.smc
+*.gba
+*.nds
+*.iso
+*.bin
+*.mpq
+*.opk
+*.webm
+*.exe

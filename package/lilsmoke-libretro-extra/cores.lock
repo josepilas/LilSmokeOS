@@ -1,0 +1,14 @@
+# name|repository|commit|makefile|built filename|installed filename
+nxengine|https://github.com/libretro/nxengine-libretro.git|fd1c0686f8b4c0aea9b5addbc077e3ad7da23bb7|Makefile|nxengine_libretro.so|nxengine_libretro.so
+prboom|https://github.com/libretro/libretro-prboom.git|c6e0fcb8325fc7969c91387f56c63433de0f1a53|Makefile|prboom_libretro.so|prboom_libretro.so
+stella2014|https://github.com/libretro/stella2014-libretro.git|7d1361e407e63f29e52892655069e5fb4096e691|Makefile|stella2014_libretro.so|stella2014_libretro.so
+prosystem|https://github.com/libretro/prosystem-libretro.git|8a88014287c7a01cd568067e5a557d0a2b2a051f|Makefile|prosystem_libretro.so|prosystem_libretro.so
+atari800|https://github.com/libretro/libretro-atari800.git|4e7fbc73765c1a9670c7506616046ad1d4ccda51|Makefile|atari800_libretro.so|atari800_libretro.so
+race|https://github.com/libretro/RACE.git|c7810dd7f172827bfa2004813bc000b13786636b|Makefile|race_libretro.so|race_libretro.so
+pokemini|https://github.com/libretro/PokeMini.git|132111b76343559860532a1ccc094f93f1ed5650|Makefile.libretro|pokemini_libretro.so|pokemini_libretro.so
+wswan|https://github.com/libretro/beetle-wswan-libretro.git|4b01295838ea89e3f1355bbe4cb5cf98aa6108cd|Makefile|mednafen_wswan_libretro.so|mednafen_wswan_libretro.so
+picodrive|https://github.com/libretro/picodrive.git|1890c2932234c9d30f4cd3851d02228baae8f09e|Makefile.libretro|picodrive_libretro.so|picodrive_libretro.so
+quicknes|https://github.com/libretro/QuickNES_Core.git|26bb785c9deddb66a17717b21bb4e328f03ade32|Makefile|quicknes_libretro.so|quicknes_libretro.so
+snes9x2002|https://github.com/libretro/snes9x2002.git|6ffbf9ef4f0063e1f1b78a40d10c50fc52f2524c|Makefile|snes9x2002_libretro.so|snes9x_2002_libretro.so
+gpsp|https://github.com/libretro/gpsp.git|5819380c2ffb0900219d700a382ee68c464ebb99|Makefile|gpsp_libretro.so|gpsp_libretro.so
+pcsx_rearmed|https://github.com/libretro/pcsx_rearmed.git|c8816799b50388e61cfe237fe2cdbb7d8175f20a|Makefile.libretro|pcsx_rearmed_libretro.so|pcsx_rearmed_libretro.so

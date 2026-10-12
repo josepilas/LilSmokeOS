@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Bug report
+description: Report a reproducible problem without sharing private game or firmware files.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Pre-Alpha-0.0.1 is a release draft until an approved release is published.
+        Do not upload ROMs, BIOS, card images, private captures, firmware exports,
+        passwords, keys, private PC paths or USB/disk serials. Redact logs.
+  - type: input
+    id: version
+    attributes:
+      label: OS or private build identifier
+      placeholder: "Pre-Alpha-0.0.1 or explicit Candidate identifier"
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Board, SoC and stock firmware version
+      description: "Retail names alone are ambiguous. Omit personal serial numbers."
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Test environment
+      options:
+        - Physical console
+        - QEMU MIPS guest
+        - Host unit or UI test
+        - Windows Device Adapter
+        - Linux Device Adapter
+        - macOS Device Adapter
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Emulator, app, theme or controller details
+      description: "Include provider/version, controller mode and connection where relevant."
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: "Use legal/synthetic fixtures where possible; do not attach game data."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and exact error
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant redacted log excerpts
+      description: "Keep it short; distinguish real-device observations from mocks/VM results."
+      render: text
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Data safety
+      options:
+        - label: "I removed private identifiers/secrets and did not attach ROMs, BIOS, firmware exports or private captures."
+          required: true

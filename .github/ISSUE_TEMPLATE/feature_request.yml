@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Feature request
+description: Describe a useful change within the CPU-only MIPS and memory limits.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user workflow
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: "Explain the desired interaction and affected application or system."
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Hardware, memory and licensing considerations
+      description: "No GPU/desktop stack is assumed. Link legal upstream sources, not ROM/firmware downloads."
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and testing ideas

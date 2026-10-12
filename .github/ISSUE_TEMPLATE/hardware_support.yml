@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Hardware or controller support
+description: Propose a board/profile or input-device investigation, not a request to bypass safety checks.
+title: "[Hardware] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The tested baseline is one SEGAM-M8-V6.0 firmware lineage, not universal
+        M8/Ingenic support. Never attach stock firmware, a card image, disk serials
+        or credentials. Keep your original working card and independent backups.
+  - type: input
+    id: hardware
+    attributes:
+      label: Board or controller model
+      description: "Include PCB/SoC markings if known, without serial numbers."
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Stock firmware or controller mode/connection
+      description: "For gamepads, state USB cable/dongle/Bluetooth and X/PS/D mode."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Public evidence and read-only observations
+      description: "Link permitted upstream research; describe known architecture/interfaces and what was actually tested."
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Requested support and current behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and scope
+      options:
+        - label: "I understand matching retail names/MIPS ISA are not proof of compatibility and I am not requesting a force-install bypass."
+          required: true
+        - label: "I did not upload private firmware, card contents, credentials or identifying serials."
+          required: true

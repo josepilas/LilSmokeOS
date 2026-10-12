@@ -1,0 +1,14 @@
+{
+  "version": "Pre-Alpha-0.0.1",
+  "repository": "https://github.com/josepilas/LilSmokeOS",
+  "author": "José Pilas",
+  "first_party_license": "LicenseRef-LilSmokeOS-PreAlpha-Personal",
+  "os_source_public": false,
+  "source_privacy_reason": "personal reasons during initial versions",
+  "planned_future_source_license": "MPL-2.0",
+  "sm64_authored_public_source_license": "MPL-2.0",
+  "proposed_image_name": "LilSmokeOS-Pre-Alpha-0.0.1.img",
+  "publication_status": "blocked-pending-redistribution-and-source-clearance",
+  "public_image_ready": false,
+  "private_sm64_publicly_distributable": false
+}
