@@ -14,6 +14,8 @@
   "image_sha256": "065f8ebd50c3d9088b80b2d96f19cee7f632fc2090b855fe8f1a4818c02288f9",
   "image_bytes": 1880096768,
   "public_image_ready": false,
-  "private_sm64_publicly_distributable": false
+  "private_sm64_publicly_distributable": false,
+  "sm64_public_release_url": "https://github.com/josepilas/SM64-LilSmoke/releases/tag/Pre-Alpha-0.0.1",
+  "sm64_public_package_uploaded": true,
+  "sm64_public_package_sha256": "06b9aa17db6de38e647f0c9f9f9942e01d46f1bf5c152404558ad60e59284591"
 }
-
