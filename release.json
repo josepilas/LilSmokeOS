@@ -8,7 +8,12 @@
   "planned_future_source_license": "MPL-2.0",
   "sm64_authored_public_source_license": "MPL-2.0",
   "proposed_image_name": "LilSmokeOS-Pre-Alpha-0.0.1.img",
-  "publication_status": "blocked-pending-redistribution-and-source-clearance",
+  "publication_status": "experimental-image-published-with-documented-audit-gaps",
+  "release_url": "https://github.com/josepilas/LilSmokeOS/releases/tag/Pre-Alpha-0.0.1",
+  "image_uploaded": true,
+  "image_sha256": "065f8ebd50c3d9088b80b2d96f19cee7f632fc2090b855fe8f1a4818c02288f9",
+  "image_bytes": 1880096768,
   "public_image_ready": false,
   "private_sm64_publicly_distributable": false
 }
+
