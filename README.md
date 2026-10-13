@@ -1,5 +1,7 @@
 # LilSmokeOS
 
+![Logo do Projeto](lil-logo.webp)
+
 **Pre-Alpha-0.0.1**. Created and led by **José Pilas**.
 
 LilSmokeOS is a Buildroot external tree and controller-first Linux interface
