@@ -11,9 +11,10 @@ and source/notice obligations. Public SM64-LilSmoke adaptations use MPL-2.0.
 
 ## Release Status
 
-This is release preparation, not certified universal firmware. The stock-derived
-development image is **not cleared for public upload**. Owner-imported boot
-dependencies require redistribution and corresponding-source clearance.
+The experimental [Pre-Alpha-0.0.1 image](https://github.com/josepilas/LilSmokeOS/releases/tag/Pre-Alpha-0.0.1)
+is published. It is **not certified universal firmware or complete redistribution
+clearance**. Owner-imported boot dependencies and complete third-party source,
+build/relinking and resource notices still have documented audit gaps.
 Private SM64 packages embed extracted game data and a source-only renderer and
 must not be attached to a release. See [licensing](LICENSE_POLICY.md).
 
@@ -87,5 +88,7 @@ Read [the publishing checklist](docs/release-preparation.md) before staging.
 Never `git add .` from this development workspace: stock exports, private
 packages, ROMs, build outputs and captures are outside release scope.
 Repository: [josepilas/LilSmokeOS](https://github.com/josepilas/LilSmokeOS).
-Binary publication remains gated; the release tag and matching source offer
-must exist before approved executable distribution.
+The published prerelease contains only the frozen OS `.img` as its release
+asset; authored OS source is not published here. Read the release's exact
+verification limits and third-party source/notice gaps before using it.
+
