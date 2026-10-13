@@ -18,6 +18,11 @@ build/relinking and resource notices still have documented audit gaps.
 Private SM64 packages embed extracted game data and a source-only renderer and
 must not be attached to a release. See [licensing](LICENSE_POLICY.md).
 
+The asset-free [SM64-LilSmoke Pre-Alpha-0.0.1](https://github.com/josepilas/SM64-LilSmoke/releases/tag/Pre-Alpha-0.0.1)
+is published separately with public adaptation source and a `.lilpck` release.
+It prepares the original game locally from the user's supported ROM in `original/`;
+no ROM or pre-cooked original-game runtime is distributed.
+
 The physically tested device is the owner's **SEGAM-M8-V6.0**, stock firmware
 **V1.0.0 2024-12-05**, HCSEMI MIPS/128 MB lineage. Other M8, SF3000 and GB350
 boards are not certified by that result. Never select firmware solely by a
