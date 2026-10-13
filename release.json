@@ -17,5 +17,7 @@
   "private_sm64_publicly_distributable": false,
   "sm64_public_release_url": "https://github.com/josepilas/SM64-LilSmoke/releases/tag/Pre-Alpha-0.0.1",
   "sm64_public_package_uploaded": true,
-  "sm64_public_package_sha256": "06b9aa17db6de38e647f0c9f9f9942e01d46f1bf5c152404558ad60e59284591"
+  "sm64_public_package_sha256": "0a8c6830a4f13a3e55ff3d01f03ad3c13ed10d062ba3aae37656c8c92f0c3fe5",
+  "sm64_corresponding_source_url": "https://github.com/josepilas/SM64-LilSmoke/releases/download/Pre-Alpha-0.0.1/corresponding-source.zip",
+  "sm64_corresponding_source_sha256": "aa64ff789dbdfa0f6aa9ca02c87581d0dccb404ef77247d2168ae47ddf563202"
 }
