@@ -1,6 +1,6 @@
 # LilSmokeOS
 
-![Logo do Projeto](lil-logo.webp)
+![Logo do Projeto](logo.webp)
 
 **Pre-Alpha-0.0.1**. Created and led by **José Pilas**.
 
