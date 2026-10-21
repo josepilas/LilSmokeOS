@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://ko-fi.com/josepilas" target="_blank" rel="noopener noreferrer">
+    <img src="https://josepilas.github.io/kofi.webp" alt="Ko-fi" width="300" />
+  </a>
+</p>
+
 # LilSmokeOS
 
 ![Logo do Projeto](logo.webp)
