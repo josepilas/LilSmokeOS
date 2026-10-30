@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# S05bootcounter — track successful boots for A/B rollback
+#
+# Logic:
+#   1. Read /persist/bootcounter
+#   2. If absent → first boot of a new install, write "0"
+#   3. If >= 3 → this slot has failed 3 times. Mark it bad and reboot.
+#      The bootloader (U-Boot) will detect the "bad" marker and try the
+#      other slot. (For QEMU, we just print a warning — no real rollback.)
+#   4. Otherwise → increment counter and write back.
+#   5. S89bootok (later) resets to 0 once LilSmokeUI is up.
+#
+# Boot flow:
+#   Bootloader picks slot A (or B if A is bad)
+#       ↓
+#   Linux boots
+#       ↓
+#   S05bootcounter reads/increments /persist/bootcounter
+#       ↓
+#   ... rest of init ...
+#       ↓
+#   S89bootok runs *after* S90lilsmoke-ui starts successfully
+#       ↓
+#   S89bootok resets bootcounter to 0 → "this slot is good"
+#       ↓
+#   Next boot: bootloader sees counter=0, picks this slot again
+#
+# If LilSmokeUI crashes/locks up, S89 never runs, counter stays >0.
+# After 3 such failed boots, the bootloader falls back to the other slot.
+
+PERSIST_DIR="/persist"
+COUNTER_FILE="$PERSIST_DIR/bootcounter"
+SLOT_FILE="$PERSIST_DIR/active_slot"
+MAX_BOOTCOUNT=3
+
+case "$1" in
+    start)
+        # /persist should already be mounted by S01mounts.
+        # If not, we can't track bootcount — silently skip.
+        if [ ! -d "$PERSIST_DIR" ]; then
+            echo "[lilsmoke] S05: /persist not mounted, skipping bootcounter"
+            exit 0
+        fi
+
+        # Determine which slot we're running from.
+        # The bootloader passes this via /proc/device-tree/chosen/bootargs
+        # or via an env var. For QEMU, we just default to "A".
+        SLOT="A"
+        if [ -f /proc/cmdline ]; then
+            # Look for lilsmoke.slot=B (or A)
+            slot_arg=$(cat /proc/cmdline | tr ' ' '\n' | grep '^lilsmoke.slot=' | cut -d= -f2)
+            [ -n "$slot_arg" ] && SLOT="$slot_arg"
+        fi
+        echo "$SLOT" > "$SLOT_FILE"
+        echo "[lilsmoke] S05: booting from slot $SLOT"
+
+        # Read counter
+        if [ ! -f "$COUNTER_FILE" ]; then
+            echo "[lilsmoke] S05: first boot, initializing counter"
+            echo "0" > "$COUNTER_FILE"
+            exit 0
+        fi
+
+        COUNT=$(cat "$COUNTER_FILE" 2>/dev/null || echo 0)
+        echo "[lilsmoke] S05: boot counter = $COUNT"
+
+        if [ "$COUNT" -ge "$MAX_BOOTCOUNT" ]; then
+            echo "[lilsmoke] S05: slot $SLOT has failed $COUNT times — marking bad"
+            # Mark this slot bad so the bootloader picks the other one next time
+            echo "bad" > "$PERSIST_DIR/slot_${SLOT}_status"
+            # In a real system, we'd reboot here to force the bootloader to
+            # re-evaluate. For QEMU, just print and continue.
+            echo "[lilsmoke] S05: WARNING — would reboot to other slot on real HW"
+            # reboot  # uncomment for real HW
+        fi
+
+        # Increment
+        COUNT=$((COUNT + 1))
+        echo "$COUNT" > "$COUNTER_FILE"
+        ;;
+
+    stop)
+        # Nothing to do on shutdown
+        ;;
+esac
+exit 0

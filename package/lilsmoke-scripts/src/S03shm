@@ -1,0 +1,16 @@
+#!/bin/sh
+# POSIX shared memory for the mirrored-memory MIPS dynarec. Capacity is a cap,
+# not an allocation. Do not use noexec: some native ports use executable maps.
+case "${1:-}" in
+    start)
+        mkdir -p /dev/shm || exit 1
+        if ! awk '$2 == "/dev/shm" { found=1 } END { exit !found }' /proc/mounts; then
+            mount -t tmpfs -o size=8M,mode=1777,nosuid,nodev tmpfs /dev/shm || {
+                echo 'LilSmokeOS: POSIX shared memory unavailable; dynarec may be slow' >&2
+                exit 1
+            }
+        fi
+        ;;
+    stop) umount /dev/shm 2>/dev/null || true ;;
+    *) echo 'usage: S03shm start|stop' >&2; exit 2 ;;
+esac

@@ -7,6 +7,8 @@ not the earlier J-milestone roadmap as a series of certified hardware releases.
 - [Source layout and builds](SOURCE-AND-BUILD.md)
 - [Adding a board and stock profile](BOARD-PORTING.md)
 - [Native application packages and emulator apps](APP-PACKAGES.md)
+- [Applications SDK/API and graphical starter](../lilsmoke-applications-sdk.md)
+- [TreeFrog direct compatibility and browser converter](../treefrog-port-converter.md)
 - [Testing and evidence](TESTING.md)
 - [Contributor workflow](../../CONTRIBUTING.md)
 - [User/release index](../pre-alpha-0.0.1/README.md)

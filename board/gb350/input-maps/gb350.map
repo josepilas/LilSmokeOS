@@ -1,0 +1,57 @@
+# LilSmokeOS — GB350 GPIO keypad input map
+#
+# Format: <device> <code> <action>
+#
+# The GB350 has the same physical button layout as the SF3000 (d-pad +
+# A/B/X/Y + L1/R1/L2/R2 + Start/Select + Power + Volume). The GPIO
+# keypad driver and devicetree are identical except for the panel
+# mounting (3.5" portrait on GB350 vs. 4.5" landscape on SF3000).
+#
+# The codes below are placeholders pending SF3000-RE decompilation.
+# See board/sf3000/input-maps/sf3000.map for the full header comment.
+
+# D-pad
+evdev 103 up
+evdev 108 down
+evdev 105 left
+evdev 106 right
+
+# Face buttons (Super Nintendo layout)
+evdev 57  a         # KEY_SPACE
+evdev 42  b         # KEY_G
+evdev 24  x         # KEY_O
+evdev 25  y         # KEY_P
+
+# Shoulder buttons
+evdev 29  l1        # KEY_LEFTCTRL
+evdev 97  r1        # KEY_RIGHTCTRL
+evdev 56  l2        # KEY_LEFTALT
+evdev 100 r2        # KEY_RIGHTALT
+
+# Start / Select
+evdev 28  start     # KEY_ENTER
+evdev 14  select    # KEY_BACK
+
+# Home / Menu
+evdev 1   home      # KEY_ESC
+evdev 125 menu      # KEY_LEFTMETA
+
+# Volume
+evdev 115 vol_up
+evdev 114 vol_down
+
+# Power
+evdev 116 power
+
+# Standard Linux gamepad buttons. ABS_HAT0X/Y is decoded by LilSmokeUI.
+evdev 304 a
+evdev 305 b
+evdev 308 x
+evdev 307 y
+evdev 310 l1
+evdev 311 r1
+evdev 312 l2
+evdev 313 r2
+evdev 314 select
+evdev 315 start
+evdev 316 home

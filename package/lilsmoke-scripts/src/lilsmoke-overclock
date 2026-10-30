@@ -1,0 +1,316 @@
+#!/bin/sh
+#
+# lilsmoke-overclock - guarded CPU governor / CPUFreq profile helper
+#
+# This intentionally talks only to Linux CPUFreq sysfs. It does not poke
+# PLL or clock-controller registers directly; higher clock profiles apply only
+# when the kernel advertises the requested frequency as supported.
+
+CPUFREQ_DIR="/sys/devices/system/cpu/cpu0/cpufreq"
+THERMAL_DIR="/sys/class/thermal"
+DEFAULT_CONFIG="/etc/lilsmoke/lilsmoke.conf.default"
+PERSIST_CONFIG="/persist/config/lilsmoke.conf"
+PIDFILE="/var/run/lilsmoke-overclock.pid"
+
+CPU_GOVERNOR="ondemand"
+CPU_OVERCLOCK="stock"
+CPU_STOCK_MAX_KHZ="1188000"
+CPU_MAX_TEMP_C="78"
+CPU_THERMAL_THROTTLE_C="82"
+CPU_THERMAL_POLL_SECONDS="10"
+CPU_ALLOW_UNMONITORED_OVERCLOCK="0"
+
+log() {
+    echo "[lilsmoke-overclock] $*"
+}
+
+trim() {
+    printf '%s\n' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+
+clean_value() {
+    v=${1%%#*}
+    v=$(trim "$v")
+    case "$v" in
+        \"*\") v=${v#\"}; v=${v%\"} ;;
+        \'*\') v=${v#\'}; v=${v%\'} ;;
+    esac
+    printf '%s\n' "$v"
+}
+
+config_get() {
+    key="$1"
+    value="$2"
+
+    for cfg in "$DEFAULT_CONFIG" "$PERSIST_CONFIG"; do
+        [ -r "$cfg" ] || continue
+        while IFS= read -r line || [ -n "$line" ]; do
+            case "$line" in
+                ""|\#*) continue ;;
+            esac
+            case "$line" in
+                *=*)
+                    name=${line%%=*}
+                    name=$(trim "$name")
+                    if [ "$name" = "$key" ]; then
+                        raw=${line#*=}
+                        value=$(clean_value "$raw")
+                    fi
+                    ;;
+            esac
+        done < "$cfg"
+    done
+
+    printf '%s\n' "$value"
+}
+
+is_number() {
+    case "$1" in
+        ""|*[!0-9]*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+load_config() {
+    CPU_GOVERNOR=$(config_get CPU_GOVERNOR "$CPU_GOVERNOR")
+    CPU_OVERCLOCK=$(config_get CPU_OVERCLOCK "$CPU_OVERCLOCK")
+    CPU_STOCK_MAX_KHZ=$(config_get CPU_STOCK_MAX_KHZ "$CPU_STOCK_MAX_KHZ")
+    CPU_MAX_TEMP_C=$(config_get CPU_MAX_TEMP_C "$CPU_MAX_TEMP_C")
+    CPU_THERMAL_THROTTLE_C=$(config_get CPU_THERMAL_THROTTLE_C "$CPU_THERMAL_THROTTLE_C")
+    CPU_THERMAL_POLL_SECONDS=$(config_get CPU_THERMAL_POLL_SECONDS "$CPU_THERMAL_POLL_SECONDS")
+    CPU_ALLOW_UNMONITORED_OVERCLOCK=$(config_get CPU_ALLOW_UNMONITORED_OVERCLOCK "$CPU_ALLOW_UNMONITORED_OVERCLOCK")
+
+    is_number "$CPU_STOCK_MAX_KHZ" || CPU_STOCK_MAX_KHZ="1188000"
+    is_number "$CPU_MAX_TEMP_C" || CPU_MAX_TEMP_C="78"
+    is_number "$CPU_THERMAL_THROTTLE_C" || CPU_THERMAL_THROTTLE_C="82"
+    is_number "$CPU_THERMAL_POLL_SECONDS" || CPU_THERMAL_POLL_SECONDS="10"
+}
+
+profile_to_khz() {
+    case "$1" in
+        stock|off|0|1188|1188MHz|1200|1200MHz|1.2GHz) printf '%s\n' "$CPU_STOCK_MAX_KHZ" ;;
+        1300|1300MHz|1.3GHz) printf '%s\n' "1300000" ;;
+        1400|1400MHz|1.4GHz) printf '%s\n' "1400000" ;;
+        *) printf '%s\n' "" ;;
+    esac
+}
+
+available_hint() {
+    if [ -r "$CPUFREQ_DIR/scaling_available_frequencies" ]; then
+        freqs=$(cat "$CPUFREQ_DIR/scaling_available_frequencies" 2>/dev/null)
+        printf 'available frequencies: %s' "$freqs"
+    elif [ -r "$CPUFREQ_DIR/cpuinfo_max_freq" ]; then
+        max=$(cat "$CPUFREQ_DIR/cpuinfo_max_freq" 2>/dev/null)
+        printf 'cpuinfo_max_freq: %s' "$max"
+    else
+        printf 'no CPUFreq frequency table'
+    fi
+}
+
+freq_supported() {
+    target="$1"
+
+    [ -d "$CPUFREQ_DIR" ] || return 1
+    [ -w "$CPUFREQ_DIR/scaling_max_freq" ] || return 1
+
+    if [ -r "$CPUFREQ_DIR/scaling_available_frequencies" ]; then
+        for freq in $(cat "$CPUFREQ_DIR/scaling_available_frequencies" 2>/dev/null); do
+            [ "$freq" = "$target" ] && return 0
+        done
+        return 1
+    fi
+
+    if [ -r "$CPUFREQ_DIR/cpuinfo_max_freq" ]; then
+        max=$(cat "$CPUFREQ_DIR/cpuinfo_max_freq" 2>/dev/null)
+        is_number "$max" || return 1
+        [ "$target" -le "$max" ] && return 0
+        return 1
+    fi
+
+    [ "$target" -le "$CPU_STOCK_MAX_KHZ" ]
+}
+
+set_governor() {
+    [ -w "$CPUFREQ_DIR/scaling_governor" ] || return 0
+
+    if [ -r "$CPUFREQ_DIR/scaling_available_governors" ]; then
+        found=0
+        for gov in $(cat "$CPUFREQ_DIR/scaling_available_governors" 2>/dev/null); do
+            [ "$gov" = "$CPU_GOVERNOR" ] && found=1
+        done
+        if [ "$found" != "1" ]; then
+            log "governor '$CPU_GOVERNOR' not available; leaving governor unchanged"
+            return 0
+        fi
+    fi
+
+    if printf '%s\n' "$CPU_GOVERNOR" > "$CPUFREQ_DIR/scaling_governor" 2>/dev/null; then
+        log "governor set to $CPU_GOVERNOR"
+    else
+        log "could not set governor to $CPU_GOVERNOR"
+    fi
+}
+
+current_temp_millic() {
+    best=""
+
+    for zone in "$THERMAL_DIR"/thermal_zone*; do
+        [ -r "$zone/temp" ] || continue
+        temp=$(cat "$zone/temp" 2>/dev/null)
+        is_number "$temp" || continue
+        if [ "$temp" -lt 1000 ]; then
+            temp=$((temp * 1000))
+        fi
+        if [ -z "$best" ] || [ "$temp" -gt "$best" ]; then
+            best="$temp"
+        fi
+    done
+
+    printf '%s\n' "$best"
+}
+
+has_thermal() {
+    [ -n "$(current_temp_millic)" ]
+}
+
+apply_target_khz() {
+    target="$1"
+
+    if ! freq_supported "$target"; then
+        log "requested ${target} kHz is not supported by this kernel ($(available_hint)); leaving clock unchanged"
+        return 0
+    fi
+
+    if [ -w "$CPUFREQ_DIR/scaling_min_freq" ]; then
+        curmin=$(cat "$CPUFREQ_DIR/scaling_min_freq" 2>/dev/null)
+        if is_number "$curmin" && [ "$curmin" -gt "$target" ]; then
+            printf '%s\n' "$target" > "$CPUFREQ_DIR/scaling_min_freq" 2>/dev/null || true
+        fi
+    fi
+
+    if printf '%s\n' "$target" > "$CPUFREQ_DIR/scaling_max_freq" 2>/dev/null; then
+        log "maximum CPU frequency set to ${target} kHz"
+    else
+        log "could not write ${target} kHz to scaling_max_freq"
+        return 1
+    fi
+
+    if [ "$CPU_GOVERNOR" = "performance" ] && [ -w "$CPUFREQ_DIR/scaling_min_freq" ]; then
+        printf '%s\n' "$target" > "$CPUFREQ_DIR/scaling_min_freq" 2>/dev/null || true
+    fi
+}
+
+apply_once() {
+    load_config
+
+    if [ ! -d "$CPUFREQ_DIR" ]; then
+        log "CPUFreq sysfs is not present; kernel cannot adjust CPU clock at runtime"
+        return 0
+    fi
+
+    set_governor
+
+    target=$(profile_to_khz "$CPU_OVERCLOCK")
+    if [ -z "$target" ]; then
+        log "unknown CPU_OVERCLOCK profile '$CPU_OVERCLOCK'; expected stock, 1300MHz, or 1400MHz"
+        return 1
+    fi
+
+    if [ "$target" -gt "$CPU_STOCK_MAX_KHZ" ]; then
+        temp=$(current_temp_millic)
+        if [ -z "$temp" ] && [ "$CPU_ALLOW_UNMONITORED_OVERCLOCK" != "1" ]; then
+            log "thermal sensor is not exposed; refusing overclock profile '$CPU_OVERCLOCK'"
+            target="$CPU_STOCK_MAX_KHZ"
+        elif [ -n "$temp" ] && [ "$temp" -ge $((CPU_THERMAL_THROTTLE_C * 1000)) ]; then
+            log "temperature ${temp} mC is above throttle limit; using stock clock"
+            target="$CPU_STOCK_MAX_KHZ"
+        fi
+    fi
+
+    apply_target_khz "$target"
+}
+
+watch_loop() {
+    mkdir -p /var/run 2>/dev/null || true
+    if [ -r "$PIDFILE" ]; then
+        oldpid=$(cat "$PIDFILE" 2>/dev/null)
+        if is_number "$oldpid" && kill -0 "$oldpid" 2>/dev/null; then
+            log "watcher already running as pid $oldpid"
+            return 0
+        fi
+    fi
+    echo "$$" > "$PIDFILE" 2>/dev/null || true
+    trap 'rm -f "$PIDFILE"; exit 0' INT TERM EXIT
+
+    throttled=0
+
+    while :; do
+        load_config
+        target=$(profile_to_khz "$CPU_OVERCLOCK")
+        [ -n "$target" ] || exit 0
+
+        if [ ! -d "$CPUFREQ_DIR" ] || [ "$target" -le "$CPU_STOCK_MAX_KHZ" ]; then
+            apply_once
+            exit 0
+        fi
+
+        temp=$(current_temp_millic)
+        if [ -z "$temp" ]; then
+            log "thermal sensor is not exposed; dropping to stock and watcher exiting"
+            apply_target_khz "$CPU_STOCK_MAX_KHZ"
+            exit 0
+        fi
+
+        throttle_millic=$((CPU_THERMAL_THROTTLE_C * 1000))
+        cool_millic=$((CPU_MAX_TEMP_C * 1000))
+
+        if [ "$temp" -ge "$throttle_millic" ]; then
+            if [ "$throttled" != "1" ]; then
+                log "temperature ${temp} mC reached throttle limit; dropping to stock"
+                apply_target_khz "$CPU_STOCK_MAX_KHZ"
+                throttled=1
+            fi
+        elif [ "$throttled" = "1" ] && [ "$temp" -le "$cool_millic" ]; then
+            log "temperature ${temp} mC cooled below ${cool_millic} mC; restoring requested profile"
+            apply_once
+            throttled=0
+        fi
+
+        sleep "$CPU_THERMAL_POLL_SECONDS"
+    done
+}
+
+status() {
+    load_config
+    echo "profile=$CPU_OVERCLOCK"
+    echo "governor=$CPU_GOVERNOR"
+    echo "stock_max_khz=$CPU_STOCK_MAX_KHZ"
+    echo "thermal_throttle_c=$CPU_THERMAL_THROTTLE_C"
+    echo "thermal_resume_c=$CPU_MAX_TEMP_C"
+    if [ -d "$CPUFREQ_DIR" ]; then
+        [ -r "$CPUFREQ_DIR/scaling_cur_freq" ] && echo "current_khz=$(cat "$CPUFREQ_DIR/scaling_cur_freq" 2>/dev/null)"
+        [ -r "$CPUFREQ_DIR/scaling_min_freq" ] && echo "min_khz=$(cat "$CPUFREQ_DIR/scaling_min_freq" 2>/dev/null)"
+        [ -r "$CPUFREQ_DIR/scaling_max_freq" ] && echo "max_khz=$(cat "$CPUFREQ_DIR/scaling_max_freq" 2>/dev/null)"
+        [ -r "$CPUFREQ_DIR/scaling_available_frequencies" ] && echo "available_khz=$(cat "$CPUFREQ_DIR/scaling_available_frequencies" 2>/dev/null)"
+    else
+        echo "cpufreq=missing"
+    fi
+    temp=$(current_temp_millic)
+    [ -n "$temp" ] && echo "temperature_millic=$temp" || echo "thermal=missing"
+}
+
+case "${1:-apply}" in
+    apply)
+        apply_once
+        ;;
+    watch)
+        watch_loop
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "usage: lilsmoke-overclock [apply|watch|status]" >&2
+        exit 2
+        ;;
+esac

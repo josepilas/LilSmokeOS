@@ -1,0 +1,14 @@
+config BR2_PACKAGE_PORTSMOKE
+    bool "Legacy PortSmoke compatibility helper"
+    select BR2_PACKAGE_UTIL_LINUX
+    select BR2_PACKAGE_UTIL_LINUX_MOUNT
+    select BR2_PACKAGE_UTIL_LINUX_UMOUNT
+    help
+      Optional legacy helper only. New applications use .lilpck packages
+      and /storage/independent-apps, not modular engine images. It launches
+      CPU-only, software-rendered SDL2/DirectFB engines packaged as
+      SquashFS .peng images on /storage/portsmoke.
+
+      PortSmoke does not provide an external input mapper. Engines are
+      expected to be patched or configured at build time for the target
+      handheld controls.

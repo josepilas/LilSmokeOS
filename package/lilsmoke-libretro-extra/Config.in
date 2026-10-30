@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LILSMOKE_LIBRETRO_EXTRA
+    bool "LilSmoke optional software libretro cores"
+    depends on BR2_mipsel && BR2_TOOLCHAIN_USES_MUSL
+    depends on BR2_INSTALL_LIBSTDCPP
+    select BR2_PACKAGE_RETROARCH_MIPS
+    help
+      Source-pinned MIPS32r2 software cores. The payload is emitted under
+      images/emulator-expansion/emulators/libretro for the LILROMS partition,
+      not installed into the limited LILOS runtime. No game data is included.
+      Newly added systems are visible only with an installed native equivalent.

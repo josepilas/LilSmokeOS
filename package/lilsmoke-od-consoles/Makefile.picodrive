@@ -1,0 +1,7 @@
+override PLATFORM_ZLIB := 0
+include Makefile
+.DEFAULT_GOAL := picodrive
+override CFLAGS := $(filter-out -O3 -flto,$(CFLAGS)) -O2 -DSDL_SURFACE_SW
+override LDFLAGS := $(filter-out -flto,$(LDFLAGS)) -no-pie
+# libpng must bind SDK zlib, not the executable's bundled compression symbols.
+override LDLIBS += -lz

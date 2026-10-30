@@ -1,23 +1,43 @@
 {
-  "version": "Pre-Alpha-0.0.1",
+  "version": "Alpha-0.0.1",
   "repository": "https://github.com/josepilas/LilSmokeOS",
-  "author": "José Pilas",
-  "first_party_license": "LicenseRef-LilSmokeOS-PreAlpha-Personal",
-  "os_source_public": false,
-  "source_privacy_reason": "personal reasons during initial versions",
-  "planned_future_source_license": "MPL-2.0",
+  "author": "JosÃ© Pilas",
+  "first_party_license": "MPL-2.0",
+  "os_source_public": true,
+  "source_distribution": "entire-authored-external-tree-with-documented-exclusions",
+  "source_publication_status": "public-github-source",
+  "source_archive": "LilSmokeOS-Alpha-0.0.1-source.zip",
+  "excluded_experiments": [
+    "Daedalus-LilSmoke",
+    "Mupen-LilSmoke"
+  ],
+  "third_party_licenses_retained": true,
+  "exact_corresponding_source_for_old_image": false,
   "sm64_authored_public_source_license": "MPL-2.0",
-  "proposed_image_name": "LilSmokeOS-Pre-Alpha-0.0.1.img",
-  "publication_status": "experimental-image-published-with-documented-audit-gaps",
-  "release_url": "https://github.com/josepilas/LilSmokeOS/releases/tag/Pre-Alpha-0.0.1",
-  "image_uploaded": true,
-  "image_sha256": "065f8ebd50c3d9088b80b2d96f19cee7f632fc2090b855fe8f1a4818c02288f9",
+  "proposed_image_name": "LilSmokeOS-Alpha-0.0.1.img",
+  "publication_status": "experimental-alpha-release",
+  "image_built_locally": true,
+  "image_sha256": "1d5c30b0635ca7577ca209c304320c35723eb5f48ad6168b71a3f9261fa16d12",
   "image_bytes": 1880096768,
-  "public_image_ready": false,
+  "physical_alpha_cold_boot_tested": false,
+  "image_geometry": {
+    "lilos_mib": 1024,
+    "lilroms_mib": 768,
+    "lilroms_start_sector": 2099200,
+    "growable_capacity_gib": 128
+  },
+  "historical_pre_alpha_image": {
+    "version": "Pre-Alpha-0.0.1",
+    "release_url": "https://github.com/josepilas/LilSmokeOS/releases/tag/Pre-Alpha-0.0.1",
+    "image_sha256": "065f8ebd50c3d9088b80b2d96f19cee7f632fc2090b855fe8f1a4818c02288f9",
+    "image_bytes": 1880096768,
+    "image_uploaded": true
+  },
   "private_sm64_publicly_distributable": false,
   "sm64_public_release_url": "https://github.com/josepilas/SM64-LilSmoke/releases/tag/Pre-Alpha-0.0.1",
   "sm64_public_package_uploaded": true,
   "sm64_public_package_sha256": "0a8c6830a4f13a3e55ff3d01f03ad3c13ed10d062ba3aae37656c8c92f0c3fe5",
   "sm64_corresponding_source_url": "https://github.com/josepilas/SM64-LilSmoke/releases/download/Pre-Alpha-0.0.1/corresponding-source.zip",
-  "sm64_corresponding_source_sha256": "aa64ff789dbdfa0f6aa9ca02c87581d0dccb404ef77247d2168ae47ddf563202"
+  "sm64_corresponding_source_sha256": "aa64ff789dbdfa0f6aa9ca02c87581d0dccb404ef77247d2168ae47ddf563202",
+  "release_url": "https://github.com/josepilas/LilSmokeOS/releases/tag/Alpha-0.0.1"
 }

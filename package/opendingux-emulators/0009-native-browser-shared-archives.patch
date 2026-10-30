@@ -1,0 +1,76 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] Native browser opens shared archives and starts in SNES games
+
+--- a/menu/main.cpp
++++ b/menu/main.cpp
+@@ -2,6 +2,7 @@
+ #include <sal.h>
+ #include "m8_pocketsnes.h"
+ #include "m8_pocketsnes_audio.h"
++#include "od-content.h"
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <stdio.h>
+@@ -546,6 +547,13 @@ int SnesRomLoad()
+ 	FILE *stream=NULL;
+ 
+ 	MenuMessageBox("Loading ROM...",mRomName,"",MENU_MESSAGE_BOX_MODE_MSG);
++	const char *resolved = od_resolve_content(mRomName, "snes");
++	if (!resolved || strlen(resolved) >= sizeof(mRomName)) {
++		fprintf(stderr, "POCKETSNES_NATIVE_BROWSER_RESOLVE_FAILED\n");
++		return SAL_ERROR;
++	}
++	if (resolved != mRomName) strcpy(mRomName, resolved);
++	fprintf(stderr, "POCKETSNES_NATIVE_BROWSER_LOAD %s\n", mRomName);
+ 	if (!Memory.LoadROM (mRomName))
+ 	{
+ 		MenuMessageBox("Loading ROM",mRomName,"Failed!",MENU_MESSAGE_BOX_MODE_PAUSE);
+@@ -733,6 +741,7 @@ int mainEntry(int argc, char* argv[])
+ 	}
+ 
+ 	MenuInit(sal_DirectoryGetHome(), &mMenuOptions);
++	if (argc < 2) fprintf(stderr, "POCKETSNES_OWN_MENU_ENTER\n");
+ 
+ 	if(SnesInit() == SAL_ERROR)
+ 	{
+--- a/menu/menu.cpp
++++ b/menu/menu.cpp
+@@ -1,6 +1,7 @@
+ #include <errno.h>
++#include <unistd.h>
+ 
+ #include "sal.h"
+ #include "m8_pocketsnes.h"
+ #include "menu.h"
+ #include "snapshot.h"
+@@ -321,6 +321,15 @@
+ 					sal_DirectorySplitFilename(mRomList[x + startIndex].filename, path, filename, ext);
+ 					if (
+ 						sal_StringCompare(ext, "zip") == 0 ||
++						sal_StringCompare(ext, "7z") == 0 ||
++						sal_StringCompare(ext, "rar") == 0 ||
++						sal_StringCompare(ext, "tar") == 0 ||
++						sal_StringCompare(ext, "gz") == 0 ||
++						sal_StringCompare(ext, "bz2") == 0 ||
++						sal_StringCompare(ext, "xz") == 0 ||
++						sal_StringCompare(ext, "tgz") == 0 ||
++						sal_StringCompare(ext, "tbz2") == 0 ||
++						sal_StringCompare(ext, "txz") == 0 ||
+ 						sal_StringCompare(ext, "smc") == 0 ||
+ 						sal_StringCompare(ext, "sfc") == 0 ||
+ 						sal_StringCompare(ext, "fig") == 0 /* Super WildCard dump */ ||
+@@ -1189,8 +1198,13 @@ void MenuInit(const char *systemDir, struct MENU_OPTIONS *menuOptions)
+ 	mMenuOptions=menuOptions;
+ 
+ 	if (LoadMenuOptions(mSystemDir, DEFAULT_ROM_DIR_FILENAME, DEFAULT_ROM_DIR_EXT, mRomDir, SAL_MAX_PATH, 0) != SAL_OK) {
+-		strcpy(mRomDir,systemDir);
++		const char *root = getenv("LILSMOKE_OD_ROM_DIR");
++		if (!root || !*root) root = "/storage/roms/snes";
++		if (strlen(root) < sizeof(mRomDir)) strcpy(mRomDir, root);
++		else strcpy(mRomDir, systemDir);
+ 	}
++	if (access(mRomDir, R_OK | X_OK) != 0)
++		strcpy(mRomDir, "/storage/roms/snes");
+ 
+ 	pix = &mMenuBackground[0];
+ 	for (x = 0; x < SAL_SCREEN_WIDTH * SAL_SCREEN_HEIGHT; x++) {

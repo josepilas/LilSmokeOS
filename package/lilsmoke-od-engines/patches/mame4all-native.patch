@@ -1,0 +1,16 @@
+diff --git a/src/odx/minimal.cpp b/src/odx/minimal.cpp
+--- a/src/odx/minimal.cpp
++++ b/src/odx/minimal.cpp
+@@ -77,1 +77,2 @@
+ 	SDL_PollEvent(&event);
++	if (event.type == SDL_QUIT) return OD_SELECT;
+diff --git a/src/odx/odx_frontend.cpp b/src/odx/odx_frontend.cpp
+--- a/src/odx/odx_frontend.cpp
++++ b/src/odx/odx_frontend.cpp
+@@ -608,1 +608,1 @@
+-	args[n]=playemu; n++;
++	args[n]=(char *)(getenv("LILSMOKE_MAME_ENGINE") ? getenv("LILSMOKE_MAME_ENGINE") : playemu); n++;
+@@ -1022,1 +1022,3 @@
+ 	odx_load_config();
++	const char *native_roms=getenv("LILSMOKE_OD_ROM_DIR");
++	if(native_roms && strlen(native_roms)<sizeof(romdir)) strcpy(romdir,native_roms);

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "engines": {
+    "picodrive": {"repository": "https://github.com/notaz/picodrive.git", "revision": "26ecb2b6358fefba24e3d68b9eb2efba7f10d5ee", "systems": ["md", "sms", "gg"], "binary": "picodrive", "frontend": "standalone SDL"},
+    "regba": {"repository": "https://github.com/retrofw/regba.git", "revision": "b765e35733dc1cb9c6132e52005c2b492a65bf51", "systems": ["gba"], "binary": "regba/regba.dge", "frontend": "OpenDingux SDL 1.2"},
+    "fceu320": {"repository": "https://github.com/retrofw/fceux.git", "revision": "b03647e1cfdaf11789b48b7451c3b78610465e81", "systems": ["nes"], "binary": "fceux/fceux.dge", "frontend": "RetroFW FCEUX standalone SDL 1.2"},
+    "gnuboy": {"repository": "https://github.com/rofl0r/gnuboy.git", "revision": "c367bb4ba96fb07cd62f72f5ecb43aeff7012564", "systems": ["gb", "gbc"], "binary": "sdlgnuboy", "frontend": "original Gnuboy standalone SDL"},
+    "stella": {"repository": "https://github.com/retrofw/dingux-2600.git", "revision": "82df912633e214705de9a572cd772fe32f43d576", "systems": ["atari2600"], "binary": "dingux-2600/dingux-2600.dge", "frontend": "Dingux Stella standalone SDL 1.2"},
+    "prosystem": {"repository": "https://github.com/retrofw/prosystem-od.git", "revision": "4ae228ad2362b5ae053320217657d0d2729b8f4d", "systems": ["atari7800"], "binary": "prosystem-od/prosystem-od.dge", "frontend": "OpenDingux standalone SDL 1.2"},
+    "atari800": {"repository": "https://github.com/retrofw/dingux-atari.git", "revision": "06038fb6bc46d4ba639331c62e8627c60c1c4ff7", "systems": ["atari800", "atari5200"], "binary": "dingux-atari/dingux-atari.dge", "frontend": "Dingux Atari standalone SDL 1.2"},
+    "temper": {"repository": "https://github.com/retrofw/temper.git", "revision": "9f9b5bef268e08b4845f3d794ae56a35eba8affa", "systems": ["pce"], "binary": "SDL/temper", "frontend": "Temper standalone SDL 1.2"},
+    "handy": {"repository": "https://github.com/retrofw/handy.git", "revision": "2bfef7616fec515714bb8641c2fd7eeda98f916c", "source_directory": "handy-retrofw", "systems": ["lynx"], "binary": "handy320/handy320.dge", "frontend": "Handy standalone SDL 1.2"},
+    "race": {"repository": "https://github.com/retrofw/race-od.git", "revision": "7fe3dacba61a14da76d1cc1c6b7fb12b6f912870", "systems": ["ngpc"], "binary": "race-od/race-od.dge", "frontend": "RACE standalone SDL 1.2"},
+    "oswan": {"repository": "https://github.com/retrofw/oswan.git", "revision": "b4ae7b5c4f58321046d563d319d71b1696c1f29b", "systems": ["wswan"], "binary": "oswan", "frontend": "Oswan standalone SDL 1.2"},
+    "pokemini": {"repository": "https://github.com/retrofw/pokemini.git", "revision": "caf2dddd34a733da8d8df73461e73f2a5d090d0b", "systems": ["pokemini"], "make_directory": "platform/rs97", "binary": "platform/rs97/pokemini/pokemini.dge", "frontend": "PokeMini standalone SDL 1.2"}
+  },
+  "existing_not_duplicated": {"snes": "PocketSNES", "psx": "PCSX4ALL"},
+  "unsupported": {"n64": "No equivalent standalone software-only native frontend validated for HC16xx/110 MiB; do not relabel a libretro core as OpenDingux."}
+}

@@ -1,0 +1,38 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] Register Linux LilSmoke isolated PCM audio adapter
+
+--- a/Makefile.common
++++ b/Makefile.common
+@@ -183,6 +183,10 @@
+           input/drivers_joypad/linuxraw_joypad.o
+    OBJ += input/drivers_joypad/m8_lilsmoke_input.o
+    DEF_FLAGS += -DHAVE_LILSMOKE_EVDEV
++   OBJ += audio/drivers/m8_lilsmoke_audio.o \
++          audio/drivers/m8_pocketsnes_audio.o \
++          audio/drivers/m8-audio.o
++   DEF_FLAGS += -DHAVE_LILSMOKE_AUDIO
+    HAVE_UNIX = 1
+ endif
+ 
+--- a/audio/audio_driver.c
++++ b/audio/audio_driver.c
+@@ -85,6 +85,9 @@
+ #if !defined(__QNX__) && !defined(MIYOO) && defined(HAVE_THREADS)
+    &audio_alsathread,
+ #endif
++#endif
++#ifdef HAVE_LILSMOKE_AUDIO
++   &audio_lilsmoke,
+ #endif
+ #ifdef HAVE_TINYALSA
+    &audio_tinyalsa,
+--- a/audio/audio_driver.h
++++ b/audio/audio_driver.h
+@@ -412,6 +412,7 @@
+ extern audio_driver_t audio_oss;
+ extern audio_driver_t audio_alsa;
+ extern audio_driver_t audio_alsathread;
++extern audio_driver_t audio_lilsmoke;
+ extern audio_driver_t audio_tinyalsa;
+ extern audio_driver_t audio_roar;
+ extern audio_driver_t audio_openal;

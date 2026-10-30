@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# S90lilsmoke-ui — start LilSmokeUI on tty1
+#
+# LilSmokeUI is the custom SDL2/DirectFB launcher. It runs on tty1
+# (the framebuffer console). When the user picks a game, LilSmokeUI
+# execve()s retroarch — the OS reclaims the frontend's memory while
+# the game runs, then LilSmokeUI restarts on exit (via inittab respawn).
+#
+# But S90 doesn't actually launch UI directly — inittab does that via
+# `tty1::respawn:/usr/bin/lilsmoke-ui`. This script exists to do
+# *pre-flight* checks and set the right environment.
+
+case "$1" in
+    start)
+        echo "[lilsmoke] S90: pre-flight for LilSmokeUI"
+        # Set up env vars for the UI
+        export SDL_VIDEODRIVER="directfb"
+        export SDL_AUDIODRIVER="alsa"
+        export DFBARGS="no-hardware,no-sighandler,quiet"
+
+        # Make sure /persist exists and has the default config
+        if [ ! -f /persist/config/lilsmoke.conf ]; then
+            mkdir -p /persist/config
+            cp /etc/lilsmoke/lilsmoke.conf.default /persist/config/lilsmoke.conf
+        fi
+
+        # Create BIOS dir if missing
+        mkdir -p /persist/bios /persist/saves /persist/states /persist/scrape/covers
+        mkdir -p /storage/roms 2>/dev/null
+        mkdir -p /var/log
+
+        # Apply governor / overclock policy. The helper no-ops unless the
+        # kernel exposes CPUFreq and the requested profile is supported.
+        if [ -x /usr/lib/lilsmoke/lilsmoke-overclock ]; then
+            /usr/lib/lilsmoke/lilsmoke-overclock apply >>/var/log/lilsmoke-overclock.log 2>&1 || true
+            /usr/lib/lilsmoke/lilsmoke-overclock watch >>/var/log/lilsmoke-overclock.log 2>&1 &
+        fi
+
+        # Touch the log
+        : > /var/log/lilsmoke-ui.log
+        ;;
+    stop)
+        if [ -r /var/run/lilsmoke-overclock.pid ]; then
+            kill "$(cat /var/run/lilsmoke-overclock.pid)" 2>/dev/null || true
+        fi
+        killall lilsmoke-ui 2>/dev/null
+        ;;
+esac
+exit 0

@@ -1,0 +1,28 @@
+#!/bin/sh
+set -eu
+[ "$#" = 2 ] || exit 2
+file=$1
+directory=$2
+[ -f "$file" ] && [ -d "$directory" ] || exit 2
+[ ! -f /run/lilsmoke-storage/exporting ] || exit 2
+export SDL_VIDEODRIVER=directfb SDL_RENDER_DRIVER=software
+export SDL_AUDIODRIVER="${LILSMOKE_AUDIO_OVERRIDE:-alsa}"
+export LILSMOKE_EXPLORER_RETURN="$directory"
+export LILSMOKE_EXPLORER_FOCUS="$file"
+unset DISPLAY WAYLAND_DISPLAY
+volume=$(/usr/lib/lilsmoke/lilsmoke-config-read MASTER_VOLUME 50 2>/dev/null) || volume=50
+case "$volume" in ''|*[!0-9]*|????*) volume=50 ;; esac
+export LILSMOKE_MEDIA_VOLUME="$volume" LILSMOKE_M8_VOLUME=50
+mkdir -p /persist/logs
+(
+    if [ "${LILSMOKE_HCFB:-0}" = 1 ]; then
+        # Keep this media-only; Explorer must retain its own window mode.
+        export LILSMOKE_UI_WINDOWED=1
+    fi
+    ulimit -v 98304
+    /usr/bin/lilsmoke-media "$file"
+) >>/persist/logs/media-player.log 2>&1 || status=$?
+if [ "${status:-0}" = 76 ]; then
+    exec /usr/lib/lilsmoke/lilsmoke-power poweroff
+fi
+exec /usr/bin/lilsmoke-ui

@@ -1,0 +1,193 @@
+#!/bin/sh
+# Labelled two-partition storage. Runs before mdev, apps, networking and USB.
+set -eu
+umask 077
+OS=${LILSMOKE_OS_MOUNT:-/lilos}
+ROMS=${LILSMOKE_STORAGE_ROOT:-/storage}
+PERSIST=${LILSMOKE_PERSIST_ROOT:-/persist}
+RUN=${LILSMOKE_STORAGE_RUN:-/run/lilsmoke-storage}
+SYS=${LILSMOKE_SYS_CLASS_BLOCK:-/sys/class/block}
+DEV=${LILSMOKE_DEV_ROOT:-/dev}
+DISK_TOOL=${LILSMOKE_DISK_TOOL:-/usr/lib/lilsmoke/lilsmoke-disk}
+USB_FILE=${LILSMOKE_USB_BACKING_FILE:-/sys/kernel/config/usb_gadget/lilsmoke/functions/mass_storage.0/lun.0/file}
+die() { echo "lilsmoke-storage: $*" >&2; exit 1; }
+get() { awk -F= -v k="$2" '$1==k {print substr($0,index($0,"=")+1); exit}' "$1"; }
+fs_value() { blkid "$1" 2>/dev/null | sed -n "s/.* $2=\"\([^\"]*\)\".*/\1/p"; }
+mounted() { mountpoint -q "$1"; }
+exported() { [ -e "$USB_FILE" ] && [ -n "$(cat "$USB_FILE")" ]; }
+device_mounted() {
+    # mountinfo uses major:minor IDs, so /dev aliases cannot bypass ownership.
+    number=$(cat "$SYS/${ROMDEV##*/}/dev" 2>/dev/null ||
+             cat "/sys/class/block/${ROMDEV##*/}/dev")
+    awk -v device="$number" '$3==device {found=1} END {exit !found}' /proc/self/mountinfo
+}
+state() {
+    printf 'state=%s\nroms_device=%s\nfilesystem=%s\n' "$1" "${ROMDEV:-}" "${FSTYPE:-}" > "$RUN/status.new"
+    mv "$RUN/status.new" "$RUN/status"
+}
+identify() {
+    found=0
+    for part in "$SYS"/*; do
+        [ -f "$part/partition" ] || continue
+        [ "$(cat "$part/partition")" = 1 ] || continue
+        name=${part##*/}
+        [ "$(fs_value "$DEV/$name" LABEL)" = LILOS ] || continue
+        found=$((found+1))
+        resolved=$(readlink -f "$part")
+        parent=${resolved%/*}; parent=${parent##*/}
+        DISK=$DEV/$parent
+        OSDEV=$DEV/$name
+        case "$parent" in *[0-9]) ROMDEV=$DEV/${parent}p2 ;; *) ROMDEV=$DEV/${parent}2 ;; esac
+    done
+    [ "$found" = 1 ] || die "expected one LILOS disk, found $found; no disk modified"
+    [ -b "$DISK" ] && [ -b "$ROMDEV" ] || die "companion disk/partition missing"
+    [ "$(fs_value "$OSDEV" TYPE)" = vfat ] || die "LILOS must be FAT32"
+    attempts=0
+    until "$DISK_TOOL" info "$DISK" > "$RUN/geometry"; do
+        attempts=$((attempts+1))
+        [ "$attempts" -lt 3 ] || die "disk validation or exclusive lock failed"
+        sleep 1
+    done
+    if mounted "$OS"; then
+        [ "$(awk -v p="$OS" '$2==p {print $1}' /proc/mounts)" = "$OSDEV" ] || die "LILOS mount belongs to another source"
+    else
+        [ -z "$(ls -A "$OS")" ] || die "LILOS mount would hide files"
+        mount -t vfat -o rw,nosuid,nodev,noexec,umask=0077 "$OSDEV" "$OS"
+    fi
+    [ -f "$OS/lilsmoke/layout.conf" ] && [ ! -L "$OS/lilsmoke/layout.conf" ] || die "layout contract missing"
+    [ "$(get "$OS/lilsmoke/layout.conf" LayoutVersion)" = 2 ] || die "unsupported layout contract"
+    [ "$(get "$OS/lilsmoke/layout.conf" ROMStart)" = "$(get "$RUN/geometry" p2_start)" ] || die "partition start does not match contract"
+    if [ -f "$OS/lilsmoke/grow/journal" ]; then
+        FSTYPE=$(get "$OS/lilsmoke/grow/journal" Filesystem)
+    else
+        FSTYPE=$(fs_value "$ROMDEV" TYPE)
+    fi
+    case "$FSTYPE" in exfat|vfat) ;; *) die "LILROMS must be exFAT or FAT32; refusing automatic format" ;; esac
+    printf '%s\n' "$ROMDEV" > "$RUN/roms-device"
+    printf '%s\n' "$FSTYPE" > "$RUN/filesystem"
+}
+check_fs() {
+    if [ "$FSTYPE" = exfat ]; then fsck.exfat -n "$ROMDEV"; else fsck.vfat -n "$ROMDEV"; fi
+}
+mount_roms() {
+    exported && die "LILROMS belongs to USB host"
+    [ ! -f "$RUN/exporting" ] || die "USB ownership transfer in progress"
+    [ ! -f "$OS/lilsmoke/grow/journal" ] || die "first-boot recovery must finish before local access"
+    if mounted "$ROMS"; then
+        [ "$(awk -v p="$ROMS" '$2==p {print $1}' /proc/mounts)" = "$ROMDEV" ] || die "storage belongs to another source"
+        return
+    fi
+    # Packages install empty SD-card directory skeletons in the rootfs. Do not
+    # follow symlinks: only directories, never real data, may be hidden here.
+    entries=$(find "$ROMS" ! -type d -print) || die "cannot inspect storage mount point"
+    [ -z "$entries" ] || die "storage mount would hide files"
+    check_fs
+    mount -t "$FSTYPE" -o rw,nosuid,nodev,uid=1000,gid=1000,fmask=0022,dmask=0000 "$ROMDEV" "$ROMS"
+}
+unmount_roms() {
+    # A .peng loop mount can hold a file on LILROMS without a nested mountpoint.
+    for backing in "$SYS"/loop*/loop/backing_file; do
+        [ -f "$backing" ] || continue
+        case "$(cat "$backing")" in "$ROMS/"*) die "a loop image on LILROMS is active" ;; esac
+    done
+    awk -v p="$ROMS/" 'index($2,p)==1 {bad=1} END {exit bad}' /proc/mounts || die "nested storage mount is active"
+    if mounted "$ROMS"; then sync; umount "$ROMS"; fi
+    mounted "$ROMS" && die "LILROMS is busy"
+    device_mounted && die "LILROMS is mounted at another path"
+    return 0
+}
+grow() {
+    transaction=$OS/lilsmoke/grow
+    contract=$OS/lilsmoke/layout.conf
+    [ "$(get "$contract" ExpandOnFirstBoot)" = yes ] || return 0
+    if [ -f "$OS/lilsmoke/grown" ] && [ ! -f "$transaction/journal" ]; then return 0; fi
+    current=$(get "$RUN/geometry" p2_sectors)
+    target=$(get "$RUN/geometry" p2_target_sectors)
+    if [ ! -f "$transaction/journal" ]; then
+        if [ "$current" = "$target" ]; then
+            printf 'complete\n' > "$OS/lilsmoke/grown"; sync; return 0
+        fi
+        exported && die "cannot expand an exported partition"
+        mounted "$ROMS" && die "first-boot expansion requires exclusive storage"
+        device_mounted && die "first-boot source is mounted at another path"
+        check_fs
+        mkdir -p "$transaction" "$RUN/source"
+        # Full source-volume backup avoids archive traversal and preserves every filename.
+        # It is a FILE on LILOS, never an extra partition or an in-RAM buffer.
+        needed=$((current/2+8192))
+        available=$(df -k "$OS" | awk 'END {print $4}')
+        [ "$available" -gt "$needed" ] || die "not enough LILOS space for verified expansion backup; original files untouched"
+        rm -f "$transaction/backup.img.new"
+        dd if="$ROMDEV" of="$transaction/backup.img.new" bs=1M
+        sync
+        mv "$transaction/backup.img.new" "$transaction/backup.img"
+        if [ "$FSTYPE" = exfat ]; then fsck.exfat -n "$transaction/backup.img"; else fsck.vfat -n "$transaction/backup.img"; fi
+        (cd "$transaction"; sha256sum backup.img > backup.sha256)
+        sync
+        printf 'Filesystem=%s\nROMStart=%s\nTargetSectors=%s\n' "$FSTYPE" "$(get "$RUN/geometry" p2_start)" "$target" > "$transaction/journal.new"
+        sync
+        mv "$transaction/journal.new" "$transaction/journal"
+        sync
+    fi
+    # The journal is committed BEFORE any destructive write; every retry starts
+    # from the immutable verified source, even if formatting/restoring was interrupted.
+    [ "$(get "$transaction/journal" ROMStart)" = "$(get "$RUN/geometry" p2_start)" ] || die "recovery disk mismatch"
+    [ "$(get "$transaction/journal" TargetSectors)" = "$target" ] || die "recovery target changed; inspect backup manually"
+    (cd "$transaction"; sha256sum -c backup.sha256) || die "backup verification failed; refusing format"
+    mounted "$ROMS" && die "recovery target is mounted"
+    device_mounted && die "recovery target is mounted at another path"
+    exported && die "recovery target is exported"
+    "$DISK_TOOL" grow "$DISK"
+    if [ "$FSTYPE" = exfat ]; then mkfs.exfat -L LILROMS "$ROMDEV"; else mkfs.vfat -F 32 -n LILROMS "$ROMDEV"; fi
+    mkdir -p "$RUN/source" "$RUN/restore"
+    mount -t "$FSTYPE" -o loop,ro,nosuid,nodev,noexec "$transaction/backup.img" "$RUN/source"
+    mount -t "$FSTYPE" -o rw,nosuid,nodev,noexec "$ROMDEV" "$RUN/restore"
+    cp -r "$RUN/source/." "$RUN/restore/"
+    # Compare bytes without loading a ROM into memory; check files before removing backup.
+    diff -qr "$RUN/source" "$RUN/restore"
+    sync
+    umount "$RUN/restore"
+    umount "$RUN/source"
+    check_fs
+    printf 'complete\n' > "$OS/lilsmoke/grown.new"
+    sync
+    mv "$OS/lilsmoke/grown.new" "$OS/lilsmoke/grown"
+    sync
+    rm -f "$transaction/journal"
+    sync
+    rm -f "$transaction/backup.img" "$transaction/backup.sha256"
+    rmdir "$transaction" 2>/dev/null || true
+}
+finish() {
+    code=$?
+    trap - 0 HUP INT TERM
+    if mounted "$RUN/restore"; then umount "$RUN/restore" || code=1; fi
+    if mounted "$RUN/source"; then umount "$RUN/source" || code=1; fi
+    [ "$code" = 0 ] || state error
+    rmdir "$RUN/lock" 2>/dev/null || true
+    exit "$code"
+}
+command=${1:-boot}
+if [ "$command" = status ]; then cat "$RUN/status" 2>/dev/null || echo state=unavailable; exit 0; fi
+case "$command" in boot|identify|mount-roms|unmount-roms) ;; *) exit 64 ;; esac
+mkdir -p "$RUN" "$OS" "$ROMS" "$PERSIST"
+mkdir "$RUN/lock" 2>/dev/null || die "storage operation already in progress"
+trap finish 0
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
+identify
+case "$command" in
+    identify) state identified ;;
+    unmount-roms) unmount_roms; state shared ;;
+    mount-roms) mount_roms; state local ;;
+    boot)
+        grow
+        if ! mounted "$PERSIST"; then
+            [ -f "$OS/lilsmoke/persist.ext4" ] || die "persistence image missing"
+            e2fsck -p "$OS/lilsmoke/persist.ext4" || [ "$?" = 1 ]
+            mount -t ext4 -o loop,rw,nosuid,nodev "$OS/lilsmoke/persist.ext4" "$PERSIST"
+        fi
+        mount_roms
+        mkdir -p "$ROMS/roms" "$ROMS/bios" "$ROMS/themes" "$ROMS/portsmoke/engines" "$ROMS/portsmoke/ports" "$ROMS/portsmoke/saves" "$ROMS/opendingux/apps"
+        state local ;;
+esac

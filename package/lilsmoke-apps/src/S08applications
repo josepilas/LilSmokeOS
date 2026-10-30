@@ -1,0 +1,13 @@
+#!/bin/sh
+case "${1:-}" in
+    start)
+        for package in /usr/share/lilsmoke/builtin-apps/*.lilpck; do
+            [ -f "$package" ] || continue
+            # The stock M8 reconstructs trusted OS files as file-backed symlinks.
+            source=$(readlink -f "$package") || exit 1
+            /usr/lib/lilsmoke/lilsmoke-apps seed "$source" || exit $?
+        done
+        ;;
+    stop) ;;
+    *) exit 2 ;;
+esac

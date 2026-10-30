@@ -1,0 +1,9 @@
+--- a/sal/linux/sal_filesys.c
++++ b/sal/linux/sal_filesys.c
+@@ -1,4 +1,6 @@
+ #include <string.h>
++#include <limits.h>
++#include <unistd.h>
+ //#include <error.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>

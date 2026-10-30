@@ -1,0 +1,46 @@
+{
+  "release": "Pre-Alpha-0.0.2",
+  "date": "2026-10-23",
+  "status": "qualified-local-runtime-publication-candidate",
+  "authored_license": "MPL-2.0",
+  "operational_runtime": "0.0.1-prep.8 verified final payload",
+  "package_version": "0.0.2",
+  "public_source_rebuild": {
+    "portable_unit_tests_passed": 79,
+    "bootstrap_matches_shipped_byte_for_byte": true,
+    "bootstrap_sha256": "3cff7eaff2998e4818748921fbe7fa9e8988c3e9016e0ccfee804cf927915357",
+    "bin2c_matches_shipped_byte_for_byte": true,
+    "build_shell_matches_shipped_byte_for_byte": true,
+    "input_snapshot_is_versioned_separately_from_current_os_ui": true
+  },
+  "rom_included": false,
+  "extracted_assets_included": false,
+  "cooked_game_included": false,
+  "renderer_binary_included": false,
+  "original_engine_required": true,
+  "corresponding_source_delivery": "separate asset plus SOURCE-OFFER.txt",
+  "verified_predecessor": {
+    "full_native_mips_preparation": true,
+    "cold_fat32_1970_extraction_cancel_resume_checkpoint": true,
+    "split_constrained_vm_resume_link_render_menu_relaunch": true,
+    "vm_actual_game_matches_full_native_build": true,
+    "production_installer_file_readback": true,
+    "installed_files": 3140,
+    "cached_launch_without_compilation": true,
+    "cached_launch_rendered_frames": 900,
+    "cached_menu_and_resume": true,
+    "repeat_launch": true,
+    "vm_cpus": 1,
+    "vm_physical_ram_mib": 120,
+    "vm_swap_kib": 0,
+    "game_virtual_address_limit_kib": 98304,
+    "filesystem_clean": true
+  },
+  "limits": [
+    "No fresh complete first-run compilation timed on physical HC16xx",
+    "No cycle-accurate hardware FPS or audible-output certification",
+    "Initial local preparation can still take substantial time",
+    "Only US 1.0 ROM contents are supported; arbitrary filenames and three byte orders are accepted",
+    "Third-party terms are retained; MPL-2.0 is not a license for Nintendo assets or restricted upstream graphics binaries"
+  ]
+}

@@ -1,0 +1,6 @@
+diff --git a/src/cheat.cpp b/src/cheat.cpp
+--- a/src/cheat.cpp
++++ b/src/cheat.cpp
+@@ -2128,1 +2128,1 @@
+-	int restoreString = NULL;	/* Steph */
++	int restoreString = 0;	/* Steph */

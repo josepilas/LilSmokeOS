@@ -1,5 +1,14 @@
 # Changelog
 
+## Alpha-0.0.1
+
+- Entire authored external-tree source, C++ UI, shell services, board adapters,
+  Buildroot integration and SDK/API are public under MPL-2.0.
+- Retain upstream licenses and legacy grants; exclude custom Daedalus-LilSmoke
+  and Mupen-LilSmoke experiments, private data and unreviewed assets.
+- Deterministic source staging includes inventories, exclusions and audit.
+- Image assembly/verification is separate; a new physical cold boot is pending.
+
 ## Pre-Alpha-0.0.1 - Draft, Unreleased
 
 Prepared on 2026-10-12 as the intended first public release documentation.

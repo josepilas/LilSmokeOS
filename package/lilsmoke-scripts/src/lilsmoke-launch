@@ -1,0 +1,73 @@
+#!/bin/sh
+#
+# lilsmoke-launch - archive resolution and global/per-system engine routing
+#
+# Usage: lilsmoke-launch <system> <rom_path>
+#
+# This is called by LilSmokeUI after the user picks a game. It:
+#   1. Picks the right libretro core based on <system>
+#   2. Constructs the retroarch command line
+#   3. Sets environment (audio, video driver, save dir)
+#   4. exec's retroarch (replacing this process)
+#
+# The launcher is intentionally tiny — it runs *inside* LilSmokeUI's
+# memory budget while the user is selecting, then LilSmokeUI exec's
+# us, and we exec retroarch. So at no point do we have 3 processes
+# alive simultaneously.
+
+SYSTEM="${1:-}"
+if [ -f /run/lilsmoke-storage/exporting ]; then
+    echo "LILROMS is shared with the PC; safely eject LILDRIVE first" >&2
+    exit 1
+fi
+ROM_PATH="${2:-}"
+[ -z "$SYSTEM" ] && { echo "usage: lilsmoke-launch <system> <rom_path>" >&2; exit 1; }
+[ -z "$ROM_PATH" ] && { echo "usage: lilsmoke-launch <system> <rom_path>" >&2; exit 1; }
+
+SAVE_DIR="${LILSMOKE_SAVE_ROOT:-/persist/saves}"
+STATE_DIR="${LILSMOKE_STATE_ROOT:-/persist/states}"
+
+mkdir -p "$SAVE_DIR" "$STATE_DIR"
+
+# Retain logical archive identity through resolver/router exec handoffs.
+export LILSMOKE_STATE_CONTENT="${LILSMOKE_STATE_CONTENT:-$ROM_PATH}"
+loading_progress() {
+    [ -n "${LILSMOKE_LOADING_PROGRESS:-}" ] || return 0
+    temporary=$LILSMOKE_LOADING_PROGRESS.$$
+    (umask 077; printf '%s\t%s\n' "$1" "$2" > "$temporary" &&
+        mv -f "$temporary" "$LILSMOKE_LOADING_PROGRESS") || rm -f "$temporary"
+    return 0
+}
+
+[ -f "$ROM_PATH" ] || { echo "lilsmoke-launch: rom missing: $ROM_PATH" >&2; exit 4; }
+if [ "${3:-}" = --pcsx4all ]; then
+    case "$SYSTEM" in psx|ps1|playstation) ;; *) exit 2 ;; esac
+    resolver="${LILSMOKE_ROM_RESOLVER:-/usr/lib/lilsmoke/lilsmoke-rom}"
+    loading_progress 30 'Resolving ROM'
+    ROM_PATH=$("$resolver" psx "$ROM_PATH") || exit $?
+    loading_progress 70 'Starting emulator'
+    if [ "${LILSMOKE_APP_ID:-}" = org.lilsmoke.pcsx4all ] && [ -n "${LILSMOKE_APP_DIR:-}" ] &&
+       [ -f "$LILSMOKE_APP_DIR/PCSX4ALL.sh" ]; then
+        exec /bin/sh "$LILSMOKE_APP_DIR/PCSX4ALL.sh" --resolved "$ROM_PATH"
+    fi
+    exec "${LILSMOKE_EMULATOR_ROUTER:-/usr/lib/lilsmoke/lilsmoke-emulators}" \
+        run-provider app:org.lilsmoke.pcsx4all psx "$ROM_PATH"
+fi
+if [ "${3:-}" != --pcsx4all ]; then
+    router="${LILSMOKE_EMULATOR_ROUTER:-/usr/lib/lilsmoke/lilsmoke-emulators}"
+    [ -x "$router" ] || { echo 'Emulator registry is not installed' >&2; exit 3; }
+    selected=$("$router" resolve "$SYSTEM") || exit $?
+    # Emulator apps receive the original logical filename, not a cache path.
+    case "$selected" in app:*) exec "$router" run-provider "$selected" "$SYSTEM" "$ROM_PATH" ;; esac
+fi
+resolver="${LILSMOKE_ROM_RESOLVER:-/usr/lib/lilsmoke/lilsmoke-rom}"
+[ -x "$resolver" ] || { echo 'ROM archive resolver is not installed' >&2; exit 3; }
+loading_progress 30 'Resolving ROM'
+ROM_PATH=$("$resolver" "$SYSTEM" "$ROM_PATH") || exit $?
+
+if [ "${3:-}" != --pcsx4all ]; then
+    router="${LILSMOKE_EMULATOR_ROUTER:-/usr/lib/lilsmoke/lilsmoke-emulators}"
+    [ -x "$router" ] || { echo 'Emulator registry is not installed' >&2; exit 3; }
+    loading_progress 70 'Starting emulator'
+    exec "$router" run "$SYSTEM" "$ROM_PATH"
+fi

@@ -1,0 +1,36 @@
+# LilSmokeOS — /etc/inittab for VirtualBox x86_64
+#
+# BusyBox init. Boot flow:
+#   1. sysinit: mount /proc, /sys, /dev (done by kernel + S01)
+#   2. wait for S* scripts to run (mounts, mdev, network, daemons)
+#   3. launch LilSmokeUI on tty1 (the VBox VESA framebuffer)
+#   4. respawn shells on ttyS0 (COM1 serial, for VBox raw-file debug)
+#      and tty2 (for Alt+F2 switching, though VBox doesn't always
+#      forward that — use SSH instead)
+#
+# Note: the VBox target enables Dropbear SSH by default (unlike QEMU
+# and real HW, which leave it off). See board/vbox-x86_64/lilsmoke.conf.
+
+::sysinit:/etc/init.d/rcS
+
+# LilSmokeUI runs on the framebuffer console (tty1)
+tty1::respawn:/usr/bin/lilsmoke-ui 2>/var/log/lilsmoke-ui.log
+
+# Serial console (VBox COM1 — see docs/vbox-guide.md §11 for setup)
+ttyS0::respawn:/bin/sh
+
+# Alt+F2 debug shell (works on real HW; VBox needs the keyboard map
+# to send F2 to the guest, which it does by default)
+tty2::respawn:/bin/sh
+
+# Ctrl-Alt-Del → graceful reboot
+::ctrlaltdel:/sbin/reboot
+
+# Shutdown handling
+::shutdown:/etc/init.d/rcK
+# The UI execs games, so stopping only lilsmoke-ui leaves save/log files open.
+::shutdown:/bin/busybox killall5 -15
+::shutdown:/bin/sleep 1
+::shutdown:/bin/busybox killall5 -9
+::shutdown:/bin/sync
+::shutdown:/bin/umount -a -r

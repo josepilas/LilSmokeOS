@@ -1,0 +1,10 @@
+diff --git a/src/scene.cpp b/src/scene.cpp
+--- a/src/scene.cpp
++++ b/src/scene.cpp
+@@ -323,5 +323,5 @@
+ void Scene::DrawBackground(Bitmap& dst) {
+ 	// The game browser has no Game_System when its exit transition draws.
+ 	dst.Fill(Main_Data::game_system ? Main_Data::game_system->GetBackgroundColor()
+-	                              : Color(0, 0, 0));
++	                              : Color(0, 0, 0, 255));
+ }

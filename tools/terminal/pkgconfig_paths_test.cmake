@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.16)
+if(NOT TEST_ROOT)
+    message(FATAL_ERROR "Pass an isolated absolute TEST_ROOT")
+endif()
+set(CMAKE_CROSSCOMPILING TRUE)
+set(CMAKE_SYSROOT "${TEST_ROOT}/sysroot")
+set(CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT}")
+set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
+include("${CMAKE_CURRENT_LIST_DIR}/../../package/lilsmoke-terminal/src/PkgConfigPaths.cmake")
+if(DEFINED PROBE_PATH)
+    lilsmoke_pkg_include("${PROBE_PATH}" result)
+    return()
+endif()
+file(MAKE_DIRECTORY "${CMAKE_SYSROOT}/usr/include/directfb" "${TEST_ROOT}/outside")
+if(NOT EXISTS "${TEST_ROOT}/staging")
+    file(CREATE_LINK "${CMAKE_SYSROOT}" "${TEST_ROOT}/staging" SYMBOLIC)
+endif()
+if(NOT EXISTS "${CMAKE_SYSROOT}/usr/include/escape")
+    file(CREATE_LINK "${TEST_ROOT}/outside" "${CMAKE_SYSROOT}/usr/include/escape" SYMBOLIC)
+endif()
+foreach(path "${CMAKE_SYSROOT}/usr/include/directfb"
+             "${TEST_ROOT}/staging/usr/include/directfb"
+             "${CMAKE_SYSROOT}${TEST_ROOT}/staging/usr/include/directfb"
+             "${CMAKE_SYSROOT}${CMAKE_SYSROOT}/usr/include/directfb")
+    lilsmoke_pkg_include("${path}" result)
+    if(NOT result STREQUAL "${CMAKE_SYSROOT}/usr/include/directfb")
+        message(FATAL_ERROR "Unexpected normalized include: ${result}")
+    endif()
+endforeach()
+foreach(path "${CMAKE_SYSROOT}/missing" "${TEST_ROOT}/outside"
+             "${CMAKE_SYSROOT}/usr/include/escape"
+             "${CMAKE_SYSROOT}${TEST_ROOT}/outside"
+             "${CMAKE_SYSROOT}/../outside")
+    execute_process(COMMAND "${CMAKE_COMMAND}" "-DTEST_ROOT=${TEST_ROOT}" "-DPROBE_PATH=${path}"
+        -P "${CMAKE_CURRENT_LIST_FILE}" RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+    if(status EQUAL 0 OR NOT error MATCHES "cannot be resolved within")
+        message(FATAL_ERROR "Unsafe/missing include was not rejected: ${path}: ${output}${error}")
+    endif()
+endforeach()
+message(STATUS "PASS pkg-config normal/alias/double-prefix repair, missing path and host/symlink escape rejection")

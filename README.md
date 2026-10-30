@@ -8,16 +8,29 @@
 
 ![Logo do Projeto](logo.webp)
 
-**Pre-Alpha-0.0.1**. Created and led by **José Pilas**.
+**Alpha-0.0.1**. Created and led by **José Pilas**.
 
 LilSmokeOS is a Buildroot external tree and controller-first Linux interface
-for constrained MIPS devices. Initial releases use a personal-use proprietary
-license for original material owned by José Pilas. The main authored OS source
-repository remains private in initial versions for personal reasons; a future source
-release is intended to use MPL-2.0. Upstream components retain their own terms
-and source/notice obligations. Public SM64-LilSmoke adaptations use MPL-2.0.
+for constrained MIPS devices. The authored Alpha source is public under
+**Mozilla Public License 2.0 (MPL-2.0)**, including the C++ interface, board
+adapters, shell services, Buildroot integration, scripts and application SDK/API.
+Upstream components and modifications to upstream files retain their own terms
+and source/notice obligations. This is not blanket MPL relicensing.
+Daedalus-LilSmoke and the custom Mupen-LilSmoke experiments are excluded;
+existing generic N64/Mupen64Plus support is not removed.
 
 ## Release Status
+
+The complete authored Alpha source is available in this repository, and the
+image and source ZIP are distributed through [Alpha-0.0.1 Releases](https://github.com/josepilas/LilSmokeOS/releases/tag/Alpha-0.0.1).
+See the [Alpha source inventory and limits](docs/alpha-0.0.1-source.md).
+The source archive contains no ROM, BIOS, stock firmware export or private game build.
+
+The Alpha image is **1,880,096,768 bytes**,
+SHA-256 `1d5c30b0635ca7577ca209c304320c35723eb5f48ad6168b71a3f9261fa16d12`.
+Both FAT filesystem checks passed. LILOS is 1 GiB and the initial LILROMS is
+768 MiB, growable within the prepared 128 GiB capacity. Physical Alpha cold
+boot remains unverified; image/VM results are reported independently.
 
 The experimental [Pre-Alpha-0.0.1 image](https://github.com/josepilas/LilSmokeOS/releases/tag/Pre-Alpha-0.0.1)
 is published. It is **not certified universal firmware or complete redistribution
@@ -43,6 +56,7 @@ console's marketing name.
 - [User manual](docs/pre-alpha-0.0.1/user-manual.md)
 - [Troubleshooting](docs/pre-alpha-0.0.1/troubleshooting.md)
 - [Developer guides](docs/developer/README.md)
+- [Applications SDK/API](docs/lilsmoke-applications-sdk.md)
 - [Credits](CREDITS.md), [third-party notices](THIRD_PARTY_NOTICES.md)
 
 Two visible partitions are used: **LILOS (FAT32)** and **LILROMS (FAT32/exFAT)**.
@@ -88,6 +102,22 @@ it does not reproduce HC16xx cycle timing or audible auddec.
 
 ## Development
 
+The [LilSmoke SDK/API and Studio repository](https://github.com/josepilas/LilSmoke-SDK)
+provides standalone developer source and [SDK/Studio releases](https://github.com/josepilas/LilSmoke-SDK/releases).
+The [LilSmoke Port Converter](https://github.com/josepilas/LilSmoke-Port-Converter)
+has separate [source](https://github.com/josepilas/LilSmoke-Port-Converter/tree/source)
+and [browser distribution](https://github.com/josepilas/LilSmoke-Port-Converter/tree/dist)
+branches, a [0.2.0 release](https://github.com/josepilas/LilSmoke-Port-Converter/releases/tag/0.2.0)
+and the [hosted converter](https://josepilas.github.io/LilSmoke-Port-Converter/).
+These repositories are published independently of the OS image;
+the SDK and converter source also remain in this OS external tree.
+
+The [Applications SDK](tools/lilsmoke-sdk/README.md) provides a graphical SDL2
+starter, host preview, MIPS build profile and `.lilpck` packaging. It is separate
+MPL-2.0 original developer tooling; a matching device toolchain is not bundled.
+Packages discover their single root `.sh` by extension, not a fixed `run.sh`
+name. See its portable guide for prerequisites and tested limits.
+
 Use the documented pinned Buildroot/SDK and board workflow, not an arbitrary
 upstream kernel or ARM image. QEMU is a development fixture:
 
@@ -101,7 +131,7 @@ Read [the publishing checklist](docs/release-preparation.md) before staging.
 Never `git add .` from this development workspace: stock exports, private
 packages, ROMs, build outputs and captures are outside release scope.
 Repository: [josepilas/LilSmokeOS](https://github.com/josepilas/LilSmokeOS).
-The published prerelease contains only the frozen OS `.img` as its release
-asset; authored OS source is not published here. Read the release's exact
-verification limits and third-party source/notice gaps before using it.
-
+The older Pre-Alpha image and its checksum are historical artifacts, not the
+Alpha image. Public authored source does not establish that all firmware,
+game engines or artwork can be redistributed, or reproduce that old image
+without separately obtained dependencies. Read each artifact's exact limits.

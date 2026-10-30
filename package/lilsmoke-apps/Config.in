@@ -1,0 +1,17 @@
+config BR2_PACKAGE_LILSMOKE_APPS
+    bool "LilSmoke Applications (.lilpck)"
+    default y if BR2_PACKAGE_LILSMOKE_UI
+    depends on BR2_INSTALL_LIBSTDCPP
+    depends on BR2_USE_WCHAR
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    select BR2_PACKAGE_LIBARCHIVE
+    select BR2_PACKAGE_JSON_C
+    select BR2_PACKAGE_LIBSODIUM
+    select BR2_PACKAGE_ZLIB
+    select BR2_PACKAGE_BZIP2
+    select BR2_PACKAGE_XZ
+    select BR2_PACKAGE_ZSTD
+    help
+      Self-contained native application packages, transactional installation,
+      application-owned runtimes and the LilSmoke Applications channel grid.
+      ZIP, 7z and compressed TAR packages are detected by archive contents.

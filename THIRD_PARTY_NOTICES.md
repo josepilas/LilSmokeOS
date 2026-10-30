@@ -1,8 +1,8 @@
 # Third-Party Notices
 
-Created and led by José Pilas. Original OS material designated for the initial
-release uses a personal-use proprietary license; public SM64 authored code
-uses MPL-2.0. Existing grants are not revoked. The
+Created and led by José Pilas. Original authored Alpha-0.0.1 OS source
+uses MPL-2.0; public SM64 authored code also uses MPL-2.0.
+Existing grants are not revoked. The
 following projects, embedded runtimes and upstream modifications keep their
 own terms. This summary is not a substitute for the exact licenses in source
 and Buildroot `legal-info`. Verify versions and compiled options per artifact.

@@ -1,0 +1,506 @@
+--- a/src/pc/gfx/gfx_soft.c
++++ b/src/pc/gfx/gfx_soft.c
+@@ -849,6 +849,8 @@
+     return count == OPT_STEP ? value / OPT_STEP : value / count;
+ }
+ 
++/* A block endpoint is the next block's exact start. Retain the converted
++ * values instead of repeating perspective division and conversion. */
+ /* --- opaque textured (tex_rgb): v3 path, unchanged --- */
+ static void opt_scan_tex_rgb(opt_pix_t *dst, uint16_t *zb, int n,
+         float *p, const Vector2 *dp, const struct Texture * const tex) {
+@@ -860,17 +862,18 @@
+     const uint32_t *tpix = (const uint32_t *)(texcache + tex->addr);
+     const bool bil = tex->filter;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int rr = (int)(p[6] * w0);
++    int gg = (int)(p[7] * w0);
++    int bb = (int)(p[8] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int rr = (int)(p[6] * w0);
+-        int gg = (int)(p[7] * w0);
+-        int bb = (int)(p[8] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[9];
+         for (int i = 2; i < 9; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -924,6 +927,12 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 9; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -947,18 +956,19 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int rr = (int)(p[6] * w0);
++    int gg = (int)(p[7] * w0);
++    int bb = (int)(p[8] * w0);
++    int aa = (int)(p[9] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int rr = (int)(p[6] * w0);
+-        int gg = (int)(p[7] * w0);
+-        int bb = (int)(p[8] * w0);
+-        int aa = (int)(p[9] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[10];
+         for (int i = 2; i < 10; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1063,6 +1073,13 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 10; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        aa = aa1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1076,16 +1093,17 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int rr = (int)(p[4] * w0);
++    int gg = (int)(p[5] * w0);
++    int bb = (int)(p[6] * w0);
++    int aa = (int)(p[7] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int rr = (int)(p[4] * w0);
+-        int gg = (int)(p[5] * w0);
+-        int bb = (int)(p[6] * w0);
+-        int aa = (int)(p[7] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[8];
+         for (int i = 2; i < 8; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1127,6 +1145,11 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 8; ++i) p[i] = q[i];
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        aa = aa1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1135,15 +1158,16 @@
+         float *p, const Vector2 *dp, UNUSED const struct Texture * const tex) {
+     const int zoff = (int)z_offset;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int rr = (int)(p[4] * w0);
++    int gg = (int)(p[5] * w0);
++    int bb = (int)(p[6] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int rr = (int)(p[4] * w0);
+-        int gg = (int)(p[5] * w0);
+-        int bb = (int)(p[6] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[7];
+         for (int i = 2; i < 7; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1168,6 +1192,10 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 7; ++i) p[i] = q[i];
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1190,16 +1218,17 @@
+     const int zoff = (int)z_offset;
+     const int fcr = fog_color.r, fcg = fog_color.g, fcb = fog_color.b;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int ff = (int)(p[4] * w0);
++    int rr = (int)(p[5] * w0);
++    int gg = (int)(p[6] * w0);
++    int bb = (int)(p[7] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int ff = (int)(p[4] * w0);
+-        int rr = (int)(p[5] * w0);
+-        int gg = (int)(p[6] * w0);
+-        int bb = (int)(p[7] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[8];
+         for (int i = 2; i < 8; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1237,6 +1266,11 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 8; ++i) p[i] = q[i];
++        ff = ff1;
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1259,15 +1293,16 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int ff = (int)(p[6] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int ff = (int)(p[6] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[7];
+         for (int i = 2; i < 7; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1360,6 +1395,10 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 7; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        ff = ff1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1376,18 +1415,19 @@
+     const bool bil = tex->filter;
+     const int fcr = fog_color.r, fcg = fog_color.g, fcb = fog_color.b;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int ff = (int)(p[6] * w0);
++    int rr = (int)(p[7] * w0);
++    int gg = (int)(p[8] * w0);
++    int bb = (int)(p[9] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int ff = (int)(p[6] * w0);
+-        int rr = (int)(p[7] * w0);
+-        int gg = (int)(p[8] * w0);
+-        int bb = (int)(p[9] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[10];
+         for (int i = 2; i < 10; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1450,6 +1490,13 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 10; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        ff = ff1;
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1475,14 +1522,15 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[6];
+         for (int i = 2; i < 6; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1566,6 +1614,9 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 6; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1588,17 +1639,18 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int rr = (int)(p[6] * w0);
++    int gg = (int)(p[7] * w0);
++    int bb = (int)(p[8] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int rr = (int)(p[6] * w0);
+-        int gg = (int)(p[7] * w0);
+-        int bb = (int)(p[8] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[9];
+         for (int i = 2; i < 9; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1691,6 +1743,12 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 9; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1714,19 +1772,20 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int ff = (int)(p[6] * w0);
++    int rr = (int)(p[7] * w0);
++    int gg = (int)(p[8] * w0);
++    int bb = (int)(p[9] * w0);
++    int aa = (int)(p[10] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int ff = (int)(p[6] * w0);
+-        int rr = (int)(p[7] * w0);
+-        int gg = (int)(p[8] * w0);
+-        int bb = (int)(p[9] * w0);
+-        int aa = (int)(p[10] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[11];
+         for (int i = 2; i < 11; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1834,6 +1893,14 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 11; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        ff = ff1;
++        rr = rr1;
++        gg = gg1;
++        bb = bb1;
++        aa = aa1;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1850,20 +1917,21 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int r1 = (int)(p[4] * w0);
++    int g1 = (int)(p[5] * w0);
++    int b1 = (int)(p[6] * w0);
++    int a1 = (int)(p[7] * w0);
++    int r2 = (int)(p[8] * w0);
++    int g2 = (int)(p[9] * w0);
++    int b2 = (int)(p[10] * w0);
++    int a2 = (int)(p[11] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int r1 = (int)(p[4] * w0);
+-        int g1 = (int)(p[5] * w0);
+-        int b1 = (int)(p[6] * w0);
+-        int a1 = (int)(p[7] * w0);
+-        int r2 = (int)(p[8] * w0);
+-        int g2 = (int)(p[9] * w0);
+-        int b2 = (int)(p[10] * w0);
+-        int a2 = (int)(p[11] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[12];
+         for (int i = 2; i < 12; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -1923,6 +1991,15 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 12; ++i) p[i] = q[i];
++        r1 = r12;
++        g1 = g12;
++        b1 = b12;
++        a1 = a12;
++        r2 = r22;
++        g2 = g22;
++        b2 = b22;
++        a2 = a22;
++        zz = zz1;
+         n -= cnt;
+     }
+ }
+@@ -1946,20 +2023,21 @@
+     const bool do_blend = (dfl & (DRAW_BLEND | DRAW_BLEND_EDGE)) != 0;
+     const bool do_edge  = (dfl & DRAW_BLEND_EDGE) != 0;
+ 
++    if (n <= 0) return;
++    const float w0 = 1.0f / p[3];
++    int uu = (int)(p[4] * w0 * fw16);
++    int vv = (int)(p[5] * w0 * fh16);
++    int r1 = (int)(p[6] * w0);
++    int g1 = (int)(p[7] * w0);
++    int b1 = (int)(p[8] * w0);
++    int r2 = (int)(p[9] * w0);
++    int g2 = (int)(p[10] * w0);
++    int b2 = (int)(p[11] * w0);
++    int zz = (int)(p[2] * 65535.0f) + zoff;
++    if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
++
+     while (n > 0) {
+         const int cnt = (n > OPT_STEP) ? OPT_STEP : n;
+-        const float w0 = 1.0f / p[3];
+-        int uu = (int)(p[4] * w0 * fw16);
+-        int vv = (int)(p[5] * w0 * fh16);
+-        int r1 = (int)(p[6] * w0);
+-        int g1 = (int)(p[7] * w0);
+-        int b1 = (int)(p[8] * w0);
+-        int r2 = (int)(p[9] * w0);
+-        int g2 = (int)(p[10] * w0);
+-        int b2 = (int)(p[11] * w0);
+-        int zz = (int)(p[2] * 65535.0f) + zoff;
+-        if (zz < 0) zz = 0; else if (zz > 0xFFFF) zz = 0xFFFF;
+-
+         float q[12];
+         for (int i = 2; i < 12; ++i) q[i] = p[i] + cnt * dp[i].x;
+         const float w1 = 1.0f / q[3];
+@@ -2029,6 +2107,15 @@
+             zz += dz;
+         }
+         for (int i = 2; i < 12; ++i) p[i] = q[i];
++        uu = uu1;
++        vv = vv1;
++        r1 = r12;
++        g1 = g12;
++        b1 = b12;
++        r2 = r22;
++        g2 = g22;
++        b2 = b22;
++        zz = zz1;
+         n -= cnt;
+     }
+ }

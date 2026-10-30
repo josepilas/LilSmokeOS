@@ -1,0 +1,40 @@
+config BR2_PACKAGE_RETROARCH_MIPS
+    bool "retroarch (MIPS build) + 8 curated libretro cores"
+    default y if BR2_PACKAGE_LILSMOKE_OS
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_SDL2_DIRECTFB
+    select BR2_PACKAGE_SDL2_ALSA
+    select BR2_PACKAGE_ALSA_LIB
+    select BR2_PACKAGE_FREETYPE
+    select BR2_PACKAGE_LIBPNG
+    select BR2_PACKAGE_ZLIB
+    select BR2_PACKAGE_LIBEVDEV
+    help
+      RetroArch built for MIPS32 74Kf with the DirectFB video driver
+      (no GPU on the SF3000/GB350 target).
+
+      Ships with a curated set of 8 lightweight libretro cores appropriate
+      for ~1.2 GHz MIPS + 128-256 MB RAM:
+        - FCEUmm            (NES/Famicom/FDS)
+        - Gambatte          (Game Boy / Game Boy Color)
+        - mGBA              (Game Boy Advance)
+        - Snes9x 2005       (SNES, alignment-safe MIPS software core)
+        - Genesis Plus GX   (Master System / Game Gear / Mega Drive)
+        - FBNeo             (Arcade: CPS1, early CPS2, early Neo Geo)
+        - Beetle PCE Fast   (PC Engine / TurboGrafx-16)
+        - Handy             (Atari Lynx)
+
+      For 128 MB SKUs (LILSMOKE_LITE preset), the last 3 are dropped.
+
+      PS1 is handled separately by the pcsx4all package (rkgame reconstruction)
+      — not via a libretro core, because that port uses a MIPS-to-MIPS
+      dynarec that outperforms any available libretro PS1 core on this CPU.
+
+config BR2_PACKAGE_RETROARCH_MIPS_SNES_QA
+    bool "SNES-only functional QA image"
+    depends on BR2_PACKAGE_RETROARCH_MIPS
+    default n
+    help
+      Build the RetroArch frontend but skip unrelated core downloads and
+      compile only the pinned Snes9x 2005 core for the target ABI. This is
+      intended for deterministic QEMU/UI recording and CI, not releases.

@@ -1,0 +1,130 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: LilSmokeOS <dev@lilsmoke.org>
+Date: Fri, 25 Sep 2026 12:00:00 +0000
+Subject: [PATCH] direct: initialize recursive mutexes portably
+
+musl does not provide the glibc-specific
+PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP macro. Initialize DirectFB's static
+recursive locks once at runtime using the existing portable mutex helper.
+
+Based on the OpenEmbedded DirectFB portability patch, with its tables-lock
+initializer typo corrected.
+
+Signed-off-by: LilSmokeOS <dev@lilsmoke.org>
+---
+ lib/direct/os/linux/glibc/mutex.h |  1 -
+ lib/direct/trace.c                | 24 +++++++++++++++++++++---
+ src/directfb.c                    | 12 ++++++++++--
+ 3 files changed, 31 insertions(+), 6 deletions(-)
+
+diff --git a/lib/direct/os/linux/glibc/mutex.h b/lib/direct/os/linux/glibc/mutex.h
+index 5c47df1..c691771 100644
+--- a/lib/direct/os/linux/glibc/mutex.h
++++ b/lib/direct/os/linux/glibc/mutex.h
+@@ -46,6 +46,5 @@ struct __D_DirectMutex {
+ /**********************************************************************************************************************/
+ 
+ #define DIRECT_MUTEX_INITIALIZER(name)            { PTHREAD_MUTEX_INITIALIZER }
+-#define DIRECT_RECURSIVE_MUTEX_INITIALIZER(name)  { PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP }
+ 
+ #endif
+diff --git a/lib/direct/trace.c b/lib/direct/trace.c
+index 5d3ea1c..308b42c 100644
+--- a/lib/direct/trace.c
++++ b/lib/direct/trace.c
+@@ -89,7 +89,14 @@ struct __D_DirectTraceBuffer {
+ /**************************************************************************************************/
+ 
+ static DirectLink  *buffers;
+-static DirectMutex  buffers_lock = DIRECT_RECURSIVE_MUTEX_INITIALIZER(buffers_lock);
++static pthread_once_t buffers_lock_init_once = PTHREAD_ONCE_INIT;
++static DirectMutex    buffers_lock;
++
++static void
++buffers_lock_init( void )
++{
++     direct_recursive_mutex_init( &buffers_lock );
++}
+ 
+ /**************************************************************************************************/
+ 
+@@ -113,6 +120,7 @@ get_trace_buffer( void )
+ 
+           D_MAGIC_SET( buffer, DirectTraceBuffer );
+ 
++          pthread_once( &buffers_lock_init_once, buffers_lock_init );
+           direct_mutex_lock( &buffers_lock );
+           direct_list_append( &buffers, &buffer->link );
+           direct_mutex_unlock( &buffers_lock );
+@@ -138,7 +146,14 @@ typedef struct {
+ } SymbolTable;
+ 
+ static DirectLink  *tables      = NULL;
+-static DirectMutex  tables_lock = DIRECT_RECURSIVE_MUTEX_INITIALIZER(tables_lock);
++static pthread_once_t tables_lock_init_once = PTHREAD_ONCE_INIT;
++static DirectMutex    tables_lock;
++
++static void
++tables_lock_init( void )
++{
++     direct_recursive_mutex_init( &tables_lock );
++}
+ 
+ 
+ __dfb_no_instrument_function__
+@@ -370,6 +385,7 @@ direct_trace_lookup_symbol( const char *filename, unsigned long offset,
+      Symbol      *symbol;
+      SymbolTable *table;
+ 
++     pthread_once( &tables_lock_init_once, tables_lock_init );
+      direct_mutex_lock( &tables_lock );
+ 
+      table = find_table( filename );
+@@ -514,6 +530,7 @@ direct_trace_print_stacks()
+      DirectTraceBuffer *b;
+      DirectTraceBuffer *buffer = get_trace_buffer();
+ 
++     pthread_once( &buffers_lock_init_once, buffers_lock_init );
+      direct_mutex_lock( &buffers_lock );
+ 
+      if (buffer && buffer->level)
+@@ -611,6 +628,7 @@ direct_trace_free_buffer( DirectTraceBuffer *buffer )
+      D_MAGIC_ASSERT( buffer, DirectTraceBuffer );
+ 
+      if (buffer->thread) {
++          pthread_once( &buffers_lock_init_once, buffers_lock_init );
+           direct_mutex_lock( &buffers_lock );
+           direct_list_remove( &buffers, &buffer->link );
+           direct_mutex_unlock( &buffers_lock );
+diff --git a/src/directfb.c b/src/directfb.c
+index 82d13e1..e9f91bb 100644
+--- a/src/directfb.c
++++ b/src/directfb.c
+@@ -99,6 +99,15 @@ const unsigned int directfb_micro_version = DIRECTFB_MICRO_VERSION;
+ const unsigned int directfb_binary_age    = DIRECTFB_BINARY_AGE;
+ const unsigned int directfb_interface_age = DIRECTFB_INTERFACE_AGE;
+ 
++static pthread_once_t lock_init_once = PTHREAD_ONCE_INIT;
++static DirectMutex    lock;
++
++static void
++lock_init( void )
++{
++     direct_recursive_mutex_init( &lock );
++}
++
+ const char *
+ DirectFBCheckVersion( unsigned int required_major,
+                       unsigned int required_minor,
+@@ -215,8 +224,7 @@ DirectFBCreate( IDirectFB **interface_ptr )
+      if (dfb_config->remote.host)
+           return CreateRemote( dfb_config->remote.host, dfb_config->remote.port, interface_ptr );
+ 
+-     static DirectMutex lock = DIRECT_RECURSIVE_MUTEX_INITIALIZER(lock);
+-
++     pthread_once( &lock_init_once, lock_init );
+      direct_mutex_lock( &lock );
+ 
+      if (!dfb_config->no_singleton && idirectfb_singleton) {
+-- 
+2.43.0

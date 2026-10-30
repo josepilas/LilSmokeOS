@@ -1,0 +1,7 @@
+display_name = "Nintendo 64 (ParaLLEl software, experimental)"
+corename = "ParaLLEl N64"
+systemname = "Nintendo 64"
+supported_extensions = "n64|v64|z64"
+supports_no_game = "false"
+hardware_render = "false"
+description = "CPU-only cached interpreter, Angrylion and Cxd4. Performance unverified on HC16xx."

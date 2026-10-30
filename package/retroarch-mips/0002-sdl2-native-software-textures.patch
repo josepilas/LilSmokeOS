@@ -1,0 +1,88 @@
+From: LilSmokeOS developers
+Subject: [PATCH] sdl2: convert at core resolution for native software textures
+
+Use the supported native window format only with the software renderer.
+Keep menu blending and rotated/other-renderer clearing. Libretro XRGB8888
+has no alpha: RGB888 conversion and explicit opaque blending preserve it.
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -300,6 +300,25 @@
+       else /* this assumes the frontend will convert 0RGB1555 to RGB565 */
+          format = rgb32 ? SDL_PIXELFORMAT_ARGB8888 : SDL_PIXELFORMAT_RGB565;
+ 
++      /* Convert once at core resolution instead of combining conversion and
++       * scaling for every output pixel in SDL's generic software blitter. */
++      if (!menu)
++      {
++         SDL_RendererInfo info;
++         unsigned i;
++         Uint32 window_format = SDL_GetWindowPixelFormat(vid->window);
++         if (SDL_GetRendererInfo(vid->renderer, &info) == 0 &&
++             strcmp(info.name, "software") == 0 &&
++             SDL_BYTESPERPIXEL(window_format) >= 2 &&
++             SDL_BYTESPERPIXEL(window_format) <= 4)
++            for (i = 0; i < info.num_texture_formats; i++)
++               if (info.texture_formats[i] == window_format)
++               {
++                  format = window_format;
++                  break;
++               }
++      }
++
+       SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY,
+                               (menu ? "nearest" : (vid->video.smooth ? "linear" : "nearest")),
+                               SDL_HINT_OVERRIDE);
+@@ -316,6 +335,8 @@
+ 
+       if (menu)
+          SDL_SetTextureBlendMode(target->tex, SDL_BLENDMODE_BLEND);
++      else
++         SDL_SetTextureBlendMode(target->tex, SDL_BLENDMODE_NONE);
+ 
+       target->w = width;
+       target->h = height;
+@@ -486,9 +507,41 @@
+ 
+    if (frame)
+    {
+-      SDL_RenderClear(vid->renderer);
++      SDL_RendererInfo info;
++      /* The software window surface survives present. The opaque, unrotated
++       * game covers the whole viewport; borders were cleared on resize. */
++      if (vid->rotation != 0 ||
++          SDL_GetRendererInfo(vid->renderer, &info) != 0 ||
++          strcmp(info.name, "software") != 0)
++         SDL_RenderClear(vid->renderer);
+       sdl_refresh_input_size(vid, false, vid->video.rgb32, width, height, pitch);
+-      SDL_UpdateTexture(vid->frame.tex, NULL, frame, pitch);
++      if (vid->frame.tex)
++      {
++         Uint32 format;
++         Uint32 source_format = vid->video.rgb32 ? SDL_PIXELFORMAT_RGB888 : SDL_PIXELFORMAT_RGB565;
++         if (SDL_QueryTexture(vid->frame.tex, &format, NULL, NULL, NULL) != 0)
++            return false;
++         if (source_format == format)
++         {
++            if (SDL_UpdateTexture(vid->frame.tex, NULL, frame, pitch) != 0)
++               return false;
++         }
++         else
++         {
++            void *pixels;
++            int texture_pitch;
++            int result;
++            if (SDL_LockTexture(vid->frame.tex, NULL, &pixels, &texture_pitch) != 0)
++               return false;
++            result = SDL_ConvertPixels(width, height, source_format, frame, pitch,
++                  format, pixels, texture_pitch);
++            SDL_UnlockTexture(vid->frame.tex);
++            if (result != 0)
++               return false;
++         }
++      }
++      else
++         return false;
+    }
+ 
+    SDL_RenderCopyEx(vid->renderer, vid->frame.tex, NULL, NULL, vid->rotation, NULL, SDL_FLIP_NONE);

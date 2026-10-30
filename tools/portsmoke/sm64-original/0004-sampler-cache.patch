@@ -1,0 +1,6 @@
+--- a/src/pc/gfx/gfx_pc.c
++++ b/src/pc/gfx/gfx_pc.c
+@@ -905,1 +905,2 @@
+-    const bool linear_filter = configFiltering && (rdp.other_mode_h & (3U << G_MDSFT_TEXTFILT)) != G_TF_POINT;
++    extern bool sm64_raster_filter_enabled(void);
++    const bool linear_filter = sm64_raster_filter_enabled() && configFiltering && (rdp.other_mode_h & (3U << G_MDSFT_TEXTFILT)) != G_TF_POINT;

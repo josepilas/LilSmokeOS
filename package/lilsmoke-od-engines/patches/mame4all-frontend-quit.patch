@@ -1,0 +1,20 @@
+diff --git a/src/odx/minimal.cpp b/src/odx/minimal.cpp
+--- a/src/odx/minimal.cpp
++++ b/src/odx/minimal.cpp
+@@ -26,1 +26,2 @@
+ int odx_quit_requested=0;
++void (*odx_quit_handler)(void)=NULL;
+@@ -78,1 +79,1 @@
+-	if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { odx_quit_requested=1; return OD_SELECT; }
++	if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { odx_quit_requested=1; if(odx_quit_handler)odx_quit_handler(); return OD_SELECT; }
+diff --git a/src/odx/odx_frontend.cpp b/src/odx/odx_frontend.cpp
+--- a/src/odx/odx_frontend.cpp
++++ b/src/odx/odx_frontend.cpp
+@@ -48,1 +48,2 @@
+ extern int odx_quit_requested;
++extern void (*odx_quit_handler)(void);
+@@ -1008,2 +1010,5 @@
++static void frontend_quit() { odx_save_config(); odx_deinit(); exit(0); }
+ int main (int argc, char **argv)
+ {
++	odx_quit_handler=frontend_quit;

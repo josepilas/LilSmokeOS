@@ -1,0 +1,181 @@
+{
+  "scope": "MIPS user-mode, dummy SDL, no ROM, navigation and quit",
+  "hardware_audio_tested": false,
+  "hardware_performance_tested": false,
+  "engines": {
+    "regba": {
+      "exit": 0,
+      "frames": {
+        "before": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 6,
+          "sha256": "4b1a16e3b53c7a83b6bc3a8946839435517b568c0e7caf037d808cd2a61c4ae9"
+        },
+        "after": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 6,
+          "sha256": "b5f181b67312a2727efb744ba03924ba55085125994605c501d2694adc8b2032"
+        }
+      },
+      "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/regba/run.log",
+      "no_rom": true,
+      "system": "gba",
+      "mode": "menu",
+      "opens_rom_directory": false,
+      "binary_sha256": "72e2d82d3aa6e0513eefe603019492026b1d6dfc701d05d29bfcd96a1f2a38c3",
+      "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+      "renders_menu": true,
+      "navigation_changes_pixels": true,
+      "handles_sdl_quit": true
+    },
+    "fceu320": {
+      "exit": 0,
+      "frames": {
+        "before": {
+          "width": 256,
+          "height": 240,
+          "bpp": 24,
+          "colors": 40,
+          "sha256": "caa1ae0ae2c0b4a77be12058f7135878ef614345936e9147d48f39a7ba28bd91"
+        },
+        "after": {
+          "width": 256,
+          "height": 240,
+          "bpp": 24,
+          "colors": 40,
+          "sha256": "757493995fa4f16456b3bb6c72fb9f4a475c77888421fb00287e79baaeae0849"
+        }
+      },
+      "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/fceu320/run.log",
+      "no_rom": true,
+      "system": "nes",
+      "mode": "menu",
+      "opens_rom_directory": true,
+      "binary_sha256": "22274ce628acd1d1c4a535a3d3591d9d0d03b9c8df229d1f0304c404897cd2db",
+      "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+      "renders_menu": true,
+      "navigation_changes_pixels": true,
+      "handles_sdl_quit": true
+    },
+    "atari800": {
+      "exit": 0,
+      "frames": {
+        "before": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 17,
+          "sha256": "f16a837e2bf14be3570c02e9e9ee23888bde208fb22f98e72030d058afa4aec4"
+        },
+        "after": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 17,
+          "sha256": "81ecb0bfd820057bad6e821af7cf3fade7af3ec1ce8e8fab60e4b53c87b25f4f"
+        }
+      },
+      "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/atari800/run.log",
+      "no_rom": true,
+      "system": "atari800",
+      "mode": "menu",
+      "opens_rom_directory": false,
+      "binary_sha256": "847a440e3ffa572c65c59ac96cc9fe8edaadaa48841097336009130f3e07304e",
+      "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+      "renders_menu": true,
+      "navigation_changes_pixels": true,
+      "handles_sdl_quit": true
+    },
+    "gnuboy": {
+      "exit": 0,
+      "frames": {
+        "before": {
+          "width": 160,
+          "height": 144,
+          "bpp": 24,
+          "colors": 3,
+          "sha256": "741f1e6b35d40ef4b0406b7a597e8707c719c3afaedcfe4346621479d0e223f8"
+        },
+        "after": {
+          "width": 160,
+          "height": 144,
+          "bpp": 24,
+          "colors": 3,
+          "sha256": "14022f5672f363564a859c10e38fa40a97a5f825625ebae23a75be178fb3f6fb"
+        }
+      },
+      "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/gnuboy/run.log",
+      "no_rom": true,
+      "system": "gb",
+      "mode": "menu",
+      "opens_rom_directory": true,
+      "binary_sha256": "61fc182ad14fb5f3fcc61b2c6171c82a94b735480356ac3a6d831f14caa78304",
+      "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+      "renders_menu": true,
+      "navigation_changes_pixels": true,
+      "handles_sdl_quit": true
+    },
+    "prosystem": {
+      "exit": 0,
+      "frames": {
+        "before": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 152,
+          "sha256": "0d8216c40e6dd0a920c86efef453e11543f27c567d696db191de43b33bf516da"
+        },
+        "after": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 152,
+          "sha256": "f20adcdd5d347ee6e9daa8f84cad2b54d0d0a7d7eee95d9bbd3b338670019d94"
+        }
+      },
+      "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/prosystem/run.log",
+      "no_rom": true,
+      "system": "atari7800",
+      "mode": "menu",
+      "opens_rom_directory": false,
+      "binary_sha256": "90dae5aeba2d3b47fa1a114b4d1d5a24ada26addbefdb5b48a45bf1f7ca6c6e2",
+      "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+      "renders_menu": true,
+      "navigation_changes_pixels": true,
+      "handles_sdl_quit": true
+    },
+    "oswan": {
+      "exit": 0,
+      "frames": {
+        "before": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 3,
+          "sha256": "1c850309bd45661c4838b84b6e3f40025b262190f88b7c949f787fface887d67"
+        },
+        "after": {
+          "width": 320,
+          "height": 240,
+          "bpp": 24,
+          "colors": 3,
+          "sha256": "d024dae293379249b66659813dc64c49dad2de0aa2115eab1d999e3fd56a194c"
+        }
+      },
+      "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/oswan/run.log",
+      "no_rom": true,
+      "system": "wswan",
+      "mode": "menu",
+      "opens_rom_directory": false,
+      "binary_sha256": "f22ee5218580bde4b9c6d29d052adf73e859c40618e0797ce6980cd7563f9ffe",
+      "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+      "renders_menu": true,
+      "navigation_changes_pixels": true,
+      "handles_sdl_quit": true
+    }
+  }
+}

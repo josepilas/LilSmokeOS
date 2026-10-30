@@ -1,0 +1,56 @@
+#!/bin/sh
+set -eu
+[ "$#" -ge 1 ] && [ "$#" -le 2 ] || { echo 'usage: od-launch pocketsnes [ROM]' >&2; exit 2; }
+[ ! -f /run/lilsmoke-storage/exporting ] || { echo 'Eject LILDRIVE first' >&2; exit 1; }
+case "$1" in pocketsnes) ;; *) echo 'Unverified OpenDingux engine' >&2; exit 2 ;; esac
+resolver="${LILSMOKE_ROM_RESOLVER:-/usr/lib/lilsmoke/lilsmoke-rom}"
+[ -x "$resolver" ] || { echo 'ROM archive resolver is not installed' >&2; exit 3; }
+rom=
+if [ "$#" -eq 2 ]; then
+rom=$("$resolver" snes "$2") || exit 3
+[ -f "$rom" ] || exit 3
+[ "${#rom}" -lt 255 ] || { echo 'ROM path is too long' >&2; exit 3; }
+case "$rom" in *.sfc|*.smc|*.SFC|*.SMC) ;; *) echo 'Extract the SNES archive before using PocketSNES' >&2; exit 3 ;; esac
+fi
+case "${LILSMOKE_AUDIO_OVERRIDE:-alsa}" in
+    alsa|dummy) export SDL_AUDIODRIVER="${LILSMOKE_AUDIO_OVERRIDE:-alsa}" ;;
+    *) echo 'Unsupported audio backend override' >&2; exit 2 ;;
+esac
+export SDL_VIDEODRIVER=directfb SDL_RENDER_DRIVER=software
+export SDL12COMPAT_OPENGL_SCALING=0 SDL12COMPAT_SCALE_METHOD=nearest SDL12COMPAT_SYNC_TO_VBLANK=0
+export SDL12COMPAT_ALLOW_THREADED_PUMPS=0 SDL12COMPAT_ALLOW_THREADED_DRAWS=0
+export LILSMOKE_DFB_EVDEV_KEYCODES=1
+if [ "${LILSMOKE_M8_AUDIO:-0}" = 1 ]; then
+    volume=$(/usr/lib/lilsmoke/lilsmoke-config-read MASTER_VOLUME 50)
+    case "$volume" in ''|*[!0-9]*|????*) volume=50 ;; esac
+    # Decimal parsing avoids shell octal interpretation of values like 080.
+    volume=$(printf '%s\n' "$volume" | awk '{v=$0+0; if(v>100)v=100; print int(v/2)}')
+    export LILSMOKE_M8_VOLUME="$volume"
+fi
+export DFBARGS=no-hardware,no-sighandler,quiet,vt,no-vt-switch,no-vt-switching,disable-module=keyboard,linux-input-force
+if [ "${LILSMOKE_HCFB:-0}" = 1 ]; then
+    export LILSMOKE_M8_NATIVE_VIDEO=1
+    export DFBARGS="$DFBARGS,${LILSMOKE_DFB_PIXEL_OPTIONS:-depth=32,pixelformat=ARGB}"
+    export LILSMOKE_CAPTURE_FRAME=/lilos/lilsmoke/pocketsnes-frame.ppm
+    if [ -f "$LILSMOKE_CAPTURE_FRAME" ]; then
+        mv "$LILSMOKE_CAPTURE_FRAME" /lilos/lilsmoke/pocketsnes-frame.previous.ppm
+    fi
+fi
+unset DISPLAY WAYLAND_DISPLAY
+export HOME=/persist/saves/pocketsnes
+mkdir -p "$HOME"
+log_helper=${LILSMOKE_SESSION_LOG:-/usr/lib/lilsmoke/lilsmoke-session-log}
+if [ -x "$log_helper" ]; then
+    log=$("$log_helper" pocketsnes)
+else
+    logs=${LILSMOKE_LOG_DIR:-/persist/logs}
+    log=$logs/pocketsnes.log
+    if ! mkdir -p "$logs" || ! ( : >> "$log" ) 2>/dev/null; then log=/dev/null; fi
+fi
+cd /usr/share/lilsmoke/pocketsnes
+echo "POCKETSNES_LAUNCH software=SDL1.2-on-SDL2/DirectFB sdl_audio=$SDL_AUDIODRIVER native_pcm=${LILSMOKE_M8_AUDIO:-0} volume=${LILSMOKE_M8_VOLUME:-unchanged}" >> "$log"
+if [ -n "$rom" ]; then
+    exec /usr/lib/lilsmoke/od-emulators/pocketsnes "$rom" >> "$log" 2>&1
+fi
+echo 'POCKETSNES_OPEN_OWN_MENU' >> "$log"
+exec /usr/lib/lilsmoke/od-emulators/pocketsnes >> "$log" 2>&1

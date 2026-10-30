@@ -1,0 +1,31 @@
+config BR2_PACKAGE_LILSMOKE_UI
+    bool "lilsmoke-ui (custom SDL2 frontend)"
+    default y if BR2_PACKAGE_LILSMOKE_OS
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_SDL2_DIRECTFB
+    select BR2_PACKAGE_SDL2_IMAGE
+    select BR2_PACKAGE_SDL2_TTF
+    select BR2_PACKAGE_DIRECTFB
+    select BR2_PACKAGE_FREETYPE
+    select BR2_PACKAGE_LIBPNG
+    select BR2_PACKAGE_WEBP
+    select BR2_PACKAGE_WEBP_DEMUX
+    select BR2_PACKAGE_P7ZIP
+    select BR2_PACKAGE_P7ZIP_7ZA
+    select BR2_PACKAGE_UNRAR
+    select BR2_PACKAGE_ZLIB
+    select BR2_PACKAGE_LILSMOKE_OPENDINGUX if BR2_mipsel
+    help
+      LilSmokeUI — the custom C++17 SDL2/DirectFB launcher.
+      ~700 KB binary, ~14 MB RSS idle, EmuELEC/ArkOS theme compatible.
+
+      Features (J3 v0.1):
+        - System list view (NES, SNES, GBA, PS1, ...)
+        - Game grid view with cover art (PNG/WebP/JPEG)
+        - Settings menu (WiFi, SSH, volume, scaling, etc.)
+        - Theme XML loader (EmuELEC/ArkOS subset)
+        - ROM scanner (/storage/roms/<system>/*)
+        - Game launch via execve(lilsmoke-launch)
+        - RetroArch app menu and core-aware game handoff
+        - LilSmoke Explorer file manager with archive extraction
+        - evdev input plus the stock SF3000 cubevol fallback

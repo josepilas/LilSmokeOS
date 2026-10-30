@@ -1,0 +1,72 @@
+From: LilSmokeOS <development@localhost>
+Subject: [PATCH] sdl2: bound viewport readback and release scratch storage
+
+Read only the caller-allocated viewport, not the entire window, and
+return bottom-up BGR24. Avoid leaking a converted window surface.
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -581,21 +581,41 @@
+-static bool sdl2_gfx_read_viewport(void *data, uint8_t *buffer, bool is_idle)
+-{
+-   SDL_Surface *surf = NULL, *bgr24 = NULL;
+-   sdl2_video_t *vid = (sdl2_video_t*)data;
+-
+-   if (!is_idle)
+-      video_driver_cached_frame();
+-
+-   surf  = SDL_GetWindowSurface(vid->window);
+-   bgr24 = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_BGR24, 0);
+-
+-   if (!bgr24)
+-   {
+-      RARCH_WARN("Failed to convert viewport data to BGR24: %s", SDL_GetError());
+-      return false;
+-   }
+-
+-   memcpy(buffer, bgr24->pixels, bgr24->h * bgr24->pitch);
+-
+-   return true;
+-}
++static bool sdl2_gfx_read_viewport(void *data, uint8_t *buffer, bool is_idle)
++{
++   sdl2_video_t *vid = (sdl2_video_t*)data;
++   SDL_Rect rect;
++   unsigned y;
++   size_t pitch;
++   uint8_t *row;
++
++   if (!is_idle)
++      video_driver_cached_frame();
++
++   if (!vid->vp.width || !vid->vp.height || vid->vp.width > SDL_MAX_SINT32 / 3)
++      return false;
++   rect.x = vid->vp.x;
++   rect.y = vid->vp.y;
++   rect.w = vid->vp.width;
++   rect.h = vid->vp.height;
++   pitch  = vid->vp.width * 3;
++   if (SDL_RenderReadPixels(vid->renderer, &rect,
++            SDL_PIXELFORMAT_BGR24, buffer, (int)pitch) != 0)
++   {
++      RARCH_WARN("Failed to read viewport: %s", SDL_GetError());
++      return false;
++   }
++
++   /* The caller allocates only the viewport and expects bottom-up BGR24. */
++   row = (uint8_t*)malloc(pitch);
++   if (!row)
++      return false;
++   for (y = 0; y < vid->vp.height / 2; y++)
++   {
++      uint8_t *top = buffer + y * pitch;
++      uint8_t *bottom = buffer + (vid->vp.height - 1 - y) * pitch;
++      memcpy(row, top, pitch);
++      memcpy(top, bottom, pitch);
++      memcpy(bottom, row, pitch);
++   }
++   free(row);
++
++   return true;
++}
+

@@ -1,0 +1,8 @@
+override BUILD_TREMOR :=
+override BUILD_OPENGL :=
+override BUILD_LOADGL :=
+override BUILD_VORBIS := 1
+include Makefile
+.DEFAULT_GOAL := OpenBOR.elf
+override CFLAGS := $(filter-out -Werror -ffast-math -fsingle-precision-constant -mbranch-likely,$(CFLAGS)) $(OD_FLAGS) -fcommon
+override LIBS := -L$(OD_SYSROOT)/usr/lib -Wl,-rpath-link,$(OD_SYSROOT)/usr/lib -lSDL -lSDL_gfx -lpng -lz -lvorbisfile -lvorbis -logg -lm -pthread

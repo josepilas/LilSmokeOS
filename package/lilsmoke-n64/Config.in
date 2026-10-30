@@ -1,0 +1,19 @@
+config BR2_PACKAGE_LILSMOKE_N64
+    bool "LilSmokeOS N64 software core (experimental)"
+    depends on BR2_mipsel
+    depends on BR2_MIPS_OABI32
+    depends on !BR2_SOFT_FLOAT
+    depends on BR2_MIPS_FP32_MODE_32 || BR2_MIPS_FP32_MODE_XX
+    depends on !BR2_STATIC_LIBS
+    depends on BR2_USE_MMU
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    depends on BR2_INSTALL_LIBSTDCPP
+    depends on BR2_PACKAGE_RETROARCH_MIPS
+    depends on !BR2_PACKAGE_LILSMOKE_LITE
+    help
+      Pinned ParaLLEl-N64 cached interpreter with Angrylion software RDP
+      and automatic HLE/Cxd4 software RSP. Cartridge games only (no 64DD).
+      No OpenGL, GLES, Vulkan or GPU dependencies.
+      Not enabled by default: N64 is very expensive on a single 1.2 GHz
+      MIPS core, and playable commercial-game performance is unverified.
+      No ROMs are included. Uses the existing SDL2/DirectFB RetroArch.

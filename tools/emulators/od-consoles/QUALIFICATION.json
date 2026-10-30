@@ -1,0 +1,944 @@
+{
+  "schema": 1,
+  "scope": "six native no-ROM menus; not a gameplay/hardware certification",
+  "stageRoot": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage",
+  "menuIDs": [
+    "fceu320",
+    "atari800",
+    "gnuboy",
+    "prosystem",
+    "oswan"
+  ],
+  "engines": {
+    "regba": {
+      "menuID": "regba",
+      "systems": [
+        "gba"
+      ],
+      "qualifiedSystems": [
+        "gba"
+      ],
+      "binary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/regba",
+      "deploymentPath": "/storage/emulators/opendingux/regba",
+      "bytes": 734108,
+      "sha256": "8f8f5b738e7689fb82349c1b2fc2a723428695ba9de40728d669a0b218532812",
+      "abi": "ELF Header:\n  Magic:   7f 45 4c 46 01 01 01 00 01 00 00 00 00 00 00 00 \n  Class:                             ELF32\n  Data:                              2's complement, little endian\n  Version:                           1 (current)\n  OS/ABI:                            UNIX - System V\n  ABI Version:                       1\n  Type:                              EXEC (Executable file)\n  Machine:                           MIPS R3000\n  Version:                           0x1\n  Entry point address:               0x402b90\n  Start of program headers:          52 (bytes into file)\n  Start of section headers:          732348 (bytes into file)\n  Flags:                             0x70001005, noreorder, cpic, o32, mips32r2\n  Size of this header:               52 (bytes)\n  Size of program headers:           32 (bytes)\n  Number of program headers:         11\n  Size of section headers:           40 (bytes)\n  Number of section headers:         44\n  Section header string table index: 43\nAttribute Section: gnu\nFile Attributes\n  Tag_GNU_MIPS_ABI_FP: Hard float (double precision)\n\nMIPS ABI Flags Version: 0\n\nISA: MIPS32r2\nGPR size: 32\nCPR1 size: 32\nCPR2 size: 0\nFP ABI: Hard float (double precision)\nISA Extension: None\nASEs:\n\tDSP ASE\n\tDSP R2 ASE\nFLAGS 1: 00000001\nFLAGS 2: 00000000\n\n",
+      "abiPass": true,
+      "directNeeded": [
+        "libSDL-1.2.so.0",
+        "libz.so.1",
+        "libpng16.so.16",
+        "libc.so"
+      ],
+      "runtimeLinkPass": true,
+      "runtimeLinkOutput": "\t/lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibSDL-1.2.so.0 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0 (0x2b2ad000)\n\tlibz.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libz.so.1 (0x2b2f4000)\n\tlibpng16.so.16 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libpng16.so.16 (0x2b325000)\n\tlibc.so => /lib/ld-musl-mipsel.so.1 (0x55550000)\n",
+      "assets": {
+        "engine": "regba",
+        "directory": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/share/regba",
+        "files": [
+          {
+            "path": "game_config.txt",
+            "bytes": 35028,
+            "sha256": "d99f38eb5abacb8529e805ffeed43e51c9e55b6706459af3a08539a4cd35883d"
+          },
+          {
+            "path": "regba-sp-border-silver.png",
+            "bytes": 39242,
+            "sha256": "3c19ca21987429397978b2ec0e4170c9cbc86b54b26fab3dd953ff61406977f3"
+          }
+        ],
+        "biosBundled": false
+      },
+      "menuQA": {
+        "menu": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 6,
+              "sha256": "4b1a16e3b53c7a83b6bc3a8946839435517b568c0e7caf037d808cd2a61c4ae9"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 6,
+              "sha256": "b5f181b67312a2727efb744ba03924ba55085125994605c501d2694adc8b2032"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/regba/run.log",
+          "no_rom": true,
+          "system": "gba",
+          "mode": "menu",
+          "opens_rom_directory": false,
+          "binary_sha256": "72e2d82d3aa6e0513eefe603019492026b1d6dfc701d05d29bfcd96a1f2a38c3",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        },
+        "browser": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 6,
+              "sha256": "4b1a16e3b53c7a83b6bc3a8946839435517b568c0e7caf037d808cd2a61c4ae9"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 4,
+              "sha256": "dbfc9ace5ecfd2915cfbf94d19ce0b93ab95497b34a7641e95054bd0b89521b2"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512499980013731/regba/run.log",
+          "no_rom": true,
+          "system": "gba",
+          "mode": "browser",
+          "opens_rom_directory": true,
+          "binary_sha256": "72e2d82d3aa6e0513eefe603019492026b1d6dfc701d05d29bfcd96a1f2a38c3",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        }
+      },
+      "menuQualified": false,
+      "copyCandidate": false,
+      "gameplayTested": false,
+      "HOME": "/persist/od-engines/regba",
+      "workingDirectory": "/storage/emulators/share/regba",
+      "noROMArguments": [],
+      "ROMArguments": [
+        "{absoluteAlreadyResolvedROM}"
+      ],
+      "environment": {
+        "LILSMOKE_OD_ENGINE": "regba",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileROMDirectory}",
+        "LILSMOKE_OD_SHARE_DIR": "{workingDirectory}",
+        "BIOS_DIR": "{userBIOSDirectory}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom"
+      }
+    },
+    "fceu320": {
+      "menuID": "fceu320",
+      "systems": [
+        "nes"
+      ],
+      "qualifiedSystems": [
+        "nes"
+      ],
+      "binary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/fceu320",
+      "deploymentPath": "/storage/emulators/opendingux/fceu320",
+      "bytes": 1253112,
+      "sha256": "22274ce628acd1d1c4a535a3d3591d9d0d03b9c8df229d1f0304c404897cd2db",
+      "abi": "ELF Header:\n  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 \n  Class:                             ELF32\n  Data:                              2's complement, little endian\n  Version:                           1 (current)\n  OS/ABI:                            UNIX - System V\n  ABI Version:                       0\n  Type:                              EXEC (Executable file)\n  Machine:                           MIPS R3000\n  Version:                           0x1\n  Entry point address:               0x413110\n  Start of program headers:          52 (bytes into file)\n  Start of section headers:          1251832 (bytes into file)\n  Flags:                             0x70001007, noreorder, pic, cpic, o32, mips32r2\n  Size of this header:               52 (bytes)\n  Size of program headers:           32 (bytes)\n  Number of program headers:         10\n  Size of section headers:           40 (bytes)\n  Number of section headers:         32\n  Section header string table index: 31\nAttribute Section: gnu\nFile Attributes\n  Tag_GNU_MIPS_ABI_FP: Hard float (double precision)\n\nMIPS ABI Flags Version: 0\n\nISA: MIPS32r2\nGPR size: 32\nCPR1 size: 32\nCPR2 size: 0\nFP ABI: Hard float (double precision)\nISA Extension: None\nASEs:\n\tDSP ASE\n\tDSP R2 ASE\nFLAGS 1: 00000001\nFLAGS 2: 00000000\n\n",
+      "abiPass": true,
+      "directNeeded": [
+        "libSDL-1.2.so.0",
+        "libpng16.so.16",
+        "libz.so.1",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so"
+      ],
+      "runtimeLinkPass": true,
+      "runtimeLinkOutput": "\t/lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibSDL-1.2.so.0 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0 (0x2b2ad000)\n\tlibpng16.so.16 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libpng16.so.16 (0x2b2f4000)\n\tlibz.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libz.so.1 (0x2b345000)\n\tlibstdc++.so.6 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libstdc++.so.6 (0x2b376000)\n\tlibgcc_s.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libgcc_s.so.1 (0x2b5cc000)\n\tlibc.so => /lib/ld-musl-mipsel.so.1 (0x55550000)\n",
+      "assets": {
+        "engine": "fceu320",
+        "directory": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/share/fceu320",
+        "files": [
+          {
+            "path": "sp.bmp",
+            "bytes": 172854,
+            "sha256": "c2acde7f84bfff3c5820602e76b0cc3c98f27ceb799dbefd5b8dc4caaa517ded"
+          },
+          {
+            "path": "backdrop.png",
+            "bytes": 1131,
+            "sha256": "d2915fe03347d761b14b36497d5ac1264e755af7a5ec7288911e82d11e751910"
+          },
+          {
+            "path": "palettes/ASQ_realityA.pal",
+            "bytes": 192,
+            "sha256": "fca4701f8c3a9eafc439762ad45ec8fc626b13f7e720834895bdc226a83899aa"
+          },
+          {
+            "path": "palettes/ASQ_realityB.pal",
+            "bytes": 192,
+            "sha256": "7081a7cfb0bdc9d11804b05d037ae7b2f7d41240455c75603390d8ef6c3076c4"
+          },
+          {
+            "path": "palettes/BMF_final2.pal",
+            "bytes": 192,
+            "sha256": "3780811b66b13fe9a32e5185f46ecadd669f52b95f64870456a0d062a0e04f70"
+          },
+          {
+            "path": "palettes/BMF_final3.pal",
+            "bytes": 192,
+            "sha256": "66cef0b78243ae12ed3df45a09fc1c9371922fc404443463de404da61ec39073"
+          },
+          {
+            "path": "palettes/FCEU-13-default_nitsuja.pal",
+            "bytes": 192,
+            "sha256": "f41c98318b0c31121e43946fb8dd94889d11ac071a9097e73fc782d1bbf47e3a"
+          },
+          {
+            "path": "palettes/FCEU-15-nitsuja_new.pal",
+            "bytes": 192,
+            "sha256": "20cd427a8ceb888f1b0e538c26f0b7368b58648f3c07260e1beaaed1b5c7674c"
+          },
+          {
+            "path": "palettes/FCEUX.pal",
+            "bytes": 192,
+            "sha256": "9f2a0e952a7365209c7ae25d8f6508bba1f2008638e1ae55439e8bc9d71cd77d"
+          },
+          {
+            "path": "palettes/RP2C03.pal",
+            "bytes": 1536,
+            "sha256": "a7e4f76794ed7556cd2790e99afba69bff9e3c0063994ee1f810cf078d7a2a9b"
+          },
+          {
+            "path": "palettes/RP2C04_0001.pal",
+            "bytes": 1536,
+            "sha256": "5ce2c96a6a0ca788ecb32ba7895d4548996a91fae38d488cc04f73e73d330529"
+          },
+          {
+            "path": "palettes/RP2C04_0002.pal",
+            "bytes": 1536,
+            "sha256": "ac50e72aec5658680bdfe761fec37c5a96dcb043fa208d6ce0004fc3ade06c7a"
+          },
+          {
+            "path": "palettes/RP2C04_0003.pal",
+            "bytes": 1536,
+            "sha256": "cc81a0ec45745f72aa3450207ac7e97c12d2e0172e581194e468a921bc19067a"
+          },
+          {
+            "path": "palettes/RP2C04_0004.pal",
+            "bytes": 1536,
+            "sha256": "f69d72abc5a388306fff94bc279421755469c216c46e217be1c8149b9585b759"
+          },
+          {
+            "path": "palettes/SONY_CXA2025AS_US.pal",
+            "bytes": 192,
+            "sha256": "abfaa5aebb3001bd08c8f246c79d99f8f6b7fc98d1dba493b0c32e857a91bf51"
+          },
+          {
+            "path": "palettes/Unsaturated-V6.pal",
+            "bytes": 192,
+            "sha256": "0a8c557c1bf6880d1fcf1bd234f1240f358b62cec04945a5340970259d950179"
+          },
+          {
+            "path": "palettes/nestopia_rgb.pal",
+            "bytes": 192,
+            "sha256": "9ed31878c480c803534af2e330bb35d440c0401fa366b9c99122af6810a58541"
+          },
+          {
+            "path": "palettes/nestopia_yuv.pal",
+            "bytes": 192,
+            "sha256": "52291e710c695e1b6ef593d67c64584f791fd3ae4b55af3a00cd6d56fea09e1d"
+          }
+        ],
+        "biosBundled": false
+      },
+      "menuQA": {
+        "menu": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 256,
+              "height": 240,
+              "bpp": 24,
+              "colors": 40,
+              "sha256": "caa1ae0ae2c0b4a77be12058f7135878ef614345936e9147d48f39a7ba28bd91"
+            },
+            "after": {
+              "width": 256,
+              "height": 240,
+              "bpp": 24,
+              "colors": 40,
+              "sha256": "757493995fa4f16456b3bb6c72fb9f4a475c77888421fb00287e79baaeae0849"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/fceu320/run.log",
+          "no_rom": true,
+          "system": "nes",
+          "mode": "menu",
+          "opens_rom_directory": true,
+          "binary_sha256": "22274ce628acd1d1c4a535a3d3591d9d0d03b9c8df229d1f0304c404897cd2db",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        },
+        "browser": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 256,
+              "height": 240,
+              "bpp": 24,
+              "colors": 40,
+              "sha256": "caa1ae0ae2c0b4a77be12058f7135878ef614345936e9147d48f39a7ba28bd91"
+            },
+            "after": {
+              "width": 256,
+              "height": 240,
+              "bpp": 24,
+              "colors": 40,
+              "sha256": "757493995fa4f16456b3bb6c72fb9f4a475c77888421fb00287e79baaeae0849"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512499980013731/fceu320/run.log",
+          "no_rom": true,
+          "system": "nes",
+          "mode": "browser",
+          "opens_rom_directory": true,
+          "binary_sha256": "22274ce628acd1d1c4a535a3d3591d9d0d03b9c8df229d1f0304c404897cd2db",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        }
+      },
+      "menuQualified": true,
+      "copyCandidate": true,
+      "gameplayTested": false,
+      "HOME": "/persist/od-engines/fceu320",
+      "workingDirectory": "/storage/emulators/share/fceu320",
+      "noROMArguments": [],
+      "ROMArguments": [
+        "{absoluteAlreadyResolvedROM}"
+      ],
+      "environment": {
+        "LILSMOKE_OD_ENGINE": "fceu320",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileROMDirectory}",
+        "LILSMOKE_OD_SHARE_DIR": "{workingDirectory}",
+        "BIOS_DIR": "{userBIOSDirectory}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom"
+      }
+    },
+    "atari800": {
+      "menuID": "atari800",
+      "systems": [
+        "atari800",
+        "atari5200"
+      ],
+      "qualifiedSystems": [
+        "atari800"
+      ],
+      "binary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/atari800",
+      "deploymentPath": "/storage/emulators/opendingux/atari800",
+      "bytes": 561308,
+      "sha256": "847a440e3ffa572c65c59ac96cc9fe8edaadaa48841097336009130f3e07304e",
+      "abi": "ELF Header:\n  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 \n  Class:                             ELF32\n  Data:                              2's complement, little endian\n  Version:                           1 (current)\n  OS/ABI:                            UNIX - System V\n  ABI Version:                       0\n  Type:                              DYN (Position-Independent Executable file)\n  Machine:                           MIPS R3000\n  Version:                           0x1\n  Entry point address:               0xb7f0\n  Start of program headers:          52 (bytes into file)\n  Start of section headers:          560068 (bytes into file)\n  Flags:                             0x70001007, noreorder, pic, cpic, o32, mips32r2\n  Size of this header:               52 (bytes)\n  Size of program headers:           32 (bytes)\n  Number of program headers:         9\n  Size of section headers:           40 (bytes)\n  Number of section headers:         31\n  Section header string table index: 30\nAttribute Section: gnu\nFile Attributes\n  Tag_GNU_MIPS_ABI_FP: Hard float (double precision)\n\nMIPS ABI Flags Version: 0\n\nISA: MIPS32r2\nGPR size: 32\nCPR1 size: 32\nCPR2 size: 0\nFP ABI: Hard float (double precision)\nISA Extension: None\nASEs:\n\tDSP ASE\n\tDSP R2 ASE\nFLAGS 1: 00000001\nFLAGS 2: 00000000\n\n",
+      "abiPass": true,
+      "directNeeded": [
+        "libSDL-1.2.so.0",
+        "libpng16.so.16",
+        "libz.so.1",
+        "libstdc++.so.6",
+        "libc.so"
+      ],
+      "runtimeLinkPass": true,
+      "runtimeLinkOutput": "\t/lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibSDL-1.2.so.0 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0 (0x2b462000)\n\tlibpng16.so.16 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libpng16.so.16 (0x2b4a9000)\n\tlibz.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libz.so.1 (0x2b4fa000)\n\tlibstdc++.so.6 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libstdc++.so.6 (0x2b52b000)\n\tlibc.so => /lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibgcc_s.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libgcc_s.so.1 (0x2b781000)\n",
+      "assets": {
+        "engine": "atari800",
+        "directory": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/share/atari800",
+        "files": [
+          {
+            "path": "splash.png",
+            "bytes": 6943,
+            "sha256": "3e932e14698da4fb48833cad81ec5e0bf691a8b77ec57a2483acfa5f38725bcc"
+          },
+          {
+            "path": "thumb.png",
+            "bytes": 18985,
+            "sha256": "2568c64d89cd146c0083f1e51624eefd891b2a9ae91abbb73931d3da11fad423"
+          },
+          {
+            "path": "menu.png",
+            "bytes": 7956,
+            "sha256": "033e96b15a484bff995847ad7f6faf2e6da8c6350ffc644225a5d9276d676a16"
+          },
+          {
+            "path": "graphics/default/keys.png",
+            "bytes": 7833,
+            "sha256": "d704a18374270034ea2c5e2202d75eaca44d6e9b2cea2b86fd118dcc96287df5"
+          },
+          {
+            "path": "graphics/default/keys_c.png",
+            "bytes": 8727,
+            "sha256": "85af782bfde7148e4b7c4cc1174ee5ee4f7b9ecca4412bd5d2bf0a252f385ad0"
+          },
+          {
+            "path": "graphics/default/keys_c_t.png",
+            "bytes": 11261,
+            "sha256": "28d02b82c93d3cfb110876d4826d7050911b825f1ce6d2ea752d9207653538b4"
+          },
+          {
+            "path": "graphics/default/keys_s.png",
+            "bytes": 14157,
+            "sha256": "69eeff42ad43f7a6039bc65db6c1ae36e9f0805f96bb46e52d79a5ffb31a575a"
+          },
+          {
+            "path": "graphics/default/keys_s_c.png",
+            "bytes": 15053,
+            "sha256": "21786109c7f8d8b7752d378af3e90227045cb22b8b6012a0bd83a2d9ba6a556c"
+          },
+          {
+            "path": "graphics/default/keys_t.png",
+            "bytes": 10188,
+            "sha256": "e699e16c4210f052571e2dc296d621738087b07416c18970f2816124ea98361c"
+          },
+          {
+            "path": "graphics/default/nums.png",
+            "bytes": 9035,
+            "sha256": "503364d404e228612378dd2ef6d3627da9cd29193aee26334cb7da123a72a8e0"
+          },
+          {
+            "path": "graphics/default/nums_c.png",
+            "bytes": 7231,
+            "sha256": "66545fc499b01366fee925de48d3e4296bbb7f36cdf804a780c8f2faaada8524"
+          },
+          {
+            "path": "graphics/default/nums_c_t.png",
+            "bytes": 9186,
+            "sha256": "5fbabf7de82532321a4d11bc5536dede31b78c390c5cde6202eb7e3f14b3826c"
+          },
+          {
+            "path": "graphics/default/nums_s.png",
+            "bytes": 14747,
+            "sha256": "0c608f53a8264abed9a3bd7b9c0ed6679f56279cc0cf1a8a43fd57b55d935ea0"
+          },
+          {
+            "path": "graphics/default/nums_s_c.png",
+            "bytes": 13699,
+            "sha256": "d8bc9e6acd4f48a28fe61465430a92c120f8aa3dc5b8974a3722c7d99c61131b"
+          },
+          {
+            "path": "graphics/default/nums_t.png",
+            "bytes": 12170,
+            "sha256": "92f88e12129832bb763578cd083ba21ffa19f187c68d99f7ed87a4cf96855ccc"
+          }
+        ],
+        "biosBundled": false
+      },
+      "menuQA": {
+        "menu": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 17,
+              "sha256": "f16a837e2bf14be3570c02e9e9ee23888bde208fb22f98e72030d058afa4aec4"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 17,
+              "sha256": "81ecb0bfd820057bad6e821af7cf3fade7af3ec1ce8e8fab60e4b53c87b25f4f"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/atari800/run.log",
+          "no_rom": true,
+          "system": "atari800",
+          "mode": "menu",
+          "opens_rom_directory": false,
+          "binary_sha256": "847a440e3ffa572c65c59ac96cc9fe8edaadaa48841097336009130f3e07304e",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        },
+        "browser": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 17,
+              "sha256": "f16a837e2bf14be3570c02e9e9ee23888bde208fb22f98e72030d058afa4aec4"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 16,
+              "sha256": "b38b37849f76353c553079db53c75d628af6857137ec98ca1262926f792ef2f6"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512499980013731/atari800/run.log",
+          "no_rom": true,
+          "system": "atari800",
+          "mode": "browser",
+          "opens_rom_directory": true,
+          "binary_sha256": "847a440e3ffa572c65c59ac96cc9fe8edaadaa48841097336009130f3e07304e",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        }
+      },
+      "menuQualified": true,
+      "copyCandidate": true,
+      "gameplayTested": false,
+      "HOME": "/persist/od-engines/atari800",
+      "workingDirectory": "/storage/emulators/share/atari800",
+      "noROMArguments": [],
+      "ROMArguments": [
+        "{absoluteAlreadyResolvedROM}"
+      ],
+      "environment": {
+        "LILSMOKE_OD_ENGINE": "atari800",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileROMDirectory}",
+        "LILSMOKE_OD_SHARE_DIR": "{workingDirectory}",
+        "BIOS_DIR": "{userBIOSDirectory}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom"
+      }
+    },
+    "gnuboy": {
+      "menuID": "gnuboy",
+      "systems": [
+        "gb",
+        "gbc"
+      ],
+      "qualifiedSystems": [
+        "gb"
+      ],
+      "binary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/gnuboy",
+      "deploymentPath": "/storage/emulators/opendingux/gnuboy",
+      "bytes": 226432,
+      "sha256": "61fc182ad14fb5f3fcc61b2c6171c82a94b735480356ac3a6d831f14caa78304",
+      "abi": "ELF Header:\n  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 \n  Class:                             ELF32\n  Data:                              2's complement, little endian\n  Version:                           1 (current)\n  OS/ABI:                            UNIX - System V\n  ABI Version:                       0\n  Type:                              DYN (Position-Independent Executable file)\n  Machine:                           MIPS R3000\n  Version:                           0x1\n  Entry point address:               0x5240\n  Start of program headers:          52 (bytes into file)\n  Start of section headers:          225192 (bytes into file)\n  Flags:                             0x70001007, noreorder, pic, cpic, o32, mips32r2\n  Size of this header:               52 (bytes)\n  Size of program headers:           32 (bytes)\n  Number of program headers:         10\n  Size of section headers:           40 (bytes)\n  Number of section headers:         31\n  Section header string table index: 30\nAttribute Section: gnu\nFile Attributes\n  Tag_GNU_MIPS_ABI_FP: Hard float (double precision)\n\nMIPS ABI Flags Version: 0\n\nISA: MIPS32r2\nGPR size: 32\nCPR1 size: 32\nCPR2 size: 0\nFP ABI: Hard float (double precision)\nISA Extension: None\nASEs:\n\tDSP ASE\n\tDSP R2 ASE\nFLAGS 1: 00000001\nFLAGS 2: 00000000\n\n",
+      "abiPass": true,
+      "directNeeded": [
+        "libSDL-1.2.so.0",
+        "libc.so"
+      ],
+      "runtimeLinkPass": true,
+      "runtimeLinkOutput": "\t/lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibSDL-1.2.so.0 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0 (0x2b377000)\n\tlibc.so => /lib/ld-musl-mipsel.so.1 (0x55550000)\n",
+      "assets": {
+        "engine": "gnuboy",
+        "directory": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/share/gnuboy",
+        "files": [],
+        "biosBundled": false
+      },
+      "menuQA": {
+        "menu": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 160,
+              "height": 144,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "741f1e6b35d40ef4b0406b7a597e8707c719c3afaedcfe4346621479d0e223f8"
+            },
+            "after": {
+              "width": 160,
+              "height": 144,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "14022f5672f363564a859c10e38fa40a97a5f825625ebae23a75be178fb3f6fb"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/gnuboy/run.log",
+          "no_rom": true,
+          "system": "gb",
+          "mode": "menu",
+          "opens_rom_directory": true,
+          "binary_sha256": "61fc182ad14fb5f3fcc61b2c6171c82a94b735480356ac3a6d831f14caa78304",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        },
+        "browser": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 160,
+              "height": 144,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "741f1e6b35d40ef4b0406b7a597e8707c719c3afaedcfe4346621479d0e223f8"
+            },
+            "after": {
+              "width": 160,
+              "height": 144,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "14022f5672f363564a859c10e38fa40a97a5f825625ebae23a75be178fb3f6fb"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512499980013731/gnuboy/run.log",
+          "no_rom": true,
+          "system": "gb",
+          "mode": "browser",
+          "opens_rom_directory": true,
+          "binary_sha256": "61fc182ad14fb5f3fcc61b2c6171c82a94b735480356ac3a6d831f14caa78304",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        }
+      },
+      "menuQualified": true,
+      "copyCandidate": true,
+      "gameplayTested": false,
+      "HOME": "/persist/od-engines/gnuboy",
+      "workingDirectory": "/storage/emulators/share/gnuboy",
+      "noROMArguments": [],
+      "ROMArguments": [
+        "{absoluteAlreadyResolvedROM}"
+      ],
+      "environment": {
+        "LILSMOKE_OD_ENGINE": "gnuboy",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileROMDirectory}",
+        "LILSMOKE_OD_SHARE_DIR": "{workingDirectory}",
+        "BIOS_DIR": "{userBIOSDirectory}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom"
+      }
+    },
+    "prosystem": {
+      "menuID": "prosystem",
+      "systems": [
+        "atari7800"
+      ],
+      "qualifiedSystems": [
+        "atari7800"
+      ],
+      "binary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/prosystem",
+      "deploymentPath": "/storage/emulators/opendingux/prosystem",
+      "bytes": 314200,
+      "sha256": "90dae5aeba2d3b47fa1a114b4d1d5a24ada26addbefdb5b48a45bf1f7ca6c6e2",
+      "abi": "ELF Header:\n  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 \n  Class:                             ELF32\n  Data:                              2's complement, little endian\n  Version:                           1 (current)\n  OS/ABI:                            UNIX - System V\n  ABI Version:                       0\n  Type:                              DYN (Position-Independent Executable file)\n  Machine:                           MIPS R3000\n  Version:                           0x1\n  Entry point address:               0x3b50\n  Start of program headers:          52 (bytes into file)\n  Start of section headers:          312960 (bytes into file)\n  Flags:                             0x70001007, noreorder, pic, cpic, o32, mips32r2\n  Size of this header:               52 (bytes)\n  Size of program headers:           32 (bytes)\n  Number of program headers:         10\n  Size of section headers:           40 (bytes)\n  Number of section headers:         31\n  Section header string table index: 30\nAttribute Section: gnu\nFile Attributes\n  Tag_GNU_MIPS_ABI_FP: Hard float (double precision)\n\nMIPS ABI Flags Version: 0\n\nISA: MIPS32r2\nGPR size: 32\nCPR1 size: 32\nCPR2 size: 0\nFP ABI: Hard float (double precision)\nISA Extension: None\nASEs:\n\tDSP ASE\n\tDSP R2 ASE\nFLAGS 1: 00000001\nFLAGS 2: 00000000\n\n",
+      "abiPass": true,
+      "directNeeded": [
+        "libSDL-1.2.so.0",
+        "libz.so.1",
+        "libc.so"
+      ],
+      "runtimeLinkPass": true,
+      "runtimeLinkOutput": "\t/lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibSDL-1.2.so.0 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0 (0x2b39e000)\n\tlibz.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libz.so.1 (0x2b3e5000)\n\tlibc.so => /lib/ld-musl-mipsel.so.1 (0x55550000)\n",
+      "assets": {
+        "engine": "prosystem",
+        "directory": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/share/prosystem",
+        "files": [],
+        "biosBundled": false
+      },
+      "menuQA": {
+        "menu": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 152,
+              "sha256": "0d8216c40e6dd0a920c86efef453e11543f27c567d696db191de43b33bf516da"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 152,
+              "sha256": "f20adcdd5d347ee6e9daa8f84cad2b54d0d0a7d7eee95d9bbd3b338670019d94"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/prosystem/run.log",
+          "no_rom": true,
+          "system": "atari7800",
+          "mode": "menu",
+          "opens_rom_directory": false,
+          "binary_sha256": "90dae5aeba2d3b47fa1a114b4d1d5a24ada26addbefdb5b48a45bf1f7ca6c6e2",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        },
+        "browser": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 152,
+              "sha256": "0d8216c40e6dd0a920c86efef453e11543f27c567d696db191de43b33bf516da"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 144,
+              "sha256": "3e126900ea5ab26996a3b9d759d9bf2e302aa8abc699b3172be821d590c90c46"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512499980013731/prosystem/run.log",
+          "no_rom": true,
+          "system": "atari7800",
+          "mode": "browser",
+          "opens_rom_directory": true,
+          "binary_sha256": "90dae5aeba2d3b47fa1a114b4d1d5a24ada26addbefdb5b48a45bf1f7ca6c6e2",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        }
+      },
+      "menuQualified": true,
+      "copyCandidate": true,
+      "gameplayTested": false,
+      "HOME": "/persist/od-engines/prosystem",
+      "workingDirectory": "/storage/emulators/share/prosystem",
+      "noROMArguments": [],
+      "ROMArguments": [
+        "{absoluteAlreadyResolvedROM}"
+      ],
+      "environment": {
+        "LILSMOKE_OD_ENGINE": "prosystem",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileROMDirectory}",
+        "LILSMOKE_OD_SHARE_DIR": "{workingDirectory}",
+        "BIOS_DIR": "{userBIOSDirectory}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom"
+      }
+    },
+    "oswan": {
+      "menuID": "oswan",
+      "systems": [
+        "wswan"
+      ],
+      "qualifiedSystems": [
+        "wswan"
+      ],
+      "binary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/oswan",
+      "deploymentPath": "/storage/emulators/opendingux/oswan",
+      "bytes": 230564,
+      "sha256": "f22ee5218580bde4b9c6d29d052adf73e859c40618e0797ce6980cd7563f9ffe",
+      "abi": "ELF Header:\n  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 \n  Class:                             ELF32\n  Data:                              2's complement, little endian\n  Version:                           1 (current)\n  OS/ABI:                            UNIX - System V\n  ABI Version:                       0\n  Type:                              DYN (Position-Independent Executable file)\n  Machine:                           MIPS R3000\n  Version:                           0x1\n  Entry point address:               0x3f30\n  Start of program headers:          52 (bytes into file)\n  Start of section headers:          229324 (bytes into file)\n  Flags:                             0x70001007, noreorder, pic, cpic, o32, mips32r2\n  Size of this header:               52 (bytes)\n  Size of program headers:           32 (bytes)\n  Number of program headers:         10\n  Size of section headers:           40 (bytes)\n  Number of section headers:         31\n  Section header string table index: 30\nAttribute Section: gnu\nFile Attributes\n  Tag_GNU_MIPS_ABI_FP: Hard float (double precision)\n\nMIPS ABI Flags Version: 0\n\nISA: MIPS32r2\nGPR size: 32\nCPR1 size: 32\nCPR2 size: 0\nFP ABI: Hard float (double precision)\nISA Extension: None\nASEs:\n\tDSP ASE\n\tDSP R2 ASE\nFLAGS 1: 00000001\nFLAGS 2: 00000000\n\n",
+      "abiPass": true,
+      "directNeeded": [
+        "libSDL-1.2.so.0",
+        "libz.so.1",
+        "libc.so"
+      ],
+      "runtimeLinkPass": true,
+      "runtimeLinkOutput": "\t/lib/ld-musl-mipsel.so.1 (0x55550000)\n\tlibSDL-1.2.so.0 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0 (0x2b42e000)\n\tlibz.so.1 => /root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libz.so.1 (0x2b475000)\n\tlibc.so => /lib/ld-musl-mipsel.so.1 (0x55550000)\n",
+      "assets": {
+        "engine": "oswan",
+        "directory": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/share/oswan",
+        "files": [],
+        "biosBundled": false
+      },
+      "menuQA": {
+        "menu": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "1c850309bd45661c4838b84b6e3f40025b262190f88b7c949f787fface887d67"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "d024dae293379249b66659813dc64c49dad2de0aa2115eab1d999e3fd56a194c"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512561452684809/oswan/run.log",
+          "no_rom": true,
+          "system": "wswan",
+          "mode": "menu",
+          "opens_rom_directory": false,
+          "binary_sha256": "f22ee5218580bde4b9c6d29d052adf73e859c40618e0797ce6980cd7563f9ffe",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        },
+        "browser": {
+          "exit": 0,
+          "frames": {
+            "before": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 3,
+              "sha256": "1c850309bd45661c4838b84b6e3f40025b262190f88b7c949f787fface887d67"
+            },
+            "after": {
+              "width": 320,
+              "height": 240,
+              "bpp": 24,
+              "colors": 2,
+              "sha256": "8e424fc5f793bef7d456f21ec9a55a1b3c00babd776cf36dc29f6b7ed38f1fb2"
+            }
+          },
+          "log": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa/1791512499980013731/oswan/run.log",
+          "no_rom": true,
+          "system": "wswan",
+          "mode": "browser",
+          "opens_rom_directory": true,
+          "binary_sha256": "f22ee5218580bde4b9c6d29d052adf73e859c40618e0797ce6980cd7563f9ffe",
+          "qa_runtime": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime/runtime/lib",
+          "renders_menu": true,
+          "navigation_changes_pixels": true,
+          "handles_sdl_quit": true
+        }
+      },
+      "menuQualified": true,
+      "copyCandidate": true,
+      "gameplayTested": false,
+      "HOME": "/persist/od-engines/oswan",
+      "workingDirectory": "/storage/emulators/share/oswan",
+      "noROMArguments": [],
+      "ROMArguments": [
+        "{absoluteAlreadyResolvedROM}"
+      ],
+      "environment": {
+        "LILSMOKE_OD_ENGINE": "oswan",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileROMDirectory}",
+        "LILSMOKE_OD_SHARE_DIR": "{workingDirectory}",
+        "BIOS_DIR": "{userBIOSDirectory}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom"
+      }
+    }
+  },
+  "runtimeLibraries": {
+    "libSDL2-2.0.so.0": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/usr/lib/libSDL2-2.0.so.0",
+      "sha256": "e86a92a994eb1d1d0ac46ac07fcdbe08d8b84e420276869ea5b9c09ca4aa3260",
+      "bytes": 1626388,
+      "needed": [
+        "libc.so"
+      ],
+      "stagePath": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL2-2.0.so.0",
+      "baseRuntime": false,
+      "qaOnly": false
+    },
+    "libc.so": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/lib/libc.so",
+      "sha256": "3283d518bc993f392e90789bf12a6144f59c3f714b63758ca882226d3e3418d6",
+      "bytes": 1056296,
+      "needed": [],
+      "stagePath": null,
+      "baseRuntime": true,
+      "qaOnly": false
+    },
+    "libSDL-1.2.so.0": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/usr/lib/libSDL-1.2.so.0",
+      "sha256": "f953fc247550c4ba40c66e3ec33d5b0c3fe7d5273adcaf28da55f2802351261f",
+      "bytes": 241864,
+      "needed": [
+        "libc.so"
+      ],
+      "stagePath": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libSDL-1.2.so.0",
+      "baseRuntime": false,
+      "qaOnly": false
+    },
+    "libz.so.1": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/usr/lib/libz.so.1",
+      "sha256": "1f964bf368e5c2dcaa8ac3bb1eab015f773775752433333ad71c5d80f1784d24",
+      "bytes": 149460,
+      "needed": [
+        "libc.so"
+      ],
+      "stagePath": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libz.so.1",
+      "baseRuntime": false,
+      "qaOnly": false
+    },
+    "libpng16.so.16": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/usr/lib/libpng16.so.16",
+      "sha256": "803062c2237cd0c68cb21f106fa170cee3f7c110314eea6beb50538837f414ac",
+      "bytes": 298616,
+      "needed": [
+        "libz.so.1",
+        "libc.so"
+      ],
+      "stagePath": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libpng16.so.16",
+      "baseRuntime": false,
+      "qaOnly": false
+    },
+    "libstdc++.so.6": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/usr/lib/libstdc++.so.6",
+      "sha256": "982aa362b7632b18817f577d9bae953154a259ed756458c6e3ba1e412983c806",
+      "bytes": 2930340,
+      "needed": [
+        "libc.so",
+        "libgcc_s.so.1"
+      ],
+      "stagePath": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libstdc++.so.6",
+      "baseRuntime": false,
+      "qaOnly": false
+    },
+    "libgcc_s.so.1": {
+      "source": "/root/lilsmoke-os/build/buildroot/output/host/mipsel-buildroot-linux-musl/sysroot/lib/libgcc_s.so.1",
+      "sha256": "8050105e512a869c34b9ca08e05fe5728b823aca24ff954b11a98fc5df242757",
+      "bytes": 362044,
+      "needed": [
+        "libc.so"
+      ],
+      "stagePath": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/lib/libgcc_s.so.1",
+      "baseRuntime": false,
+      "qaOnly": false
+    }
+  },
+  "productionGraphics": "SDK SDL2 DirectFB software backend; NEVER QA dummy SDL2",
+  "requiredBaseRuntime": [
+    "/lib/ld-musl-mipsel.so.1",
+    "/lib/libc.so",
+    "SDK DirectFB input/system modules already owned by the base image"
+  ],
+  "qaRuntimeMustNotBeCopied": "/root/lilsmoke-emulator-expansion-20261008/od-console-qa-runtime",
+  "exclusions": [
+    "temper",
+    "picodrive",
+    "stella",
+    "handy",
+    "race",
+    "pokemini",
+    "fba"
+  ],
+  "archiveHeaderTests": {
+    "host": {
+      "passed": 22,
+      "cpp11_no_exceptions": true
+    },
+    "mips": {
+      "passed": 22,
+      "cpp11_no_exceptions": true
+    }
+  },
+  "hardwareAudioTested": false,
+  "hardwarePerformanceTested": false,
+  "hardwareInputTested": false,
+  "remainingFailures": {
+    "all": "No HC16xx audio, physical input, performance, or gameplay verification in this console task.",
+    "regba": "GBA gameplay requires user gba_bios.bin; no BIOS is bundled.",
+    "atari800": "Atari OS/BASIC/5200 BIOS and real-ROM launch not verified; 5200 system routing remains parent-owned.",
+    "fceu320": "FDS BIOS lookup integration is still unverified.",
+    "excluded": "Other engines are source-preserved, not qualified or current-contract copy candidates."
+  }
+}

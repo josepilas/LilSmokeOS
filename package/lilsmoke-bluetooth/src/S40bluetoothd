@@ -1,0 +1,49 @@
+#!/bin/sh
+# BlueZ/BlueALSA are opt-in; bonds are never exported through LILDRIVE.
+set -eu
+config=/persist/config/lilsmoke.conf
+enabled=$(awk -F= '$1=="BLUETOOTH_ENABLED" {v=$2} END {print v}' "$config" 2>/dev/null || :)
+stop() {
+    for daemon in bluealsa bluetoothd; do
+        if [ -f "/run/$daemon.pid" ]; then
+            start-stop-daemon -K -q -p "/run/$daemon.pid" || :
+            rm -f "/run/$daemon.pid"
+        fi
+    done
+}
+start() {
+    case "$enabled" in on|1|yes|true) ;; *) return 0 ;; esac
+    mkdir -p /persist/bluetooth /var/lib /run
+    chmod 700 /persist/bluetooth
+    if [ -L /var/lib/bluetooth ]; then
+        [ "$(readlink /var/lib/bluetooth)" = /persist/bluetooth ] || return 1
+    elif [ -d /var/lib/bluetooth ]; then
+        # Never discard existing bonds from an older install.
+        cp -an /var/lib/bluetooth/. /persist/bluetooth/
+        mountpoint -q /var/lib/bluetooth || mount -o bind /persist/bluetooth /var/lib/bluetooth
+    else
+        ln -s /persist/bluetooth /var/lib/bluetooth
+    fi
+    start-stop-daemon -S -q -m -b -p /run/bluetoothd.pid \
+        -x /usr/libexec/bluetooth/bluetoothd -- -n || {
+        [ -r /run/bluetoothd.pid ] &&
+            kill -0 "$(cat /run/bluetoothd.pid)" 2>/dev/null || return 1
+    }
+    start-stop-daemon -S -q -m -b -p /run/bluealsa.pid \
+        -x /usr/bin/bluealsa -- -p a2dp-source -p hfp-ag -p hsp-ag || {
+        [ -r /run/bluealsa.pid ] &&
+            kill -0 "$(cat /run/bluealsa.pid)" 2>/dev/null || return 1
+    }
+    # Wait for D-Bus registration before requesting adapter power.
+    i=0
+    while [ "$i" -lt 5 ]; do
+        if /usr/bin/lilsmoke-bt power on >/dev/null 2>&1; then break; fi
+        i=$((i + 1)); sleep 1
+    done
+}
+case "${1:-}" in
+    start) start ;;
+    stop) stop ;;
+    restart) stop; start ;;
+    *) echo 'Usage: S40bluetoothd start|stop|restart' >&2; exit 2 ;;
+esac

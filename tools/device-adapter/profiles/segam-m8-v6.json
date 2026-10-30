@@ -1,0 +1,1510 @@
+{
+  "boot_route": "Kernel S99app -> /mnt/sdcard/cubegm/icube -> lilsmoke/m8-launch.sh",
+  "evidence": "Exact hashes from the owner's read-only recovered stock folder, gated by Candidate06. This lineage physically boots LilSmoke on the owner's M8. Other boards are not certified.",
+  "files": {
+    "ApplicationFrame.dll": {
+      "bytes": 304090,
+      "sha256": "892a20f4030e49dc5ad404d717b403acd153762b4d60afdd6382e3b8b10bd2f2"
+    },
+    "Arial_en.ttf": {
+      "bytes": 907236,
+      "sha256": "945309e4914cabaacacb0303328a507a18ff02fd11119738f92157a4b01ff0d6"
+    },
+    "Arial_kr.ttf": {
+      "bytes": 1100700,
+      "sha256": "0b8f40fd0a605a87d2746bf07b1e16e4fea960403a53049efa1a282ef7799d61"
+    },
+    "Back_In_The_City.mp3": {
+      "bytes": 1659821,
+      "sha256": "fde4676e82bf55a09cbd8b4085c2c1a74daefdbe40b18fe63978c043dc5b5f1d"
+    },
+    "Bubbles.scr": {
+      "bytes": 27145,
+      "sha256": "1f82874ad5731b26fa7a094a82b83b215ff378493832c69d4b90e50d4dd7fc9e"
+    },
+    "Button1.wav": {
+      "bytes": 1832,
+      "sha256": "733667d932ae66e4dad6611b42a1f5fa3b22290faa315d6bc40675e81cf956a8"
+    },
+    "Button2.wav": {
+      "bytes": 3580,
+      "sha256": "f8ab39a3739ef188b46e79bac2bf033136a43c9f06f6b72739cd2c5e2959e846"
+    },
+    "Button3.wav": {
+      "bytes": 12874,
+      "sha256": "a7ed05aae98d3dc14db722fcec79841cd93aa5617110c9df9cbf4cd5a240a2e4"
+    },
+    "Button4.wav": {
+      "bytes": 3192,
+      "sha256": "2c57b4ef159143992b658671143640d2e7c6e5fa502dde5f5ed772f78536ac25"
+    },
+    "Tahoma.ttf": {
+      "bytes": 800788,
+      "sha256": "a8974bdc4baf208b6feb9c2b87066dd0897896f596e397a64807350306aed250"
+    },
+    "advapi32.dll": {
+      "bytes": 2676768,
+      "sha256": "1b42863c019950e6589100a0652906ae94cc9f29c1dfe3fa416cd6a42af4a1ee"
+    },
+    "allfiles.lst": {
+      "bytes": 2529194,
+      "sha256": "3636a8abe0be588d1bc059294f6c4c9033a7b37918d3f5710e71beb39f21633f"
+    },
+    "app.uImage": {
+      "bytes": 89120,
+      "sha256": "7403de197a68bdbca72e4a3350c7ce0c0c5bec78641cca4c09abf92cbcec27cc"
+    },
+    "avp.uImage": {
+      "bytes": 304030,
+      "sha256": "3a5d0847349dbc483ca30e8ccb21609eb6ec175607a50e03ae79fe9ebd9f202d"
+    },
+    "chord.wav": {
+      "bytes": 7696,
+      "sha256": "33233f096368c9a9bf5382844905c55bff370cf7de748a2fa9431076f8ec8dce"
+    },
+    "driver.so": {
+      "bytes": 87624,
+      "sha256": "5b761f9a5370454737c2b716acfca421dbb82c22112c5d4f3e6a8f604503d1a3"
+    },
+    "dtb.bin": {
+      "bytes": 27145,
+      "sha256": "32e3cfda17d78d8467523536cb0a2843ad5bfe517b9971c5dfe684e51bf4e802"
+    },
+    "dtc.bin": {
+      "bytes": 27145,
+      "sha256": "32e3cfda17d78d8467523536cb0a2843ad5bfe517b9971c5dfe684e51bf4e802"
+    },
+    "favorites.lst": {
+      "bytes": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    },
+    "font.ttf": {
+      "bytes": 6110584,
+      "sha256": "d4345020451fbe01ec3fd91fe9875a5ddadb662644e09a27ef7b0ef86b1c5713"
+    },
+    "icube": {
+      "bytes": 11976,
+      "sha256": "21eadc68edc6298137e941d4c50dadb4314fac0fc68f9856649284308b000522"
+    },
+    "joystick.cpd": {
+      "bytes": 322127,
+      "sha256": "16c1df241a73f0934885f2dd139c388cd0330f71417335c960479fc10973e9bd"
+    },
+    "lib/ld.so.1": {
+      "bytes": 154352,
+      "sha256": "6b9679ae7ae869da0ac4be2e3361b4d68238612f55d57faf3e2fb85fb1ce31bb"
+    },
+    "lib/libanl.so.1": {
+      "bytes": 14492,
+      "sha256": "00868329a9eb5b6d717104deafdcd165b19ced627235bab7b6e983e544cab92a"
+    },
+    "lib/libatomic.so.1": {
+      "bytes": 20952,
+      "sha256": "c24462b492ade76655570f7fe311961ff6f218e0b1da694ec316336c6e460cfd"
+    },
+    "lib/libatomic.so.1.2.0": {
+      "bytes": 20952,
+      "sha256": "c24462b492ade76655570f7fe311961ff6f218e0b1da694ec316336c6e460cfd"
+    },
+    "lib/libc.so.6": {
+      "bytes": 1585184,
+      "sha256": "e0323ea4296c12076078e08c4994f149d494b7cac4197ae40298149c964d5053"
+    },
+    "lib/libcrypt.so.1": {
+      "bytes": 39728,
+      "sha256": "63d798491f7dd360c361b944ab05e4f810d0fc1a1c9205f28a0457f0c3dd19ee"
+    },
+    "lib/libcrypto.so": {
+      "bytes": 1362236,
+      "sha256": "8c594811cd66b1f0d088cac92e5878004eac1072d8dab6f7099221a3ecb8b349"
+    },
+    "lib/libcrypto.so.1.0.0": {
+      "bytes": 1362236,
+      "sha256": "8c594811cd66b1f0d088cac92e5878004eac1072d8dab6f7099221a3ecb8b349"
+    },
+    "lib/libdl.so.2": {
+      "bytes": 14768,
+      "sha256": "3cdd663a5f213b6971c59018fa4a4b44eb294b937e7bf333b6bff7f5fb0af470"
+    },
+    "lib/libfreetype.so.6": {
+      "bytes": 534733,
+      "sha256": "35a645919f34b321f7f1c182d7f4c9b04c6edcece145127e8cb3bf060e24e297"
+    },
+    "lib/libgcc_s.so.1": {
+      "bytes": 199924,
+      "sha256": "45c664821a4bed8eea56b19ab8891883f91a053f08b5230c35df46cc3312e2cc"
+    },
+    "lib/libgfortran.so.3": {
+      "bytes": 799936,
+      "sha256": "2c26db2fa9365edf89fecbff2ca215ccbd575cafe528e56673803df09fe6ee57"
+    },
+    "lib/libgfortran.so.3.0.0": {
+      "bytes": 799936,
+      "sha256": "2c26db2fa9365edf89fecbff2ca215ccbd575cafe528e56673803df09fe6ee57"
+    },
+    "lib/libgomp.so.1": {
+      "bytes": 203828,
+      "sha256": "4b150b7909a5090eed62a793a4099ec82a980f93476e8da35902825edc57d6aa"
+    },
+    "lib/libgomp.so.1.0.0": {
+      "bytes": 203828,
+      "sha256": "4b150b7909a5090eed62a793a4099ec82a980f93476e8da35902825edc57d6aa"
+    },
+    "lib/libm.so.6": {
+      "bytes": 505176,
+      "sha256": "0bdfff4bc89437af954593cdd105f49591cfd6c1fcad60f88f4ca64f539655dc"
+    },
+    "lib/libnsl.so.1": {
+      "bytes": 94008,
+      "sha256": "799414714700ac030910aa876c72a8adbb4ac7ef2d1b38c96d50b76766e29b58"
+    },
+    "lib/libnss_dns.so.2": {
+      "bytes": 22520,
+      "sha256": "533b3bd8f83836db45056df13e494f383e586f87084c1f40b37d4c43a0f9c36a"
+    },
+    "lib/libnss_files.so.2": {
+      "bytes": 53884,
+      "sha256": "d56682a0b1b411faaefced4e8e51066c9072a8a6465eef1cd47867ab931f9049"
+    },
+    "lib/libpthread.so.0": {
+      "bytes": 138936,
+      "sha256": "99c28bda378eff713527c5040e0b22f0622fc28f786fca6eadc4eed0fb860862"
+    },
+    "lib/libresolv.so.2": {
+      "bytes": 87852,
+      "sha256": "5bfa66d294f5a9e6557d1f748162b91285808e6ab846a150d6717f31703d0a4b"
+    },
+    "lib/librt.so.1": {
+      "bytes": 33224,
+      "sha256": "2b5226edaf1f72b3c515b13baf1a2231edd8cf865b31a978f211ea4a1e8be512"
+    },
+    "lib/libstdc++.so.6": {
+      "bytes": 1634356,
+      "sha256": "5c8bed69f8f5e926eb351b11fb8a01ab0bee2c1253ec3dccf2d1d6d11a738b0f"
+    },
+    "lib/libstdc++.so.6.0.22": {
+      "bytes": 1634356,
+      "sha256": "5c8bed69f8f5e926eb351b11fb8a01ab0bee2c1253ec3dccf2d1d6d11a738b0f"
+    },
+    "lib/libstdc++.so.6.0.22-gdb.py": {
+      "bytes": 2550,
+      "sha256": "0b4f288e2a46980b6ab20df97242781699b7f5fb7ed3ff3556dfae0d6f5bbf07"
+    },
+    "lib/libutil.so.1": {
+      "bytes": 10048,
+      "sha256": "f75b9bfd2baf4da5418b68a9119e857c9489d64d248cfe72b7cbdcc7f1ec88d3"
+    },
+    "lib/libuuid.so.1": {
+      "bytes": 26256,
+      "sha256": "131f7c05e44238e7eefa80ebb7d1d48421cca13045357d0e1adacfad4630188e"
+    },
+    "lib/libuuid.so.1.3.0": {
+      "bytes": 26256,
+      "sha256": "131f7c05e44238e7eefa80ebb7d1d48421cca13045357d0e1adacfad4630188e"
+    },
+    "lib/libz.so.1": {
+      "bytes": 92037,
+      "sha256": "80093b6107e6a1b6260ec83131cb195192916e9255bd94cbe78de5f6e2972ef7"
+    },
+    "resource": {
+      "bytes": 18078,
+      "sha256": "a65657ab78e579358852f06bbf1215367f28706009d57ae799d4ab63eff31616"
+    },
+    "resource.cpd": {
+      "bytes": 7128838,
+      "sha256": "17069e73c5052bff6f085998af39d9edbc79011f6eb4d4c1d74955bc392bba7a"
+    },
+    "rkgame": {
+      "bytes": 1172140,
+      "sha256": "36fd05ed4984dc17f224523531bf99583b599159f1e440dfb35e1ab2cbf38b50"
+    },
+    "root.dat": {
+      "bytes": 108,
+      "sha256": "44a8781c09a110338a789041da0e2bcff1bf0938d05e04e79e141e8e5bab376c"
+    },
+    "setting.xml": {
+      "bytes": 2130,
+      "sha256": "ba2d6d3fe7096a31fd1cd457fc3cb56a5ca2bdc8be752d444be14aeed737181b"
+    },
+    "ui_cn.cpd": {
+      "bytes": 1643,
+      "sha256": "68f1990439c0e1f7562fcb18227f296baefafd8220f85fedb74ac9f11fc36634"
+    },
+    "ui_cz.cpd": {
+      "bytes": 1888,
+      "sha256": "247995e0ab6613f65fc37706302ca0de4f4f2243f9d702f7c50459f8a9ee7308"
+    },
+    "ui_de.cpd": {
+      "bytes": 1939,
+      "sha256": "6845c9c63eed61040b2689e7b1707c0c3a816aaacdd312aa7906c5c36969c84f"
+    },
+    "ui_dk.cpd": {
+      "bytes": 1890,
+      "sha256": "29a5e43846bf6110e1c2d1d95afca7eec5ab08390a9a4bffd73d7307046c9886"
+    },
+    "ui_en.cpd": {
+      "bytes": 1738,
+      "sha256": "e1c5bbf1b50e9d14a82c1ea10ce62b68b6a317571ef95895a8d41a56702e1ef9"
+    },
+    "ui_es.cpd": {
+      "bytes": 1943,
+      "sha256": "ff89bfb8352714affc1b9a9ebe72718631e4041d7b89a9b9ea26aa06ea007090"
+    },
+    "ui_fi.cpd": {
+      "bytes": 1877,
+      "sha256": "89a62273c00f1b4c7d3ef919c3e17cedc9a48975776d52ac85b1dcb81e6688bc"
+    },
+    "ui_fr.cpd": {
+      "bytes": 1979,
+      "sha256": "a6cbed2acbfc86893722c3efc692e7b0808460071afa37923641bed309caa304"
+    },
+    "ui_gr.cpd": {
+      "bytes": 2154,
+      "sha256": "f9348f254167d1bf335bde206303286cf2ded472f0fa665b2d45cbfee1baa904"
+    },
+    "ui_he.cpd": {
+      "bytes": 1853,
+      "sha256": "8b48d7c02b2790ce9d7600d22250c090111baabfb8e315c227f705326d284761"
+    },
+    "ui_id.cpd": {
+      "bytes": 1834,
+      "sha256": "e611ed772f8b486cdbb125f0a20f8f1516723aa6158531ac9b6e8cce4ccd90cf"
+    },
+    "ui_il.cpd": {
+      "bytes": 2042,
+      "sha256": "c856f533e1f16b94dcd146557e55354198cab07841f49297e2f90153dca0bc09"
+    },
+    "ui_it.cpd": {
+      "bytes": 1873,
+      "sha256": "d2b61c16057c72adc5ddd0ee70b5eae917e46713caca4c00c5f99cc7749448a7"
+    },
+    "ui_jp.cpd": {
+      "bytes": 1914,
+      "sha256": "01d7cafbbfde001dcca08e81341129e360b4d2a1978b4a41b18fa4b05520be80"
+    },
+    "ui_ko.cpd": {
+      "bytes": 1889,
+      "sha256": "d880627ba3bc65d6fa24962fb137271a07a4ae1feaf6c0fdfaa096cbfd630c65"
+    },
+    "ui_mn.cpd": {
+      "bytes": 2033,
+      "sha256": "61b364112b288f7f3a68a7a9c2373f63dd3ea4d35b0aa8a2e82765d5ca9d7649"
+    },
+    "ui_nl.cpd": {
+      "bytes": 1910,
+      "sha256": "081257028ec26ae0d4221695ec81c568473c3ed314716f3df30d559757598722"
+    },
+    "ui_no.cpd": {
+      "bytes": 1882,
+      "sha256": "85864e18bb494fc94550a97ffdf172a4d9cec1a9bd1af5de43cf1b746a89d181"
+    },
+    "ui_pl.cpd": {
+      "bytes": 1947,
+      "sha256": "316398f7e3327ad09344d6c6677e2c13cd4aa65e1859d1560133075daba31878"
+    },
+    "ui_pt.cpd": {
+      "bytes": 1893,
+      "sha256": "bf755d934f8888f4f18284ed21f29d2d9831e0d831442e8c2bd5bc357a58e7f9"
+    },
+    "ui_ru.cpd": {
+      "bytes": 2063,
+      "sha256": "0dcefb5a44b34acf9d5e8ffd38ed075fc349662662124853964a0a2f0d79f0e9"
+    },
+    "ui_se.cpd": {
+      "bytes": 1863,
+      "sha256": "573cd9e8edb3a5f44773cf5e96fe034c5a9e862dae6f4c77703fc727d2caab18"
+    },
+    "ui_tr.cpd": {
+      "bytes": 1903,
+      "sha256": "497a792ed91916c05db62b4bb8942ac554a5b2f74be55d6fabdca4b2de31c46f"
+    },
+    "ui_tw.cpd": {
+      "bytes": 1705,
+      "sha256": "3b2ea94205750805bb03897cef66458434e5bfdf5e23417154b0100fc14e174d"
+    },
+    "ui_vn.cpd": {
+      "bytes": 2010,
+      "sha256": "07e2d24ea927acf96d2d3d717fd86768f1a20d331a3e12771c54c897b46d9846"
+    },
+    "usr/bin/avpconsole": {
+      "bytes": 4948,
+      "sha256": "6fdaabf52918f1d8c19fe934414cef88731b19264e7106e3cedebd5f15e03b09"
+    },
+    "usr/bin/dfbplay": {
+      "bytes": 17940,
+      "sha256": "b6063094903cd92858d4042747d0adf1c793868f4bd8d7b15e4096260ffadb19"
+    },
+    "usr/bin/dfbshow": {
+      "bytes": 23412,
+      "sha256": "01fa907c4932e9e5a6b15fb31cb903438d3301b6c123d20e787b58608cda2dbd"
+    },
+    "usr/bin/dfbswitch": {
+      "bytes": 13252,
+      "sha256": "5c11c8ac38c273a2b9a1421ac3479abea5c407875ade7863a71a186d460ed949"
+    },
+    "usr/bin/fc-cache": {
+      "bytes": 11584,
+      "sha256": "77a6986c1e0b37fced9da1498d494495be475a9e8388dc5db329d87f5b66f9b2"
+    },
+    "usr/bin/fc-cat": {
+      "bytes": 9720,
+      "sha256": "05133fef823b571ac78d6672df20ea725c1d506360be125ee8f1b628099aec5c"
+    },
+    "usr/bin/fc-conflist": {
+      "bytes": 6296,
+      "sha256": "b9d07fe91c8654fec499d548f6ca909162d889b0e65872108df34d0b24d4891d"
+    },
+    "usr/bin/fc-list": {
+      "bytes": 8136,
+      "sha256": "e9e837e19347887d90bdf7ed2fbd679f7a783be6ec362c4ac7035fdc88b702b6"
+    },
+    "usr/bin/fc-match": {
+      "bytes": 8856,
+      "sha256": "f745bf996a814e650292703ec82f95beefe142b94abb346c7b9a7fdd64015e15"
+    },
+    "usr/bin/fc-pattern": {
+      "bytes": 7672,
+      "sha256": "8de1413bd3109c7bc7dd33f0fc7bf67bf73a947fce1b007ef1afef7522cec835"
+    },
+    "usr/bin/fc-query": {
+      "bytes": 7400,
+      "sha256": "92858c0328108e9b1ed6b49136ec7b3442d16c68f075378cf4f17cfbd67cf557"
+    },
+    "usr/bin/fc-scan": {
+      "bytes": 7640,
+      "sha256": "3f1ef468ce044ab6f28b7a8b21464e5a3237c56ebee05f203e9d89318095c134"
+    },
+    "usr/bin/fc-validate": {
+      "bytes": 8104,
+      "sha256": "bc127e375fb2dade6874b3f02ab09c64f8aa004df5a47388149ded5dd60a5239"
+    },
+    "usr/bin/hotplug_helper": {
+      "bytes": 4500,
+      "sha256": "975517249f420326e4927d27031b9d7198a8e7cddba8126424b3d9f458f217fc"
+    },
+    "usr/bin/icube": {
+      "bytes": 63616,
+      "sha256": "2146c4c61c6d5ae1a7c3b5f53e05445a8d3913952c9130ec113bf6d5f57828f7"
+    },
+    "usr/bin/ldd": {
+      "bytes": 5684,
+      "sha256": "9a8e16e73269d9200ba07f99eef5b286dd32f58b8e37088b09a07e2930d5fcfa"
+    },
+    "usr/bin/ts_calibrate": {
+      "bytes": 29524,
+      "sha256": "b6563ec39c6b3879e6bc78adb3935fec4b86e73bf0c6655b84f1563760ff5025"
+    },
+    "usr/bin/ts_conf": {
+      "bytes": 8696,
+      "sha256": "d4c04e157722b688805a8666a38a4e0916231bf26e766d2947b2180200279313"
+    },
+    "usr/bin/ts_finddev": {
+      "bytes": 5908,
+      "sha256": "3aa973cd7095b7b2a486496b3a6e66f73dc1e73063e099d2c4badf1ff8140b32"
+    },
+    "usr/bin/ts_harvest": {
+      "bytes": 21188,
+      "sha256": "09256fcf6e410a34a712e80e531c74c9e7ac6d26fb19697f748060979baca997"
+    },
+    "usr/bin/ts_print": {
+      "bytes": 6164,
+      "sha256": "5a57067d66afbf829279ab49646f7a4977bad6a64fb20b1f4e545d73b0f26d76"
+    },
+    "usr/bin/ts_print_mt": {
+      "bytes": 8584,
+      "sha256": "8d613de2ef147d94867d15bce65c2bdbca1220dfd27bf21cb90b672dc1da5f63"
+    },
+    "usr/bin/ts_print_raw": {
+      "bytes": 5892,
+      "sha256": "6590d86a463bd3fb5072fa65a71ded8e1b9890bab2605b66bc2853e32ac4bbf9"
+    },
+    "usr/bin/ts_test": {
+      "bytes": 21252,
+      "sha256": "eeb08376842cf7423ef97a1513f9984284f990336d87b1059b69ff9a77dc5415"
+    },
+    "usr/bin/ts_test_mt": {
+      "bytes": 25316,
+      "sha256": "9c590ca2f86131df8934a66fc1d1e63f7609f225fea91395af3f87e58b66f9ee"
+    },
+    "usr/bin/ts_uinput": {
+      "bytes": 14312,
+      "sha256": "a65bc31249da16e408ecf67232a3edf5a2168f083d9299e9f3ea52ecbf447378"
+    },
+    "usr/bin/ts_verify": {
+      "bytes": 12824,
+      "sha256": "862520f42be9af02a917c3c482cec206e62846de68b8d7185b83f3aed915d5eb"
+    },
+    "usr/bin/xmlwf": {
+      "bytes": 27044,
+      "sha256": "fd21c794a45069322989d7deb87c9c6edd323bee24d4dbf0978b2e08e9e42741"
+    },
+    "usr/lib/directfb-1.7-7-pure/gfxdrivers/libdirectfb_hcge.so": {
+      "bytes": 50388,
+      "sha256": "d06216edc1aeb3f29f59119380d1d2ac1bc9fc4cd97ab316290677c9772e2a99"
+    },
+    "usr/lib/directfb-1.7-7-pure/inputdrivers/libdirectfb_keyboard.so": {
+      "bytes": 10828,
+      "sha256": "b5691152f0794ba908831ef79834c20444b212513737d87200279e5a46b96c62"
+    },
+    "usr/lib/directfb-1.7-7-pure/inputdrivers/libdirectfb_linux_input.so": {
+      "bytes": 23232,
+      "sha256": "3e01cbedeb77fd2abe0fe25ed0e211038703dd38f551b017cb296bb3dca9ce13"
+    },
+    "usr/lib/directfb-1.7-7-pure/inputdrivers/libdirectfb_ps2mouse.so": {
+      "bytes": 12224,
+      "sha256": "58dd6dde4f615c92be92ff13058a65de7052fd6857a86dea4f890539372349a3"
+    },
+    "usr/lib/directfb-1.7-7-pure/inputdrivers/libdirectfb_serialmouse.so": {
+      "bytes": 11320,
+      "sha256": "860b05f5e9849466cf24cbc6d74249cbecbcbc52e4aa014d2495a740623ffa41"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/ICoreResourceManager/libicoreresourcemanager_test.so": {
+      "bytes": 8316,
+      "sha256": "03b7e1f3beda5cb5b77f21ba142dd114d9d692a614d58a592daac544d0e561c9"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBFont/libidirectfbfont_dgiff.so": {
+      "bytes": 9660,
+      "sha256": "327909090acf7409b1cbcc2638dcfce3c91f60b180b28923524ada01ac86c384"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBFont/libidirectfbfont_ft2.so": {
+      "bytes": 18000,
+      "sha256": "4d76bb266ee197cd7bbb0843faac47c51e8b356cc52ef3355f0f7aa1534d69d2"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_bmp.so": {
+      "bytes": 10452,
+      "sha256": "01ac7f2b19394c51f84c33671271493fcebfee5bad896f5a9a8f8c6fbb6c1f16"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_dfiff.so": {
+      "bytes": 8456,
+      "sha256": "fc387fd7557b60b03fcb38eb695d37bb69fefe8c0a880909e9b1fb0280c025c1"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_gif.so": {
+      "bytes": 13816,
+      "sha256": "83d95ede0ea9308668b86d589de82d4557054775c61747d235b0fece728e4c79"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_jpeg.so": {
+      "bytes": 12708,
+      "sha256": "f791dca180765db9a9fb722b336901832603670aed5aa48b41b808c12ccc40e0"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_mpeg2.so": {
+      "bytes": 44740,
+      "sha256": "d1bb9adb7e641b27d0b508c12ce922dafab275475de5da7d36a5018115d6d410"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_png.so": {
+      "bytes": 15104,
+      "sha256": "db2a48940c1907c16233af69a79f8a5ea611a8e54501475a5b68766fd5dbb15e"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_pnm.so": {
+      "bytes": 12800,
+      "sha256": "db71f854b3aeececb9747333b2f393c8d7515ee4aa7cdbc49d96e56064dfac56"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_svg.so": {
+      "bytes": 11600,
+      "sha256": "f1393087f58d17e4897a198ecfef88b6912f4e9abf68dad88d44f995bc2e0f77"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBVideoProvider/libidirectfbvideoprovider_gif.so": {
+      "bytes": 16708,
+      "sha256": "9191999165c433bdca4fcd17caef55e5ad30b6a2e2c9f98e85f13c50e6babbc7"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IDirectFBWindows/libidirectfbwindows_default.so": {
+      "bytes": 8644,
+      "sha256": "bce01700223956adb06fbaf16568b2efc1740f087247785152129602d9e6f87a"
+    },
+    "usr/lib/directfb-1.7-7-pure/interfaces/IWater/libiwater_default.so": {
+      "bytes": 62012,
+      "sha256": "cd32c8229b292989e3ab9d6076fe0ccd3ff5b39d54c3612ed0a75ddb5549f2fc"
+    },
+    "usr/lib/directfb-1.7-7-pure/systems/libdirectfb_devmem.so": {
+      "bytes": 14180,
+      "sha256": "ff684ee45c6de2009c2240e1ca5836f6eb2e8b5f5a70fc4754e8b6eb5c05a957"
+    },
+    "usr/lib/directfb-1.7-7-pure/systems/libdirectfb_dummy.so": {
+      "bytes": 11296,
+      "sha256": "dbe79815e4e83bb31d80e5914cbd63b9738d552d40411f2ff81cf3f0a96685c5"
+    },
+    "usr/lib/directfb-1.7-7-pure/systems/libdirectfb_fbdev.so": {
+      "bytes": 51936,
+      "sha256": "84aab36d87ec87cd1fc2320e224ff21befc9d781f94946293828144571ebabb7"
+    },
+    "usr/lib/directfb-1.7-7-pure/wm/libdirectfbwm_default.so": {
+      "bytes": 43108,
+      "sha256": "9daa9bd458e1944fba786df56782ced92898f0fad2bf157eb0b713b4bae0b8a7"
+    },
+    "usr/lib/lib++dfb-1.7.so.7": {
+      "bytes": 159632,
+      "sha256": "9bb60ea945a16f0fe46638dd2ad64d287a0999dd13548e4d71bc136a81adb65e"
+    },
+    "usr/lib/lib++dfb-1.7.so.7.0.0": {
+      "bytes": 159632,
+      "sha256": "9bb60ea945a16f0fe46638dd2ad64d287a0999dd13548e4d71bc136a81adb65e"
+    },
+    "usr/lib/lib++dfb.so": {
+      "bytes": 159632,
+      "sha256": "9bb60ea945a16f0fe46638dd2ad64d287a0999dd13548e4d71bc136a81adb65e"
+    },
+    "usr/lib/libSDL-1.2.so.0": {
+      "bytes": 273252,
+      "sha256": "7fc822cbea6fac5fed3f26eca31ddc719ada1d259a790a17863faf573bb7125b"
+    },
+    "usr/lib/libSDL-1.2.so.0.11.4": {
+      "bytes": 273252,
+      "sha256": "7fc822cbea6fac5fed3f26eca31ddc719ada1d259a790a17863faf573bb7125b"
+    },
+    "usr/lib/libSDL.so": {
+      "bytes": 273252,
+      "sha256": "7fc822cbea6fac5fed3f26eca31ddc719ada1d259a790a17863faf573bb7125b"
+    },
+    "usr/lib/libSDL2-2.0.so.0": {
+      "bytes": 1065044,
+      "sha256": "c3af648618aaa7339e4f2d3686fbbc5d0d9349ff552022ef253129f78ae9d6ae"
+    },
+    "usr/lib/libSDL2-2.0.so.0.14.0": {
+      "bytes": 1065044,
+      "sha256": "c3af648618aaa7339e4f2d3686fbbc5d0d9349ff552022ef253129f78ae9d6ae"
+    },
+    "usr/lib/libSDL2.so": {
+      "bytes": 1065044,
+      "sha256": "c3af648618aaa7339e4f2d3686fbbc5d0d9349ff552022ef253129f78ae9d6ae"
+    },
+    "usr/lib/libSDL2_gfx-1.0.so.0": {
+      "bytes": 61640,
+      "sha256": "1c70fc5298248f74a5570d64d0f7ab4187859e76145ba40911bef456965ddacc"
+    },
+    "usr/lib/libSDL2_gfx-1.0.so.0.0.2": {
+      "bytes": 61640,
+      "sha256": "1c70fc5298248f74a5570d64d0f7ab4187859e76145ba40911bef456965ddacc"
+    },
+    "usr/lib/libSDL2_gfx.so": {
+      "bytes": 61640,
+      "sha256": "1c70fc5298248f74a5570d64d0f7ab4187859e76145ba40911bef456965ddacc"
+    },
+    "usr/lib/libSDL2_image-2.0.so.0": {
+      "bytes": 114596,
+      "sha256": "19cdb062de962150a05ca5d8d768809ecd6a2c68ab5a380502a4bd3fd15b4085"
+    },
+    "usr/lib/libSDL2_image-2.0.so.0.2.3": {
+      "bytes": 114596,
+      "sha256": "19cdb062de962150a05ca5d8d768809ecd6a2c68ab5a380502a4bd3fd15b4085"
+    },
+    "usr/lib/libSDL2_image.so": {
+      "bytes": 114596,
+      "sha256": "19cdb062de962150a05ca5d8d768809ecd6a2c68ab5a380502a4bd3fd15b4085"
+    },
+    "usr/lib/libSDL2_ttf-2.0.so.0": {
+      "bytes": 25740,
+      "sha256": "8f690efad497401f0caa46dae40b880455e153a72a256cc8a850aef7400f8c93"
+    },
+    "usr/lib/libSDL2_ttf-2.0.so.0.14.1": {
+      "bytes": 25740,
+      "sha256": "8f690efad497401f0caa46dae40b880455e153a72a256cc8a850aef7400f8c93"
+    },
+    "usr/lib/libSDL2_ttf.so": {
+      "bytes": 25740,
+      "sha256": "8f690efad497401f0caa46dae40b880455e153a72a256cc8a850aef7400f8c93"
+    },
+    "usr/lib/libSDL_gfx.so": {
+      "bytes": 84668,
+      "sha256": "4390c5e3b004df7ee84dd92b203f82b45c46f9b61ed9889b58cb8965160b6b7c"
+    },
+    "usr/lib/libSDL_gfx.so.13": {
+      "bytes": 84668,
+      "sha256": "4390c5e3b004df7ee84dd92b203f82b45c46f9b61ed9889b58cb8965160b6b7c"
+    },
+    "usr/lib/libSDL_gfx.so.13.9.1": {
+      "bytes": 84668,
+      "sha256": "4390c5e3b004df7ee84dd92b203f82b45c46f9b61ed9889b58cb8965160b6b7c"
+    },
+    "usr/lib/libSDL_image-1.2.so.0": {
+      "bytes": 32720,
+      "sha256": "cb6d98d9a71b2cae6aef64a7316fbb502c5675b62453f06ea58f6991768f2236"
+    },
+    "usr/lib/libSDL_image-1.2.so.0.8.5": {
+      "bytes": 32720,
+      "sha256": "cb6d98d9a71b2cae6aef64a7316fbb502c5675b62453f06ea58f6991768f2236"
+    },
+    "usr/lib/libSDL_image.so": {
+      "bytes": 32720,
+      "sha256": "cb6d98d9a71b2cae6aef64a7316fbb502c5675b62453f06ea58f6991768f2236"
+    },
+    "usr/lib/libSDL_ttf-2.0.so.0": {
+      "bytes": 23316,
+      "sha256": "22c9c96e12f3c40b051804270f0ead1ff3402be6c08e62f2f4aaf24dc91c04e0"
+    },
+    "usr/lib/libSDL_ttf-2.0.so.0.10.2": {
+      "bytes": 23316,
+      "sha256": "22c9c96e12f3c40b051804270f0ead1ff3402be6c08e62f2f4aaf24dc91c04e0"
+    },
+    "usr/lib/libSDL_ttf.so": {
+      "bytes": 23316,
+      "sha256": "22c9c96e12f3c40b051804270f0ead1ff3402be6c08e62f2f4aaf24dc91c04e0"
+    },
+    "usr/lib/libcairo.so": {
+      "bytes": 874616,
+      "sha256": "cf06ee2d3c51b86cb6fcf51532f737a599ff71481ea1b74abbb98899391fa6df"
+    },
+    "usr/lib/libcairo.so.2": {
+      "bytes": 874616,
+      "sha256": "cf06ee2d3c51b86cb6fcf51532f737a599ff71481ea1b74abbb98899391fa6df"
+    },
+    "usr/lib/libcairo.so.2.11600.0": {
+      "bytes": 874616,
+      "sha256": "cf06ee2d3c51b86cb6fcf51532f737a599ff71481ea1b74abbb98899391fa6df"
+    },
+    "usr/lib/libdirect-1.7.so.7": {
+      "bytes": 133124,
+      "sha256": "48f4bbd51228742a2b6b4c99889770bf8f4a0f54839216ca523ac8be976dd0dc"
+    },
+    "usr/lib/libdirect-1.7.so.7.0.0": {
+      "bytes": 133124,
+      "sha256": "48f4bbd51228742a2b6b4c99889770bf8f4a0f54839216ca523ac8be976dd0dc"
+    },
+    "usr/lib/libdirect.so": {
+      "bytes": 133124,
+      "sha256": "48f4bbd51228742a2b6b4c99889770bf8f4a0f54839216ca523ac8be976dd0dc"
+    },
+    "usr/lib/libdirectfb-1.7.so.7": {
+      "bytes": 1181352,
+      "sha256": "ed48ca193aae31f6e76c4d787bf9fc6f1d885a20afa307b957f962c70f8568bc"
+    },
+    "usr/lib/libdirectfb-1.7.so.7.0.0": {
+      "bytes": 1181352,
+      "sha256": "ed48ca193aae31f6e76c4d787bf9fc6f1d885a20afa307b957f962c70f8568bc"
+    },
+    "usr/lib/libdirectfb.so": {
+      "bytes": 1181352,
+      "sha256": "ed48ca193aae31f6e76c4d787bf9fc6f1d885a20afa307b957f962c70f8568bc"
+    },
+    "usr/lib/libexpat.so": {
+      "bytes": 164388,
+      "sha256": "104aa9be289fd0c36d86132f993b0e9814ca48eff97dd7ebfbd45256c729f4af"
+    },
+    "usr/lib/libexpat.so.1": {
+      "bytes": 164388,
+      "sha256": "104aa9be289fd0c36d86132f993b0e9814ca48eff97dd7ebfbd45256c729f4af"
+    },
+    "usr/lib/libexpat.so.1.8.1": {
+      "bytes": 164388,
+      "sha256": "104aa9be289fd0c36d86132f993b0e9814ca48eff97dd7ebfbd45256c729f4af"
+    },
+    "usr/lib/libfontconfig.so": {
+      "bytes": 271732,
+      "sha256": "04f034cd4d15197f9359ac6a18ddecf2ba001379fd3798b3cebff8439d8a433c"
+    },
+    "usr/lib/libfontconfig.so.1": {
+      "bytes": 271732,
+      "sha256": "04f034cd4d15197f9359ac6a18ddecf2ba001379fd3798b3cebff8439d8a433c"
+    },
+    "usr/lib/libfontconfig.so.1.12.0": {
+      "bytes": 271732,
+      "sha256": "04f034cd4d15197f9359ac6a18ddecf2ba001379fd3798b3cebff8439d8a433c"
+    },
+    "usr/lib/libfreetype.so": {
+      "bytes": 635480,
+      "sha256": "6914927ebf7337dbf25bb7a4138fcbb1aaed7c3d68901da0ec232fe16ba4d6d0"
+    },
+    "usr/lib/libfreetype.so.6": {
+      "bytes": 635480,
+      "sha256": "6914927ebf7337dbf25bb7a4138fcbb1aaed7c3d68901da0ec232fe16ba4d6d0"
+    },
+    "usr/lib/libfreetype.so.6.17.4": {
+      "bytes": 635480,
+      "sha256": "6914927ebf7337dbf25bb7a4138fcbb1aaed7c3d68901da0ec232fe16ba4d6d0"
+    },
+    "usr/lib/libfusion-1.7.so.7": {
+      "bytes": 53764,
+      "sha256": "e39bcb16a787dbcdaecde9ec714c59bc9f0312d14f70fdfa99f0017b9812add5"
+    },
+    "usr/lib/libfusion-1.7.so.7.0.0": {
+      "bytes": 53764,
+      "sha256": "e39bcb16a787dbcdaecde9ec714c59bc9f0312d14f70fdfa99f0017b9812add5"
+    },
+    "usr/lib/libfusion.so": {
+      "bytes": 53764,
+      "sha256": "e39bcb16a787dbcdaecde9ec714c59bc9f0312d14f70fdfa99f0017b9812add5"
+    },
+    "usr/lib/libge.so": {
+      "bytes": 45872,
+      "sha256": "d7d3fb9ea96a5acc615966f52c9a2c997d6ae94716cbc7b18320b56a6570a175"
+    },
+    "usr/lib/libge_old.so": {
+      "bytes": 49444,
+      "sha256": "f6baed3e0fecc67e5f3e18e2a75f6717ba8302c2bcef75bfd55b520570dd6359"
+    },
+    "usr/lib/libgpsp.so": {
+      "bytes": 1213352,
+      "sha256": "fc3310b77f017b42bcb49790fb8da451eaf4fa1ff106971a5f9050c9631f8589"
+    },
+    "usr/lib/libhcfota.so": {
+      "bytes": 25140,
+      "sha256": "af20263029fc358b49df6dc0e06580ab71e0ea7323633903dab260d3eb0ca480"
+    },
+    "usr/lib/libjpeg.so": {
+      "bytes": 208660,
+      "sha256": "7294cf6af94f3927a9d6b093a8d62aa164b350bf45cc0da3de8a7e361874802c"
+    },
+    "usr/lib/libjpeg.so.9": {
+      "bytes": 208660,
+      "sha256": "7294cf6af94f3927a9d6b093a8d62aa164b350bf45cc0da3de8a7e361874802c"
+    },
+    "usr/lib/libjpeg.so.9.4.0": {
+      "bytes": 208660,
+      "sha256": "7294cf6af94f3927a9d6b093a8d62aa164b350bf45cc0da3de8a7e361874802c"
+    },
+    "usr/lib/libpixman-1.so": {
+      "bytes": 543752,
+      "sha256": "c640dec0e6358c55b18099ec4f55dc403087050d89344aacee7b30f0528192fe"
+    },
+    "usr/lib/libpixman-1.so.0": {
+      "bytes": 543752,
+      "sha256": "c640dec0e6358c55b18099ec4f55dc403087050d89344aacee7b30f0528192fe"
+    },
+    "usr/lib/libpixman-1.so.0.40.0": {
+      "bytes": 543752,
+      "sha256": "c640dec0e6358c55b18099ec4f55dc403087050d89344aacee7b30f0528192fe"
+    },
+    "usr/lib/libpng.so": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib/libpng16.so": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib/libpng16.so.16": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib/libpng16.so.16.37.0": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib/libsvg-cairo.so": {
+      "bytes": 27564,
+      "sha256": "da3388066f428ea5f005c41949d3c887b8b3108966122ea99e1f54d231d131e4"
+    },
+    "usr/lib/libsvg-cairo.so.1": {
+      "bytes": 27564,
+      "sha256": "da3388066f428ea5f005c41949d3c887b8b3108966122ea99e1f54d231d131e4"
+    },
+    "usr/lib/libsvg-cairo.so.1.0.1": {
+      "bytes": 27564,
+      "sha256": "da3388066f428ea5f005c41949d3c887b8b3108966122ea99e1f54d231d131e4"
+    },
+    "usr/lib/libsvg.so": {
+      "bytes": 73080,
+      "sha256": "e6f20d965491d33d250edc0ebec6a346bd2e266f7d29d8e848845cf3e56efc3e"
+    },
+    "usr/lib/libsvg.so.1": {
+      "bytes": 73080,
+      "sha256": "e6f20d965491d33d250edc0ebec6a346bd2e266f7d29d8e848845cf3e56efc3e"
+    },
+    "usr/lib/libsvg.so.1.0.0": {
+      "bytes": 73080,
+      "sha256": "e6f20d965491d33d250edc0ebec6a346bd2e266f7d29d8e848845cf3e56efc3e"
+    },
+    "usr/lib/libts.so": {
+      "bytes": 15104,
+      "sha256": "4a7c2933845395bbb4a66f8d3c63484099d65e13b72ea20be073f5e98c0d8610"
+    },
+    "usr/lib/libts.so.0": {
+      "bytes": 15104,
+      "sha256": "4a7c2933845395bbb4a66f8d3c63484099d65e13b72ea20be073f5e98c0d8610"
+    },
+    "usr/lib/libts.so.0.10.4": {
+      "bytes": 15104,
+      "sha256": "4a7c2933845395bbb4a66f8d3c63484099d65e13b72ea20be073f5e98c0d8610"
+    },
+    "usr/lib/libuuid.so": {
+      "bytes": 26256,
+      "sha256": "131f7c05e44238e7eefa80ebb7d1d48421cca13045357d0e1adacfad4630188e"
+    },
+    "usr/lib/libz.so": {
+      "bytes": 84632,
+      "sha256": "c7ff51c4ab506c69323cbd6030e02e2ead371250788814e7988b0a5fbd9468fd"
+    },
+    "usr/lib/libz.so.1": {
+      "bytes": 84632,
+      "sha256": "c7ff51c4ab506c69323cbd6030e02e2ead371250788814e7988b0a5fbd9468fd"
+    },
+    "usr/lib/libz.so.1.2.11": {
+      "bytes": 84632,
+      "sha256": "c7ff51c4ab506c69323cbd6030e02e2ead371250788814e7988b0a5fbd9468fd"
+    },
+    "usr/lib/os-release": {
+      "bytes": 122,
+      "sha256": "47180724040f7a93a3c2092725465767158312c4735227ef3678f3bb25ef81b7"
+    },
+    "usr/lib/ts/debounce.so": {
+      "bytes": 6220,
+      "sha256": "5050760857d454af8e93617a7ee441b8c28675ed8eabfa1a998c02a35b9446d8"
+    },
+    "usr/lib/ts/dejitter.so": {
+      "bytes": 6372,
+      "sha256": "b0107e872381e2b5dbfb19695f2dea34d7f0b9c1686e5bf4a6a5eaecbb245651"
+    },
+    "usr/lib/ts/evthres.so": {
+      "bytes": 7160,
+      "sha256": "d4e225d983235cbd616cd0b0dddca05033f6631efa7f7b9a08b8c6d901662e33"
+    },
+    "usr/lib/ts/iir.so": {
+      "bytes": 5928,
+      "sha256": "2b2d79d2cab220d6c66a00d86f547e0ab5faa404f3b201be73bbdfeec245d6e4"
+    },
+    "usr/lib/ts/input.so": {
+      "bytes": 11036,
+      "sha256": "6cadd46a6261ef5b0b1e50800363a776b5a41e7f5244948a4ce45f30fed4576c"
+    },
+    "usr/lib/ts/invert.so": {
+      "bytes": 5084,
+      "sha256": "83067277ff9b480f3713bb7ffe5e2b79cce5453b18629ac606549192cad778c3"
+    },
+    "usr/lib/ts/linear.so": {
+      "bytes": 7232,
+      "sha256": "7d18a6e0f2020eb98a65d72100a8ab0033e87134dc30187b7811480cea21744d"
+    },
+    "usr/lib/ts/lowpass.so": {
+      "bytes": 6476,
+      "sha256": "f2668c0fb7f38f4a945a9cb1ec87433ee1c3b9dd3428219824ef1b3e80718227"
+    },
+    "usr/lib/ts/median.so": {
+      "bytes": 7576,
+      "sha256": "c00ec11a4cc0f13fb8d3efd3265e9b4726193f2b9fcfab9cc063984d9e66338a"
+    },
+    "usr/lib/ts/pthres.so": {
+      "bytes": 5812,
+      "sha256": "330d811f597d167fc37917a245592ee51f2f4475def481957db9334bf52bc6a8"
+    },
+    "usr/lib/ts/skip.so": {
+      "bytes": 7496,
+      "sha256": "3efc589611f4e4a4596db70f5578afc0517900e3e0a7fdb1b05ae62aca1b0e6e"
+    },
+    "usr/lib/ts/touchkit.so": {
+      "bytes": 4608,
+      "sha256": "101a4ef77ff5d6be20fc662d98cabe3cca92316260430e068458e926dc150433"
+    },
+    "usr/lib/ts/variance.so": {
+      "bytes": 6904,
+      "sha256": "0b8d8210da929d45126d946ffef91a3d1747240e0d82d42923de80c31ff4a86b"
+    },
+    "usr/lib/ts/waveshare.so": {
+      "bytes": 6356,
+      "sha256": "49a6ec04de54c9774a4a115694e55e1b49b928d095c884dbfcf88f9eade9dd6d"
+    },
+    "usr/lib32/directfb-1.7-7-pure/gfxdrivers/libdirectfb_hcge.so": {
+      "bytes": 50388,
+      "sha256": "d06216edc1aeb3f29f59119380d1d2ac1bc9fc4cd97ab316290677c9772e2a99"
+    },
+    "usr/lib32/directfb-1.7-7-pure/inputdrivers/libdirectfb_keyboard.so": {
+      "bytes": 10828,
+      "sha256": "b5691152f0794ba908831ef79834c20444b212513737d87200279e5a46b96c62"
+    },
+    "usr/lib32/directfb-1.7-7-pure/inputdrivers/libdirectfb_linux_input.so": {
+      "bytes": 23232,
+      "sha256": "3e01cbedeb77fd2abe0fe25ed0e211038703dd38f551b017cb296bb3dca9ce13"
+    },
+    "usr/lib32/directfb-1.7-7-pure/inputdrivers/libdirectfb_ps2mouse.so": {
+      "bytes": 12224,
+      "sha256": "58dd6dde4f615c92be92ff13058a65de7052fd6857a86dea4f890539372349a3"
+    },
+    "usr/lib32/directfb-1.7-7-pure/inputdrivers/libdirectfb_serialmouse.so": {
+      "bytes": 11320,
+      "sha256": "860b05f5e9849466cf24cbc6d74249cbecbcbc52e4aa014d2495a740623ffa41"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/ICoreResourceManager/libicoreresourcemanager_test.so": {
+      "bytes": 8316,
+      "sha256": "03b7e1f3beda5cb5b77f21ba142dd114d9d692a614d58a592daac544d0e561c9"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBFont/libidirectfbfont_dgiff.so": {
+      "bytes": 9660,
+      "sha256": "327909090acf7409b1cbcc2638dcfce3c91f60b180b28923524ada01ac86c384"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBFont/libidirectfbfont_ft2.so": {
+      "bytes": 18000,
+      "sha256": "4d76bb266ee197cd7bbb0843faac47c51e8b356cc52ef3355f0f7aa1534d69d2"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_bmp.so": {
+      "bytes": 10452,
+      "sha256": "01ac7f2b19394c51f84c33671271493fcebfee5bad896f5a9a8f8c6fbb6c1f16"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_dfiff.so": {
+      "bytes": 8456,
+      "sha256": "fc387fd7557b60b03fcb38eb695d37bb69fefe8c0a880909e9b1fb0280c025c1"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_gif.so": {
+      "bytes": 13816,
+      "sha256": "83d95ede0ea9308668b86d589de82d4557054775c61747d235b0fece728e4c79"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_jpeg.so": {
+      "bytes": 12708,
+      "sha256": "f791dca180765db9a9fb722b336901832603670aed5aa48b41b808c12ccc40e0"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_mpeg2.so": {
+      "bytes": 44740,
+      "sha256": "d1bb9adb7e641b27d0b508c12ce922dafab275475de5da7d36a5018115d6d410"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_png.so": {
+      "bytes": 15104,
+      "sha256": "db2a48940c1907c16233af69a79f8a5ea611a8e54501475a5b68766fd5dbb15e"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_pnm.so": {
+      "bytes": 12800,
+      "sha256": "db71f854b3aeececb9747333b2f393c8d7515ee4aa7cdbc49d96e56064dfac56"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_svg.so": {
+      "bytes": 11600,
+      "sha256": "f1393087f58d17e4897a198ecfef88b6912f4e9abf68dad88d44f995bc2e0f77"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBVideoProvider/libidirectfbvideoprovider_gif.so": {
+      "bytes": 16708,
+      "sha256": "9191999165c433bdca4fcd17caef55e5ad30b6a2e2c9f98e85f13c50e6babbc7"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IDirectFBWindows/libidirectfbwindows_default.so": {
+      "bytes": 8644,
+      "sha256": "bce01700223956adb06fbaf16568b2efc1740f087247785152129602d9e6f87a"
+    },
+    "usr/lib32/directfb-1.7-7-pure/interfaces/IWater/libiwater_default.so": {
+      "bytes": 62012,
+      "sha256": "cd32c8229b292989e3ab9d6076fe0ccd3ff5b39d54c3612ed0a75ddb5549f2fc"
+    },
+    "usr/lib32/directfb-1.7-7-pure/systems/libdirectfb_devmem.so": {
+      "bytes": 14180,
+      "sha256": "ff684ee45c6de2009c2240e1ca5836f6eb2e8b5f5a70fc4754e8b6eb5c05a957"
+    },
+    "usr/lib32/directfb-1.7-7-pure/systems/libdirectfb_dummy.so": {
+      "bytes": 11296,
+      "sha256": "dbe79815e4e83bb31d80e5914cbd63b9738d552d40411f2ff81cf3f0a96685c5"
+    },
+    "usr/lib32/directfb-1.7-7-pure/systems/libdirectfb_fbdev.so": {
+      "bytes": 51936,
+      "sha256": "84aab36d87ec87cd1fc2320e224ff21befc9d781f94946293828144571ebabb7"
+    },
+    "usr/lib32/directfb-1.7-7-pure/wm/libdirectfbwm_default.so": {
+      "bytes": 43108,
+      "sha256": "9daa9bd458e1944fba786df56782ced92898f0fad2bf157eb0b713b4bae0b8a7"
+    },
+    "usr/lib32/lib++dfb-1.7.so.7": {
+      "bytes": 159632,
+      "sha256": "9bb60ea945a16f0fe46638dd2ad64d287a0999dd13548e4d71bc136a81adb65e"
+    },
+    "usr/lib32/lib++dfb-1.7.so.7.0.0": {
+      "bytes": 159632,
+      "sha256": "9bb60ea945a16f0fe46638dd2ad64d287a0999dd13548e4d71bc136a81adb65e"
+    },
+    "usr/lib32/lib++dfb.so": {
+      "bytes": 159632,
+      "sha256": "9bb60ea945a16f0fe46638dd2ad64d287a0999dd13548e4d71bc136a81adb65e"
+    },
+    "usr/lib32/libSDL-1.2.so.0": {
+      "bytes": 273252,
+      "sha256": "7fc822cbea6fac5fed3f26eca31ddc719ada1d259a790a17863faf573bb7125b"
+    },
+    "usr/lib32/libSDL-1.2.so.0.11.4": {
+      "bytes": 273252,
+      "sha256": "7fc822cbea6fac5fed3f26eca31ddc719ada1d259a790a17863faf573bb7125b"
+    },
+    "usr/lib32/libSDL.so": {
+      "bytes": 273252,
+      "sha256": "7fc822cbea6fac5fed3f26eca31ddc719ada1d259a790a17863faf573bb7125b"
+    },
+    "usr/lib32/libSDL2-2.0.so.0": {
+      "bytes": 1065044,
+      "sha256": "c3af648618aaa7339e4f2d3686fbbc5d0d9349ff552022ef253129f78ae9d6ae"
+    },
+    "usr/lib32/libSDL2-2.0.so.0.14.0": {
+      "bytes": 1065044,
+      "sha256": "c3af648618aaa7339e4f2d3686fbbc5d0d9349ff552022ef253129f78ae9d6ae"
+    },
+    "usr/lib32/libSDL2.so": {
+      "bytes": 1065044,
+      "sha256": "c3af648618aaa7339e4f2d3686fbbc5d0d9349ff552022ef253129f78ae9d6ae"
+    },
+    "usr/lib32/libSDL2_gfx-1.0.so.0": {
+      "bytes": 61640,
+      "sha256": "1c70fc5298248f74a5570d64d0f7ab4187859e76145ba40911bef456965ddacc"
+    },
+    "usr/lib32/libSDL2_gfx-1.0.so.0.0.2": {
+      "bytes": 61640,
+      "sha256": "1c70fc5298248f74a5570d64d0f7ab4187859e76145ba40911bef456965ddacc"
+    },
+    "usr/lib32/libSDL2_gfx.so": {
+      "bytes": 61640,
+      "sha256": "1c70fc5298248f74a5570d64d0f7ab4187859e76145ba40911bef456965ddacc"
+    },
+    "usr/lib32/libSDL2_image-2.0.so.0": {
+      "bytes": 114596,
+      "sha256": "19cdb062de962150a05ca5d8d768809ecd6a2c68ab5a380502a4bd3fd15b4085"
+    },
+    "usr/lib32/libSDL2_image-2.0.so.0.2.3": {
+      "bytes": 114596,
+      "sha256": "19cdb062de962150a05ca5d8d768809ecd6a2c68ab5a380502a4bd3fd15b4085"
+    },
+    "usr/lib32/libSDL2_image.so": {
+      "bytes": 114596,
+      "sha256": "19cdb062de962150a05ca5d8d768809ecd6a2c68ab5a380502a4bd3fd15b4085"
+    },
+    "usr/lib32/libSDL2_ttf-2.0.so.0": {
+      "bytes": 25740,
+      "sha256": "8f690efad497401f0caa46dae40b880455e153a72a256cc8a850aef7400f8c93"
+    },
+    "usr/lib32/libSDL2_ttf-2.0.so.0.14.1": {
+      "bytes": 25740,
+      "sha256": "8f690efad497401f0caa46dae40b880455e153a72a256cc8a850aef7400f8c93"
+    },
+    "usr/lib32/libSDL2_ttf.so": {
+      "bytes": 25740,
+      "sha256": "8f690efad497401f0caa46dae40b880455e153a72a256cc8a850aef7400f8c93"
+    },
+    "usr/lib32/libSDL_gfx.so": {
+      "bytes": 84668,
+      "sha256": "4390c5e3b004df7ee84dd92b203f82b45c46f9b61ed9889b58cb8965160b6b7c"
+    },
+    "usr/lib32/libSDL_gfx.so.13": {
+      "bytes": 84668,
+      "sha256": "4390c5e3b004df7ee84dd92b203f82b45c46f9b61ed9889b58cb8965160b6b7c"
+    },
+    "usr/lib32/libSDL_gfx.so.13.9.1": {
+      "bytes": 84668,
+      "sha256": "4390c5e3b004df7ee84dd92b203f82b45c46f9b61ed9889b58cb8965160b6b7c"
+    },
+    "usr/lib32/libSDL_image-1.2.so.0": {
+      "bytes": 32720,
+      "sha256": "cb6d98d9a71b2cae6aef64a7316fbb502c5675b62453f06ea58f6991768f2236"
+    },
+    "usr/lib32/libSDL_image-1.2.so.0.8.5": {
+      "bytes": 32720,
+      "sha256": "cb6d98d9a71b2cae6aef64a7316fbb502c5675b62453f06ea58f6991768f2236"
+    },
+    "usr/lib32/libSDL_image.so": {
+      "bytes": 32720,
+      "sha256": "cb6d98d9a71b2cae6aef64a7316fbb502c5675b62453f06ea58f6991768f2236"
+    },
+    "usr/lib32/libSDL_ttf-2.0.so.0": {
+      "bytes": 23316,
+      "sha256": "22c9c96e12f3c40b051804270f0ead1ff3402be6c08e62f2f4aaf24dc91c04e0"
+    },
+    "usr/lib32/libSDL_ttf-2.0.so.0.10.2": {
+      "bytes": 23316,
+      "sha256": "22c9c96e12f3c40b051804270f0ead1ff3402be6c08e62f2f4aaf24dc91c04e0"
+    },
+    "usr/lib32/libSDL_ttf.so": {
+      "bytes": 23316,
+      "sha256": "22c9c96e12f3c40b051804270f0ead1ff3402be6c08e62f2f4aaf24dc91c04e0"
+    },
+    "usr/lib32/libcairo.so": {
+      "bytes": 874616,
+      "sha256": "cf06ee2d3c51b86cb6fcf51532f737a599ff71481ea1b74abbb98899391fa6df"
+    },
+    "usr/lib32/libcairo.so.2": {
+      "bytes": 874616,
+      "sha256": "cf06ee2d3c51b86cb6fcf51532f737a599ff71481ea1b74abbb98899391fa6df"
+    },
+    "usr/lib32/libcairo.so.2.11600.0": {
+      "bytes": 874616,
+      "sha256": "cf06ee2d3c51b86cb6fcf51532f737a599ff71481ea1b74abbb98899391fa6df"
+    },
+    "usr/lib32/libdirect-1.7.so.7": {
+      "bytes": 133124,
+      "sha256": "48f4bbd51228742a2b6b4c99889770bf8f4a0f54839216ca523ac8be976dd0dc"
+    },
+    "usr/lib32/libdirect-1.7.so.7.0.0": {
+      "bytes": 133124,
+      "sha256": "48f4bbd51228742a2b6b4c99889770bf8f4a0f54839216ca523ac8be976dd0dc"
+    },
+    "usr/lib32/libdirect.so": {
+      "bytes": 133124,
+      "sha256": "48f4bbd51228742a2b6b4c99889770bf8f4a0f54839216ca523ac8be976dd0dc"
+    },
+    "usr/lib32/libdirectfb-1.7.so.7": {
+      "bytes": 1181352,
+      "sha256": "ed48ca193aae31f6e76c4d787bf9fc6f1d885a20afa307b957f962c70f8568bc"
+    },
+    "usr/lib32/libdirectfb-1.7.so.7.0.0": {
+      "bytes": 1181352,
+      "sha256": "ed48ca193aae31f6e76c4d787bf9fc6f1d885a20afa307b957f962c70f8568bc"
+    },
+    "usr/lib32/libdirectfb.so": {
+      "bytes": 1181352,
+      "sha256": "ed48ca193aae31f6e76c4d787bf9fc6f1d885a20afa307b957f962c70f8568bc"
+    },
+    "usr/lib32/libexpat.so": {
+      "bytes": 164388,
+      "sha256": "104aa9be289fd0c36d86132f993b0e9814ca48eff97dd7ebfbd45256c729f4af"
+    },
+    "usr/lib32/libexpat.so.1": {
+      "bytes": 164388,
+      "sha256": "104aa9be289fd0c36d86132f993b0e9814ca48eff97dd7ebfbd45256c729f4af"
+    },
+    "usr/lib32/libexpat.so.1.8.1": {
+      "bytes": 164388,
+      "sha256": "104aa9be289fd0c36d86132f993b0e9814ca48eff97dd7ebfbd45256c729f4af"
+    },
+    "usr/lib32/libfontconfig.so": {
+      "bytes": 271732,
+      "sha256": "04f034cd4d15197f9359ac6a18ddecf2ba001379fd3798b3cebff8439d8a433c"
+    },
+    "usr/lib32/libfontconfig.so.1": {
+      "bytes": 271732,
+      "sha256": "04f034cd4d15197f9359ac6a18ddecf2ba001379fd3798b3cebff8439d8a433c"
+    },
+    "usr/lib32/libfontconfig.so.1.12.0": {
+      "bytes": 271732,
+      "sha256": "04f034cd4d15197f9359ac6a18ddecf2ba001379fd3798b3cebff8439d8a433c"
+    },
+    "usr/lib32/libfreetype.so": {
+      "bytes": 635480,
+      "sha256": "6914927ebf7337dbf25bb7a4138fcbb1aaed7c3d68901da0ec232fe16ba4d6d0"
+    },
+    "usr/lib32/libfreetype.so.6": {
+      "bytes": 635480,
+      "sha256": "6914927ebf7337dbf25bb7a4138fcbb1aaed7c3d68901da0ec232fe16ba4d6d0"
+    },
+    "usr/lib32/libfreetype.so.6.17.4": {
+      "bytes": 635480,
+      "sha256": "6914927ebf7337dbf25bb7a4138fcbb1aaed7c3d68901da0ec232fe16ba4d6d0"
+    },
+    "usr/lib32/libfusion-1.7.so.7": {
+      "bytes": 53764,
+      "sha256": "e39bcb16a787dbcdaecde9ec714c59bc9f0312d14f70fdfa99f0017b9812add5"
+    },
+    "usr/lib32/libfusion-1.7.so.7.0.0": {
+      "bytes": 53764,
+      "sha256": "e39bcb16a787dbcdaecde9ec714c59bc9f0312d14f70fdfa99f0017b9812add5"
+    },
+    "usr/lib32/libfusion.so": {
+      "bytes": 53764,
+      "sha256": "e39bcb16a787dbcdaecde9ec714c59bc9f0312d14f70fdfa99f0017b9812add5"
+    },
+    "usr/lib32/libge.so": {
+      "bytes": 45872,
+      "sha256": "d7d3fb9ea96a5acc615966f52c9a2c997d6ae94716cbc7b18320b56a6570a175"
+    },
+    "usr/lib32/libge_old.so": {
+      "bytes": 49444,
+      "sha256": "f6baed3e0fecc67e5f3e18e2a75f6717ba8302c2bcef75bfd55b520570dd6359"
+    },
+    "usr/lib32/libgpsp.so": {
+      "bytes": 1213352,
+      "sha256": "fc3310b77f017b42bcb49790fb8da451eaf4fa1ff106971a5f9050c9631f8589"
+    },
+    "usr/lib32/libhcfota.so": {
+      "bytes": 25140,
+      "sha256": "af20263029fc358b49df6dc0e06580ab71e0ea7323633903dab260d3eb0ca480"
+    },
+    "usr/lib32/libjpeg.so": {
+      "bytes": 208660,
+      "sha256": "7294cf6af94f3927a9d6b093a8d62aa164b350bf45cc0da3de8a7e361874802c"
+    },
+    "usr/lib32/libjpeg.so.9": {
+      "bytes": 208660,
+      "sha256": "7294cf6af94f3927a9d6b093a8d62aa164b350bf45cc0da3de8a7e361874802c"
+    },
+    "usr/lib32/libjpeg.so.9.4.0": {
+      "bytes": 208660,
+      "sha256": "7294cf6af94f3927a9d6b093a8d62aa164b350bf45cc0da3de8a7e361874802c"
+    },
+    "usr/lib32/libpixman-1.so": {
+      "bytes": 543752,
+      "sha256": "c640dec0e6358c55b18099ec4f55dc403087050d89344aacee7b30f0528192fe"
+    },
+    "usr/lib32/libpixman-1.so.0": {
+      "bytes": 543752,
+      "sha256": "c640dec0e6358c55b18099ec4f55dc403087050d89344aacee7b30f0528192fe"
+    },
+    "usr/lib32/libpixman-1.so.0.40.0": {
+      "bytes": 543752,
+      "sha256": "c640dec0e6358c55b18099ec4f55dc403087050d89344aacee7b30f0528192fe"
+    },
+    "usr/lib32/libpng.so": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib32/libpng16.so": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib32/libpng16.so.16": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib32/libpng16.so.16.37.0": {
+      "bytes": 194096,
+      "sha256": "f9534a9a4fdafaed7001d5ec47407bda3d6cb3648d9ea7efcf9035a942cb96f6"
+    },
+    "usr/lib32/libsvg-cairo.so": {
+      "bytes": 27564,
+      "sha256": "da3388066f428ea5f005c41949d3c887b8b3108966122ea99e1f54d231d131e4"
+    },
+    "usr/lib32/libsvg-cairo.so.1": {
+      "bytes": 27564,
+      "sha256": "da3388066f428ea5f005c41949d3c887b8b3108966122ea99e1f54d231d131e4"
+    },
+    "usr/lib32/libsvg-cairo.so.1.0.1": {
+      "bytes": 27564,
+      "sha256": "da3388066f428ea5f005c41949d3c887b8b3108966122ea99e1f54d231d131e4"
+    },
+    "usr/lib32/libsvg.so": {
+      "bytes": 73080,
+      "sha256": "e6f20d965491d33d250edc0ebec6a346bd2e266f7d29d8e848845cf3e56efc3e"
+    },
+    "usr/lib32/libsvg.so.1": {
+      "bytes": 73080,
+      "sha256": "e6f20d965491d33d250edc0ebec6a346bd2e266f7d29d8e848845cf3e56efc3e"
+    },
+    "usr/lib32/libsvg.so.1.0.0": {
+      "bytes": 73080,
+      "sha256": "e6f20d965491d33d250edc0ebec6a346bd2e266f7d29d8e848845cf3e56efc3e"
+    },
+    "usr/lib32/libts.so": {
+      "bytes": 15104,
+      "sha256": "4a7c2933845395bbb4a66f8d3c63484099d65e13b72ea20be073f5e98c0d8610"
+    },
+    "usr/lib32/libts.so.0": {
+      "bytes": 15104,
+      "sha256": "4a7c2933845395bbb4a66f8d3c63484099d65e13b72ea20be073f5e98c0d8610"
+    },
+    "usr/lib32/libts.so.0.10.4": {
+      "bytes": 15104,
+      "sha256": "4a7c2933845395bbb4a66f8d3c63484099d65e13b72ea20be073f5e98c0d8610"
+    },
+    "usr/lib32/libuuid.so": {
+      "bytes": 26256,
+      "sha256": "131f7c05e44238e7eefa80ebb7d1d48421cca13045357d0e1adacfad4630188e"
+    },
+    "usr/lib32/libz.so": {
+      "bytes": 84632,
+      "sha256": "c7ff51c4ab506c69323cbd6030e02e2ead371250788814e7988b0a5fbd9468fd"
+    },
+    "usr/lib32/libz.so.1": {
+      "bytes": 84632,
+      "sha256": "c7ff51c4ab506c69323cbd6030e02e2ead371250788814e7988b0a5fbd9468fd"
+    },
+    "usr/lib32/libz.so.1.2.11": {
+      "bytes": 84632,
+      "sha256": "c7ff51c4ab506c69323cbd6030e02e2ead371250788814e7988b0a5fbd9468fd"
+    },
+    "usr/lib32/os-release": {
+      "bytes": 122,
+      "sha256": "47180724040f7a93a3c2092725465767158312c4735227ef3678f3bb25ef81b7"
+    },
+    "usr/lib32/ts/debounce.so": {
+      "bytes": 6220,
+      "sha256": "5050760857d454af8e93617a7ee441b8c28675ed8eabfa1a998c02a35b9446d8"
+    },
+    "usr/lib32/ts/dejitter.so": {
+      "bytes": 6372,
+      "sha256": "b0107e872381e2b5dbfb19695f2dea34d7f0b9c1686e5bf4a6a5eaecbb245651"
+    },
+    "usr/lib32/ts/evthres.so": {
+      "bytes": 7160,
+      "sha256": "d4e225d983235cbd616cd0b0dddca05033f6631efa7f7b9a08b8c6d901662e33"
+    },
+    "usr/lib32/ts/iir.so": {
+      "bytes": 5928,
+      "sha256": "2b2d79d2cab220d6c66a00d86f547e0ab5faa404f3b201be73bbdfeec245d6e4"
+    },
+    "usr/lib32/ts/input.so": {
+      "bytes": 11036,
+      "sha256": "6cadd46a6261ef5b0b1e50800363a776b5a41e7f5244948a4ce45f30fed4576c"
+    },
+    "usr/lib32/ts/invert.so": {
+      "bytes": 5084,
+      "sha256": "83067277ff9b480f3713bb7ffe5e2b79cce5453b18629ac606549192cad778c3"
+    },
+    "usr/lib32/ts/linear.so": {
+      "bytes": 7232,
+      "sha256": "7d18a6e0f2020eb98a65d72100a8ab0033e87134dc30187b7811480cea21744d"
+    },
+    "usr/lib32/ts/lowpass.so": {
+      "bytes": 6476,
+      "sha256": "f2668c0fb7f38f4a945a9cb1ec87433ee1c3b9dd3428219824ef1b3e80718227"
+    },
+    "usr/lib32/ts/median.so": {
+      "bytes": 7576,
+      "sha256": "c00ec11a4cc0f13fb8d3efd3265e9b4726193f2b9fcfab9cc063984d9e66338a"
+    },
+    "usr/lib32/ts/pthres.so": {
+      "bytes": 5812,
+      "sha256": "330d811f597d167fc37917a245592ee51f2f4475def481957db9334bf52bc6a8"
+    },
+    "usr/lib32/ts/skip.so": {
+      "bytes": 7496,
+      "sha256": "3efc589611f4e4a4596db70f5578afc0517900e3e0a7fdb1b05ae62aca1b0e6e"
+    },
+    "usr/lib32/ts/touchkit.so": {
+      "bytes": 4608,
+      "sha256": "101a4ef77ff5d6be20fc662d98cabe3cca92316260430e068458e926dc150433"
+    },
+    "usr/lib32/ts/variance.so": {
+      "bytes": 6904,
+      "sha256": "0b8d8210da929d45126d946ffef91a3d1747240e0d82d42923de80c31ff4a86b"
+    },
+    "usr/lib32/ts/waveshare.so": {
+      "bytes": 6356,
+      "sha256": "49a6ec04de54c9774a4a115694e55e1b49b928d095c884dbfcf88f9eade9dd6d"
+    },
+    "usr/share/directfb-1.7.7/cursor.png": {
+      "bytes": 16032,
+      "sha256": "52728d1e0f84327a09b21106979e5a8e0f7488c417439bfe7cf7ce4af071b601"
+    },
+    "usr/share/directfb-1.7.7/decker.ttf": {
+      "bytes": 37048,
+      "sha256": "fbb581d3adef598f6e7abbc50fa61669533308af130b5023c4eff659c6a95c29"
+    },
+    "usr/share/fontconfig/conf.avail/10-autohint.conf": {
+      "bytes": 706,
+      "sha256": "b60c416c62c59949ce53a0b7bd0c77e76f309c500c767ec59e02587c3726e5bc"
+    },
+    "usr/share/fontconfig/conf.avail/10-hinting-full.conf": {
+      "bytes": 692,
+      "sha256": "0ddfabd0287f73028ad872006389fbe63fab7d7ba2a0f1f85d35c282a0dde6ca"
+    },
+    "usr/share/fontconfig/conf.avail/10-hinting-medium.conf": {
+      "bytes": 696,
+      "sha256": "bf2274bd1e7ee08b16ea6f0e67d073b42076d43c4bc61ed0d1159da905288ad9"
+    },
+    "usr/share/fontconfig/conf.avail/10-hinting-none.conf": {
+      "bytes": 692,
+      "sha256": "938da6a7f533af329510bb3b7bba103639bbd7ff0761d1d6556ee5079d603d36"
+    },
+    "usr/share/fontconfig/conf.avail/10-hinting-slight.conf": {
+      "bytes": 696,
+      "sha256": "1fac58aa3c865e9b05088f94f7a4684d8a60d134421690cfd04842eb00fe1332"
+    },
+    "usr/share/fontconfig/conf.avail/10-no-sub-pixel.conf": {
+      "bytes": 723,
+      "sha256": "db6cc09b48abbec33a6074b04cfc1dc5161b86cf73fd9321e7c7e6853bda875e"
+    },
+    "usr/share/fontconfig/conf.avail/10-scale-bitmap-fonts.conf": {
+      "bytes": 2228,
+      "sha256": "31bc5919577b3c897a850948e2a3ede8bd612e6736afe84e532ec8a6c12a36ca"
+    },
+    "usr/share/fontconfig/conf.avail/10-sub-pixel-bgr.conf": {
+      "bytes": 748,
+      "sha256": "133e75ed6eab24cd4b352603b1f3d54d131211e0d95c3a32274b389dacfccd1e"
+    },
+    "usr/share/fontconfig/conf.avail/10-sub-pixel-rgb.conf": {
+      "bytes": 748,
+      "sha256": "12eea6c29a800f58efc25dec0d928779ec344006698902c3a037e0522c4ae126"
+    },
+    "usr/share/fontconfig/conf.avail/10-sub-pixel-vbgr.conf": {
+      "bytes": 758,
+      "sha256": "c8e81739ef7fb736eebf9251d7caf67fcc931ce894de0b3f5dd46a10f4e146b5"
+    },
+    "usr/share/fontconfig/conf.avail/10-sub-pixel-vrgb.conf": {
+      "bytes": 758,
+      "sha256": "8591239ca7d60fdec74b0701c2b043ec1af6a48bf5089fb050559e599e122c95"
+    },
+    "usr/share/fontconfig/conf.avail/10-unhinted.conf": {
+      "bytes": 701,
+      "sha256": "177de69285f723ecc71108bc8fcac7d125fcea7945770e5d97d74f0bf5ec989d"
+    },
+    "usr/share/fontconfig/conf.avail/11-lcdfilter-default.conf": {
+      "bytes": 771,
+      "sha256": "7b72aa9bbe1559da3931bb4dbb64666aca90fa5b81886cc60ab5c74383ed2756"
+    },
+    "usr/share/fontconfig/conf.avail/11-lcdfilter-legacy.conf": {
+      "bytes": 768,
+      "sha256": "5f4e884146127d72f2357b22e175a9f8aeeb2f494355910c1b33bbaadc4e098e"
+    },
+    "usr/share/fontconfig/conf.avail/11-lcdfilter-light.conf": {
+      "bytes": 765,
+      "sha256": "e5d07262e90c1ae756261e26b0a95e937c4e5e81743f6b21eb68e165e232d883"
+    },
+    "usr/share/fontconfig/conf.avail/20-unhint-small-vera.conf": {
+      "bytes": 1537,
+      "sha256": "e4bc8e2f51fe4becf778c9bf3f977935d4396f42193ee02e9d582c71a212e2b9"
+    },
+    "usr/share/fontconfig/conf.avail/25-unhint-nonlatin.conf": {
+      "bytes": 3489,
+      "sha256": "13c34be22daec29f99930aa9e5cdc4b6d4b837d3d0a7ad21b398502a1087d810"
+    },
+    "usr/share/fontconfig/conf.avail/30-metric-aliases.conf": {
+      "bytes": 13274,
+      "sha256": "e424cacbd9d7a5c9646d5bfd11127c66182cb740c644fad0f7990ab742b356ae"
+    },
+    "usr/share/fontconfig/conf.avail/40-nonlatin.conf": {
+      "bytes": 5424,
+      "sha256": "2ded74eda7467f51204dcc4070207dcdff06120c725b4f1c363585c51b253fcb"
+    },
+    "usr/share/fontconfig/conf.avail/45-generic.conf": {
+      "bytes": 3543,
+      "sha256": "48e9b9efb969f77f04d055ad512dd732a8319a655bd93011921c912321b18ac6"
+    },
+    "usr/share/fontconfig/conf.avail/45-latin.conf": {
+      "bytes": 6600,
+      "sha256": "1a17eaeb44bdc367f16939dfb2ca1a00a57a9b788b9057a80c656667fa41721e"
+    },
+    "usr/share/fontconfig/conf.avail/49-sansserif.conf": {
+      "bytes": 799,
+      "sha256": "8763cdac2dc15bc9ca4722bfc42915caacc585e1b73b1687027999eba1a4859e"
+    },
+    "usr/share/fontconfig/conf.avail/50-user.conf": {
+      "bytes": 911,
+      "sha256": "f8ba8a95fb232a9baf2766e54be0c10b3cde40a276faa6d988e67255992f619f"
+    },
+    "usr/share/fontconfig/conf.avail/51-local.conf": {
+      "bytes": 423,
+      "sha256": "f28ac67ab31540c5b5df3faee9d1d6c6d31ba83ea87e851850f5f9e32341126c"
+    },
+    "usr/share/fontconfig/conf.avail/60-generic.conf": {
+      "bytes": 2041,
+      "sha256": "65acf3c836c88d4d4b455d791cb32d5f7f8850e47951de8439cf3c177beea075"
+    },
+    "usr/share/fontconfig/conf.avail/60-latin.conf": {
+      "bytes": 2068,
+      "sha256": "c0e9c3cdf4b785dbd7bb4feeea9e92c164ec452c99385452aca1efbd36817484"
+    },
+    "usr/share/fontconfig/conf.avail/65-fonts-persian.conf": {
+      "bytes": 10293,
+      "sha256": "4d53dc8cc9604e0fec716a5947b5235314b1594d1c09f62a34778e6321dc8f20"
+    },
+    "usr/share/fontconfig/conf.avail/65-khmer.conf": {
+      "bytes": 464,
+      "sha256": "ab056a77ca1f8bc94117ce99f53fbbdd4516656086b0bb7104de3b58948c3848"
+    },
+    "usr/share/fontconfig/conf.avail/65-nonlatin.conf": {
+      "bytes": 8170,
+      "sha256": "d11a074fe649fba583e5068c0b6bd8eeb2b7ac67024962237260d30bea6011ea"
+    },
+    "usr/share/fontconfig/conf.avail/69-unifont.conf": {
+      "bytes": 847,
+      "sha256": "eb4f4ce7f09017cc9764ea9979dc01ff21902f5566bc73e7d721a872fcc80cbb"
+    },
+    "usr/share/fontconfig/conf.avail/70-no-bitmaps.conf": {
+      "bytes": 487,
+      "sha256": "a68f782f773c0a0061b7780b227f221c8b3fc06d66bd8fe654b261617b3dbbe0"
+    },
+    "usr/share/fontconfig/conf.avail/70-yes-bitmaps.conf": {
+      "bytes": 487,
+      "sha256": "0b795a6a0a08f815cab64bbc7ab0a4cedd40ba7b272e005faebb1a2ab25bf4f6"
+    },
+    "usr/share/fontconfig/conf.avail/80-delicious.conf": {
+      "bytes": 597,
+      "sha256": "d3cb327de779ad929b12a501b447e1f9c541f51437e389b3d17edb3ecff83496"
+    },
+    "usr/share/fontconfig/conf.avail/90-synthetic.conf": {
+      "bytes": 1917,
+      "sha256": "54a5935ea79c66e07faf743b81f2647eca849800b2b0422e84cd66527a75066a"
+    },
+    "usr/share/xml/fontconfig/fonts.dtd": {
+      "bytes": 7250,
+      "sha256": "26cac5f99498345c19e7d53aa3b9ab531a57bd0cef0b8e6b9dc0e4e2116ffb3b"
+    },
+    "vmlinux.uImage": {
+      "bytes": 2677155,
+      "sha256": "14cebc92fcd8d2fa8226bab4275e3d206fb72017cf574ddbff73a967d0ed56b5"
+    },
+    "xgame-logo.bmp": {
+      "bytes": 3686478,
+      "sha256": "6f52181fac9564887690e10391d8ac7ed24e3be55877ad1bd4916bff6223f463"
+    }
+  },
+  "id": "segam-m8-v6-owner-stock-2024-12-05",
+  "launch_sha256": [
+    "955c4b745f13b4ca764d98030faea241fd62851f537db042c107cbf49b856541"
+  ],
+  "reference_image_sha256": "204862a6c883bce9d7d298411f7807e2d675deb0d3e3620ca1b705a2ae0b4cf8",
+  "reserved_region": "Not exported. Target must already be flashed with this compatible base.",
+  "schema": 1,
+  "source_reference": "build/LilSmokeOS-SEGAM-M8-V6-CANDIDATE-06.img.json"
+}

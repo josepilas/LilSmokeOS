@@ -1,0 +1,14 @@
+--- a/runloop.c
++++ b/runloop.c
+@@ -570,6 +570,11 @@ static dylib_t load_dynamic_core(const char *path, char *buf,
+ #else
+    bool resolve_symlinks = true;
+ #endif
++   /* M8's read-only runtime names cores through links to numbered objects.
++    * Keep the logical basename for core-info lookup and content history. */
++   const char *m8 = getenv("LILSMOKE_HCFB");
++   if (m8 && string_is_equal(m8, "1"))
++      resolve_symlinks = false;
+ 
+    /* Can't lookup symbols in itself on UWP */
+ #if !(defined(__WINRT__) || defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)

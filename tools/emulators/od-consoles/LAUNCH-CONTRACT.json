@@ -1,0 +1,646 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-08",
+  "scope": "Console subtask only; parent owns launchers, registry, UI, packaging, and card writes.",
+  "completedStagedIDs": [
+    "regba",
+    "fceu320",
+    "prosystem",
+    "gnuboy",
+    "temper"
+  ],
+  "currentContractBuiltIDs": [
+    "regba",
+    "fceu320"
+  ],
+  "registerOnlyAfterQA": true,
+  "defaultROMDirectory": "/storage/roms/{canonicalSystem}",
+  "resolverProtocol": {
+    "argv": [
+      "{canonicalSystem}",
+      "{selectedArchivePath}"
+    ],
+    "stdout": "one absolute readable resolved content path plus optional trailing newline",
+    "calledInsideNativeLoaders": true,
+    "hook": "od-content.h",
+    "runtimeOverride": "LILSMOKE_ROM_RESOLVER",
+    "newSystemExtensionMapRequired": [
+      "atari2600",
+      "atari7800",
+      "atari800",
+      "atari5200",
+      "ngpc",
+      "pokemini",
+      "wswan"
+    ]
+  },
+  "launchRules": [
+    "Pass no ROM argument for the home-tab menu.",
+    "Pass an absolute already-resolved ROM as the sole positional ROM argument.",
+    "Set HOME to a writable per-engine directory before exec; do not assume a portable --config flag.",
+    "Copy whitelisted assets into the shareData folder; do not copy upstream ROMs/BIOS/default.bin.",
+    "Preserve the parent-owned libod-sdl.so and libm8-display.so preload chain; QA observer is test-only.",
+    "Profile-system ROM directory overrides the engine fallback, including MD/SMS/GG and GB/GBC."
+  ],
+  "engines": {
+    "picodrive": {
+      "systems": [
+        "md",
+        "sms",
+        "gg"
+      ],
+      "binary": "/storage/emulators/opendingux/picodrive",
+      "stagedBinary": null,
+      "status": "build-running",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": false,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/picodrive",
+        "LILSMOKE_OD_ENGINE": "picodrive",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/picodrive",
+      "shareData": {
+        "folder": "/storage/emulators/share/picodrive",
+        "requiredOrUsedFiles": [
+          "skin"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "",
+        "notes": "config.cfg relative to emulator root; writable-root patch pending",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [],
+      "biosBundled": false
+    },
+    "regba": {
+      "systems": [
+        "gba"
+      ],
+      "binary": "/storage/emulators/opendingux/regba",
+      "stagedBinary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/regba",
+      "status": "built-current",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "applied-to-built-binary",
+        "biosNeededToOpenMenu": false
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/regba",
+        "LILSMOKE_OD_ENGINE": "regba",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/regba",
+      "shareData": {
+        "folder": "/storage/emulators/share/regba",
+        "requiredOrUsedFiles": [
+          "game_config.txt",
+          "regba-sp-border-silver.png"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.gpsp",
+        "notes": "ReGBA global/per-game settings under HOME/.gpsp",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "gba_bios.bin"
+      ],
+      "biosBundled": false,
+      "biosLocations": [
+        "{HOME}/.gpsp/gba_bios.bin",
+        "{workingDirectory}/gba_bios.bin",
+        "{BIOS_DIR}/gba_bios.bin (native browser load)",
+        "ROM sibling gba_bios.bin (ROM CLI)"
+      ]
+    },
+    "fceu320": {
+      "systems": [
+        "nes"
+      ],
+      "binary": "/storage/emulators/opendingux/fceu320",
+      "stagedBinary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/storage/emulators/opendingux/fceu320",
+      "status": "built-current",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "applied-to-built-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/fceu320",
+        "LILSMOKE_OD_ENGINE": "fceu320",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/fceu320",
+      "shareData": {
+        "folder": "/storage/emulators/share/fceu320",
+        "requiredOrUsedFiles": [
+          "sp.bmp",
+          "backdrop.png",
+          "palettes"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.fceux",
+        "notes": "FCEUX config and states under HOME/.fceux",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "FDS only: disksys.rom (lookup integration pending)"
+      ],
+      "biosBundled": false
+    },
+    "gnuboy": {
+      "systems": [
+        "gb",
+        "gbc"
+      ],
+      "binary": "/storage/emulators/opendingux/gnuboy",
+      "stagedBinary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/usr/lib/lilsmoke/od-emulators/gnuboy",
+      "status": "built-legacy-contract",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [
+        "--source",
+        "{configFile}"
+      ],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/gnuboy",
+        "LILSMOKE_OD_ENGINE": "gnuboy",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/gnuboy",
+      "shareData": {
+        "folder": "/storage/emulators/share/gnuboy",
+        "requiredOrUsedFiles": [],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.gnuboy",
+        "notes": "Gnuboy default rc and battery/state saves under HOME/.gnuboy",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [],
+      "biosBundled": false
+    },
+    "temper": {
+      "systems": [
+        "pce"
+      ],
+      "binary": "/storage/emulators/opendingux/temper",
+      "stagedBinary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/usr/lib/lilsmoke/od-emulators/temper",
+      "status": "built-legacy-contract",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/temper",
+        "LILSMOKE_OD_ENGINE": "temper",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/temper",
+      "shareData": {
+        "folder": "/storage/emulators/share/temper",
+        "requiredOrUsedFiles": [],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.temper",
+        "notes": "LETSGO_HOME build writes config/bram/save_states under HOME/.temper",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "syscard3.pce only for CD"
+      ],
+      "biosBundled": false
+    },
+    "prosystem": {
+      "systems": [
+        "atari7800"
+      ],
+      "binary": "/storage/emulators/opendingux/prosystem",
+      "stagedBinary": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage/usr/lib/lilsmoke/od-emulators/prosystem",
+      "status": "built-legacy-contract",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/prosystem",
+        "LILSMOKE_OD_ENGINE": "prosystem",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/prosystem",
+      "shareData": {
+        "folder": "/storage/emulators/share/prosystem",
+        "requiredOrUsedFiles": [],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.prosystem-od",
+        "notes": "Config HOME/.prosystem-od/prosystem-od.cfg; state path relocation pending",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "7800.rom optional"
+      ],
+      "biosBundled": false
+    },
+    "stella": {
+      "systems": [
+        "atari2600"
+      ],
+      "binary": "/storage/emulators/opendingux/stella",
+      "stagedBinary": null,
+      "status": "build-pending",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": false,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/stella",
+        "LILSMOKE_OD_ENGINE": "stella",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/stella",
+      "shareData": {
+        "folder": "/storage/emulators/share/stella",
+        "requiredOrUsedFiles": [
+          "splash.png"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.dingux-2600",
+        "notes": "Settings/states under HOME/.dingux-2600",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [],
+      "biosBundled": false
+    },
+    "atari800": {
+      "systems": [
+        "atari800",
+        "atari5200"
+      ],
+      "binary": "/storage/emulators/opendingux/atari800",
+      "stagedBinary": null,
+      "status": "build-pending",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": false,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/atari800",
+        "LILSMOKE_OD_ENGINE": "atari800",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/atari800",
+      "shareData": {
+        "folder": "/storage/emulators/share/atari800",
+        "requiredOrUsedFiles": [
+          "splash.png",
+          "thumb.png",
+          "menu.png"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.dingux-atari",
+        "notes": "Model-specific OS/BASIC ROM required; HOME/.dingux-atari/roms searched",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "atariosa.rom",
+        "atariosb.rom",
+        "atarixl.rom",
+        "5200.rom",
+        "ataribas.rom"
+      ],
+      "biosBundled": false
+    },
+    "handy": {
+      "systems": [
+        "lynx"
+      ],
+      "binary": "/storage/emulators/opendingux/handy",
+      "stagedBinary": null,
+      "status": "build-running",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/handy",
+        "LILSMOKE_OD_ENGINE": "handy",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/handy",
+      "shareData": {
+        "folder": "/storage/emulators/share/handy",
+        "requiredOrUsedFiles": [
+          "background_lynx.png",
+          "background_lynx2.png"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.handy",
+        "notes": "HOME/.handy; legacy hardcoded /home/retrofw config references pending repair",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "lynxboot.img optional in this CSystem HLE fork"
+      ],
+      "biosBundled": false
+    },
+    "race": {
+      "systems": [
+        "ngpc"
+      ],
+      "binary": "/storage/emulators/opendingux/race",
+      "stagedBinary": null,
+      "status": "build-pending",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/race",
+        "LILSMOKE_OD_ENGINE": "race",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/race",
+      "shareData": {
+        "folder": "/storage/emulators/share/race",
+        "requiredOrUsedFiles": [
+          "backdrop.png",
+          "skin.png"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.race-od",
+        "notes": "Config HOME/.race-od; flash/state relocation pending",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [],
+      "biosBundled": false
+    },
+    "oswan": {
+      "systems": [
+        "wswan"
+      ],
+      "binary": "/storage/emulators/opendingux/oswan",
+      "stagedBinary": null,
+      "status": "build-pending",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/oswan",
+        "LILSMOKE_OD_ENGINE": "oswan",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/oswan",
+      "shareData": {
+        "folder": "/storage/emulators/share/oswan",
+        "requiredOrUsedFiles": [],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.oswan",
+        "notes": "HOME support compiled; config/state directory names pending runtime check",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [],
+      "biosBundled": false
+    },
+    "pokemini": {
+      "systems": [
+        "pokemini"
+      ],
+      "binary": "/storage/emulators/opendingux/pokemini",
+      "stagedBinary": null,
+      "status": "build-pending",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/pokemini",
+        "LILSMOKE_OD_ENGINE": "pokemini",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/pokemini",
+      "shareData": {
+        "folder": "/storage/emulators/share/pokemini",
+        "requiredOrUsedFiles": [],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "",
+        "notes": "pokemini.cfg and EEPROM/state filenames currently relative; relocation pending",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [],
+      "biosBundled": false
+    },
+    "fba": {
+      "systems": [
+        "arcade"
+      ],
+      "binary": "/storage/emulators/opendingux/fba",
+      "stagedBinary": null,
+      "status": "source-pinned-only",
+      "argsROM": [
+        "{resolvedROM}"
+      ],
+      "argsConfig": [],
+      "menu": {
+        "args": [],
+        "native": true,
+        "implementedInSource": true,
+        "functionalQA": false,
+        "archivePatch": "pending-current-binary"
+      },
+      "environment": {
+        "HOME": "/persist/od-engines/fba",
+        "LILSMOKE_OD_ENGINE": "fba",
+        "LILSMOKE_OD_SYSTEM": "{canonicalSystem}",
+        "LILSMOKE_OD_ROM_DIR": "{profileSystemROMDir}",
+        "ROM_DIR": "{profileSystemROMDir}",
+        "LILSMOKE_ROM_RESOLVER": "/usr/lib/lilsmoke/lilsmoke-rom",
+        "BIOS_DIR": "{profileBIOSDir}"
+      },
+      "workingDirectory": "/storage/emulators/share/fba",
+      "shareData": {
+        "folder": "/storage/emulators/share/fba",
+        "requiredOrUsedFiles": [
+          "skin"
+        ],
+        "staged": false
+      },
+      "config": {
+        "homeSubdirectory": "~/.fba",
+        "notes": "HOME/.fba/{configs,saves,samples}; no-ROM native GuiRun exists",
+        "sourceVerifiedFlagsOnly": true
+      },
+      "requiredBIOS": [
+        "neogeo.zip only for Neo Geo sets; game-specific BIOS handled by FBA"
+      ],
+      "biosBundled": false
+    }
+  },
+  "existingNotDuplicated": {
+    "snes": "PocketSNES",
+    "psx": "PCSX4ALL"
+  },
+  "excluded": {
+    "n64": "No validated software-only standalone native frontend for 74Kc/110 MiB. Never register a libretro/RA wrapper as OpenDingux."
+  },
+  "qa": {
+    "state": "pending",
+    "limitation": "SDK SDL has neither dummy nor X11 video. Isolated test-only SDL2 runtime build running; hardware audio/performance not yet tested."
+  }
+}

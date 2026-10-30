@@ -1,0 +1,17 @@
+From: LilSmokeOS <local@lilsmoke.invalid>
+Subject: [PATCH] cap XZ decoder memory on the 128 MiB single CPU M8
+
+The caller caps filesystem block size. The XZ stream header can still
+request a much larger dictionary, so bound liblzma independently.
+
+--- a/lib/sqfs/comp/xz.c
++++ b/lib/sqfs/comp/xz.c
+@@ -216,7 +216,7 @@
+ static sqfs_s32 xz_uncomp_block(sqfs_compressor_t *base, const sqfs_u8 *in,
+ 			      sqfs_u32 size, sqfs_u8 *out, sqfs_u32 outsize)
+ {
+-	sqfs_u64 memlimit = 65 * 1024 * 1024;
++	sqfs_u64 memlimit = 8 * 1024 * 1024;
+ 	size_t dest_pos = 0;
+ 	size_t src_pos = 0;
+ 	lzma_ret ret;

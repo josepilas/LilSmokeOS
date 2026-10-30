@@ -1,0 +1,5 @@
+include Makefile
+.DEFAULT_GOAL := all
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DOPENDINGUX -DCZ80 -DTARGET_OD -D_MAX_PATH=2048 -DHOST_FPS=60 -Iemu -Iopendingux -I$(OD_SYSROOT)/usr/include/SDL
+override CXXFLAGS := $(CFLAGS) -std=gnu++11 -fpermissive
+override LDFLAGS := -no-pie -L$(OD_DEPS)/usr/lib -lstdc++ -lSDL_image -lSDL -lpng -lz -lm -pthread

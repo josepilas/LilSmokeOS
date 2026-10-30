@@ -1,0 +1,100 @@
+# LilSmokeOS — Buildroot external tree top-level config
+#
+# This file is sourced by Buildroot when BR2_EXTERNAL=/path/to/lilsmoke-os
+# is passed to `make`. It registers our packages and board support.
+
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-scripts/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-syspck/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-apps/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/portsmoke/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/portsmoke-sm64/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/directfb-mips/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-ui/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/libvterm/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-terminal/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-ffmpeg/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-media/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-fbtest/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/retroarch-mips/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-n64/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-gamepads/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-usb-gamepads/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-usb-transport/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-bluetooth/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/pcsx4all/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/opendingux-emulators/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-sdl12/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-sqfs/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-opendingux/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-od-sdl/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-od-consoles/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-od-engines/Config.in"
+source "$BR2_EXTERNAL_LILSMOKE_PATH/package/lilsmoke-libretro-extra/Config.in"
+
+menu "LilSmokeOS"
+    config BR2_PACKAGE_LILSMOKE_OS
+        bool "LilSmokeOS base system"
+        default y
+        select BR2_PACKAGE_LILSMOKE_APPS if BR2_INSTALL_LIBSTDCPP && BR2_USE_WCHAR && BR2_TOOLCHAIN_HAS_THREADS
+        help
+          The base LilSmokeOS runtime: init scripts, default config,
+          boot helpers, and bundled LilSmoke Applications support.
+
+    config BR2_PACKAGE_LILSMOKE_LITE
+        bool "Lite preset (128 MB RAM SKUs)"
+        default n
+        help
+          Drops FBNeo, Handy, Beetle PCE. Smaller asset cache.
+          Use this for 128 MB RAM devices.
+
+    choice
+        prompt "Target device"
+        default BR2_LILSMOKE_TARGET_QEMU
+
+    config BR2_LILSMOKE_TARGET_QEMU
+        bool "QEMU-mipsel (malta) — development"
+        help
+          Builds for the QEMU malta board. Use scripts/run-qemu.sh to boot.
+
+    config BR2_LILSMOKE_TARGET_SF3000
+        bool "SF3000 (4.5\" IPS)"
+        help
+          Builds for the real SF3000 hardware. Requires SF3000-RE BSP.
+
+    config BR2_LILSMOKE_TARGET_GB350
+        bool "GB350 (3.5\" IPS)"
+        help
+          Builds for the real GB350 hardware. Requires SF3000-RE BSP.
+
+    config BR2_LILSMOKE_TARGET_VBOX_X86_64
+        bool "VirtualBox x86_64 — fast dev / CI target"
+        help
+          Builds a native x86_64 image that boots in VirtualBox via
+          ISOLINUX. Use scripts/run-vbox.sh to boot.
+
+          This is the fastest development target — no MIPS emulation
+          overhead. Use it for UI/theme/emulator development where
+          MIPS-specific behavior doesn't matter.
+
+          Two defconfigs target VBox:
+            lilsmoke_vbox_x86_64_defconfig  (glibc, full package set)
+            lilsmoke_vbox_test_defconfig    (musl, minimal, fast CI)
+
+          See docs/vbox-guide.md for the full setup guide.
+
+    endchoice
+
+    config BR2_LILSMOKE_TARGET
+        string
+        default "qemu-mipsel"   if BR2_LILSMOKE_TARGET_QEMU
+        default "sf3000"        if BR2_LILSMOKE_TARGET_SF3000
+        default "gb350"         if BR2_LILSMOKE_TARGET_GB350
+        default "vbox-x86_64"   if BR2_LILSMOKE_TARGET_VBOX_X86_64
+
+    config BR2_LILSMOKE_WIFI_DEFAULT_OFF
+        bool "WiFi off by default (opt-in)"
+        default y
+        help
+          WiFi daemons (wpa_supplicant) are not started at boot.
+          User enables via LilSmokeUI Settings → Network.
+endmenu

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "id": "sample-native",
+  "name": "Sample Native",
+  "launch": {"type": "native", "binary": "bin/game", "args": ["--windowed", ""]},
+  "required_file_sets": []
+}

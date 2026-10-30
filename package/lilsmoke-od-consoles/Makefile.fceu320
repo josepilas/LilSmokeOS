@@ -1,0 +1,7 @@
+include Makefile
+.DEFAULT_GOAL := all
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DDINGUX -DLSB_FIRST -DPSS_STYLE=1 -DHAVE_ASPRINTF -DFRAMESKIP -I$(OD_SYSROOT)/usr/include/SDL -I$(OD_DEPS)/usr/include/SDL
+override CXXFLAGS := $(CFLAGS) -std=gnu++11 -fpermissive
+override LDFLAGS := -no-pie -Wl,--gc-sections
+override LIBS := -L$(OD_DEPS)/usr/lib -lSDL_image -lSDL -lpng -lz -lm -pthread
+$(OBJS): $(OD_PACKAGE)/Makefile.fceu320

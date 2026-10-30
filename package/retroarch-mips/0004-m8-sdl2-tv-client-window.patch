@@ -1,0 +1,46 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] SDL2: explicitly size M8 software TV client instead of desktop
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -17,6 +17,7 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
++#include "m8_sdl2_window.h"
+ 
+ #include <retro_inline.h>
+ #include <gfx/scaler/scaler.h>
+@@ -403,6 +404,9 @@
+                    mode.refresh_rate);
+    }
+ 
++   unsigned client_width = video->width;
++   unsigned client_height = video->height;
++   bool m8_tv;
+    if (!video->fullscreen)
+       RARCH_LOG("[SDL]: Creating window @ %ux%u\n", video->width, video->height);
+ 
+@@ -411,8 +415,12 @@
+    else
+       flags = SDL_WINDOW_RESIZABLE;
+ 
++   m8_tv = m8_sdl2_window(&client_width, &client_height, &flags);
++   if (m8_tv)
++      RARCH_LOG("[SDL2]: M8 TV software client=%ux%u exclusive_fullscreen=1 desktop_fullscreen=0\n", client_width, client_height);
++
+    vid->window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+-                                  video->width, video->height, flags);
++                                  client_width, client_height, flags);
+ 
+    if (!vid->window)
+    {
+@@ -421,6 +429,8 @@
+    }
+ 
+    vid->video         = *video;
++   vid->video.width   = client_width;
++   vid->video.height  = client_height;
+    vid->video.smooth  = video->smooth;
+    vid->flags        |=  SDL2_FLAG_SHOULD_RESIZE;
+ 

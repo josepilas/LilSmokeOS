@@ -1,0 +1,68 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] SDL2: present RGUI natively across game/menu mode switches
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -19,6 +19,8 @@
+ #include <string.h>
+ #include "m8_sdl2_window.h"
+ #include "m8_native_frame.h"
++
++#define SDL2_FLAG_M8_NATIVE_MENU (1U << 2)
+ 
+ #include <retro_inline.h>
+ #include <gfx/scaler/scaler.h>
+@@ -511,6 +513,17 @@
+    sdl2_video_t *vid  = (sdl2_video_t*)data;
+ #ifdef HAVE_MENU
+    bool menu_is_alive = (video_info->menu_st_flags & MENU_ST_FLAG_ALIVE) ? true : false;
++   bool menu_pass = false;
++   menu_is_alive = menu_is_alive || (menu_state_get_ptr()->flags & MENU_ST_FLAG_ALIVE);
++   if (m8_native_enabled() && menu_is_alive)
++   {
++      /* Upload the menu before the game fast path can return. The native
++       * callback copies the frame immediately, retaining no borrowed pointer. */
++      menu_driver_frame(menu_is_alive, video_info);
++      menu_pass = true;
++      if (vid->flags & SDL2_FLAG_M8_NATIVE_MENU)
++         return true;
++   }
+ #endif
+ 
+    if (m8_native_frame(frame, width, height, pitch, vid->video.rgb32,
+@@ -567,7 +580,8 @@
+    SDL_RenderCopyEx(vid->renderer, vid->frame.tex, NULL, NULL, vid->rotation, NULL, SDL_FLIP_NONE);
+ 
+ #ifdef HAVE_MENU
+-   menu_driver_frame(menu_is_alive, video_info);
++   if (!menu_pass)
++      menu_driver_frame(menu_is_alive, video_info);
+ #endif
+ 
+    if (vid->menu.active)
+@@ -727,6 +741,16 @@
+    {
+       sdl2_video_t *vid = (sdl2_video_t*)data;
+ 
++      if (m8_native_menu_frame(frame, width, height, width * (rgb32 ? 4 : 2), rgb32))
++      {
++         if (!(vid->flags & SDL2_FLAG_M8_NATIVE_MENU))
++            RARCH_LOG("[SDL2]: M8 native menu %ux%u format=%s cpu_scaling=0\n",
++                  width, height, rgb32 ? "ARGB8888" : "RGBA4444");
++         vid->flags |= SDL2_FLAG_M8_NATIVE_MENU;
++         return;
++      }
++      vid->flags &= ~SDL2_FLAG_M8_NATIVE_MENU;
++
+       sdl_refresh_input_size(vid, true, rgb32, width, height,
+             width * (rgb32 ? 4 : 2));
+ 
+@@ -743,6 +767,8 @@
+       return;
+ 
+    vid->menu.active = enable;
++   if (!enable)
++      vid->flags &= ~SDL2_FLAG_M8_NATIVE_MENU;
+ }
+ 
+ static void sdl2_poke_set_osd_msg(void *data, const char *msg,

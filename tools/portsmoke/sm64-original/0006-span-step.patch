@@ -1,0 +1,5 @@
+--- a/src/pc/gfx/gfx_soft.c
++++ b/src/pc/gfx/gfx_soft.c
+@@ -796,1 +796,1 @@
+-#define OPT_STEP 8   /* 4 on MIPS32r2 if banding appears, 16 for more speed */
++#define OPT_STEP 16  /* Block perspective correction; fixed-point inner loop. */

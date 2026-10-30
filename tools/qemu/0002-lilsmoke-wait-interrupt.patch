@@ -1,0 +1,14 @@
+From: LilSmokeOS developers
+Subject: [PATCH] mips: preserve the verified HC16xx WAIT interrupt behavior
+
+The captured Config7 has bit 31 set. Linux selects r4k_wait_irqoff for
+PRId revision 0x4c, requiring interrupts to wake WAIT even with Status.IE
+clear. QEMU already implements this through CP0C7_WII.
+
+--- a/target/mips/cpu-defs.c.inc
++++ b/target/mips/cpu-defs.c.inc
+@@ -347,3 +347,4 @@
+         .name = "74Kf-lilsmoke",
+         .CP0_PRid = 0x0001974c,
++        .CP0_Config7 = (1U << CP0C7_WII),
+         .CP0_Config0 = MIPS_CONFIG0 | (0x1 << CP0C0_AR) |

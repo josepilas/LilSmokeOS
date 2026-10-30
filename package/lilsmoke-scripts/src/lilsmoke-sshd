@@ -1,0 +1,45 @@
+#!/bin/sh
+set -eu
+READ="${LILSMOKE_CONFIG_READER:-/usr/lib/lilsmoke/lilsmoke-config-read}"
+RUN="${LILSMOKE_SSH_RUN_DIR:-/run/lilsmoke-sshd}"
+PERSIST="${LILSMOKE_PERSIST_ROOT:-/persist}"
+mkdir -p "$RUN"
+stop() {
+    start-stop-daemon -K -q -p "$RUN/dropbear.pid" -x /usr/sbin/dropbear 2>/dev/null || true
+    rm -f "$RUN/dropbear.pid"
+}
+start() {
+    enabled=$("$READ" SSH_ENABLED off)
+    case "$enabled" in 1|on|true|yes) ;; *) stop; return 0 ;; esac
+    # Bind now, even when DHCP is pending. Dropbear accepts later interfaces.
+    # No per-frame polling process is necessary.
+    id lil >/dev/null 2>&1 || { echo "SSH account lil is missing"; return 1; }
+    for path in "$PERSIST/ssh" "$PERSIST/home/lil" "$PERSIST/home/lil/.ssh"; do
+        [ ! -L "$path" ] || { echo "SSH path must not be a symlink: $path"; return 1; }
+    done
+    umask 077
+    mkdir -p "$PERSIST/ssh" "$PERSIST/home/lil/.ssh"
+    chmod 0700 "$PERSIST/ssh" "$PERSIST/home/lil" "$PERSIST/home/lil/.ssh"
+    chown 1000:1000 "$PERSIST/home/lil" "$PERSIST/home/lil/.ssh"
+    set -- -E -w -p 22 -P "$RUN/dropbear.pid"
+    keys=0
+    for type in ed25519 ecdsa rsa; do
+        key="$PERSIST/ssh/dropbear_${type}_host_key"
+        [ ! -L "$key" ] || return 1
+        if [ ! -s "$key" ]; then
+            dropbearkey -t "$type" -f "$key" >/dev/null 2>&1 || continue
+        fi
+        chmod 0600 "$key"
+        set -- "$@" -r "$key"
+        keys=$((keys + 1))
+    done
+    [ "$keys" -gt 0 ] || { echo "No supported persistent SSH host key"; return 1; }
+    start-stop-daemon -S -q -o -p "$RUN/dropbear.pid" -x /usr/sbin/dropbear -- "$@"
+}
+case "${1:-start}" in
+    start) start ;;
+    stop) stop ;;
+    restart) stop; start ;;
+    status) [ -f "$RUN/dropbear.pid" ] && kill -0 "$(cat "$RUN/dropbear.pid")" ;;
+    *) echo "usage: $0 {start|stop|restart|status}" >&2; exit 64 ;;
+esac

@@ -1,0 +1,10 @@
+{
+  "id": "org.lilsmoke.sm64",
+  "name": "Super Mario 64",
+  "version": "0.0.2",
+  "release_label": "Pre-Alpha-0.0.2",
+  "icon": "icon.webp",
+  "architecture": "mipsel-linux-musl",
+  "description": "Original-engine native port. Bring your own US 1.0 ROM in original/; first-run preparation creates a private local runtime.",
+  "license": "MPL-2.0 authored adaptations; retained upstream source and runtime licenses apply separately."
+}

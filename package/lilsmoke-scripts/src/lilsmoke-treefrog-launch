@@ -1,0 +1,258 @@
+#!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# Original TreeFrog scripts run in a glibc view, never in the musl frontend.
+set -eu
+umask 077
+fail() { printf 'TreeFrog Ports: %s\n' "$*" >&2; exit 1; }
+# RAM-only PicoArch entry: an upstream game may exec this path again to return
+# to FrogUI. This OS owns the return UI, so do not restart a missing frontend.
+if [ "${0##*/}" = picoarch ]; then
+    [ -n "${LILSMOKE_TREEFROG_CORE:-}" ] || fail 'Missing scoped PicoArch core'
+    if [ "${1:-}" != "$LILSMOKE_TREEFROG_CORE" ]; then
+        printf '%s\n' 'TreeFrog Ports: returning to LilSmoke (legacy frontend handoff suppressed)'
+        exit 0
+    fi
+    exec /runtime/picoarch "$@"
+fi
+session=no
+if [ "${1:-}" = --session ]; then session=yes; shift; fi
+application=
+if [ "${1:-}" = --application ]; then
+    [ "$#" -eq 2 ] || fail 'usage: lilsmoke-treefrog-launch --application APP_DIR'
+    application=$2
+else
+    [ "$#" -eq 1 ] || fail 'usage: lilsmoke-treefrog-launch PORT_ID'
+    case "$1" in ''|.*|*[!A-Za-z0-9_-]*) fail 'Invalid port ID' ;; esac
+fi
+[ ! -f /run/lilsmoke-storage/exporting ] || fail 'Safely eject LILDRIVE first'
+helper=/usr/lib/lilsmoke
+stock=/lilos/cubegm
+runtime=/storage/.lilsmoke/treefrog-runtime/cubegm
+if [ -n "$application" ]; then
+    # Only the checker emits these three strictly bounded tokens. Never eval JSON.
+    plan=$("$helper/lilsmoke-treefrog-check" --application "$application") || exit $?
+    set -- $plan
+    [ "$#" -eq 3 ] || fail 'Invalid converted application launch plan'
+    port=$1
+    profile=$2
+    abi=$3
+    port_source="$application/runtime/port"
+else
+    port=$1
+    profile=
+    abi=glibc
+    port_source="/storage/treefrog-ports/$port"
+fi
+
+if [ "$session" = no ] && [ -x "$helper/lilsmoke-session-log" ]; then
+    log=$("$helper/lilsmoke-session-log" "treefrog-$port") || log=/dev/null
+    exec >>"$log" 2>&1
+fi
+
+if [ -z "$application" ]; then "$helper/lilsmoke-treefrog-check" "$port" || exit $?; fi
+# Metadata is bounded JSON, not shell. Do not contaminate the musl bridge.
+unset LD_LIBRARY_PATH LD_PRELOAD LD_AUDIT DISPLAY WAYLAND_DISPLAY
+if [ "$session" = no ]; then
+    export LILSMOKE_TREEFROG_LIBS=/lib:/usr/lib
+    unset LILSMOKE_TREEFROG_INPUT_PROFILE
+    case "$port" in
+        classicube) export LILSMOKE_TREEFROG_INPUT_PROFILE=classicube ;;
+        chocolatedoom) export LILSMOKE_TREEFROG_INPUT_PROFILE=chocolate-doom ;;
+    esac
+    if [ -n "$application" ]; then
+        exec "$helper/lilsmoke-treefrog-input" /bin/sh "$helper/lilsmoke-treefrog-launch" --session --application "$application"
+    fi
+    exec "$helper/lilsmoke-treefrog-input" /bin/sh "$helper/lilsmoke-treefrog-launch" --session "$port"
+fi
+
+# The bridge owns a private RAM lease for this entire session. Binds stay
+# below this fixed RAM directory. No stock file or installed port is edited.
+view=/run/lilsmoke-treefrog-root
+if /bin/busybox awk '$5 ~ /^\/run\/lilsmoke-treefrog-root(\/|$)/ { found=1 } END { exit !found }' /proc/self/mountinfo; then
+    fail 'Previous legacy view is still busy; restart before launching another port'
+fi
+mounts=
+child=
+cleanup() {
+    status=$?
+    trap - EXIT
+    # A game can handle Start+Select before the bridge does. Ignore its later
+    # TERM while releasing storage; killing this owner would strand bind mounts.
+    trap '' HUP INT TERM
+    if [ -n "$child" ]; then
+        /bin/busybox kill -TERM -- "-$child" 2>/dev/null || true
+        grace=0
+        while /bin/busybox kill -0 -- "-$child" 2>/dev/null && [ "$grace" -lt 20 ]; do
+            /bin/busybox sleep 0.1
+            grace=$((grace+1))
+        done
+        /bin/busybox kill -KILL -- "-$child" 2>/dev/null || true
+        wait "$child" 2>/dev/null || true
+    fi
+    cd /
+    failed=no
+    for path in $mounts; do
+        tries=0
+        while ! /bin/busybox umount "$view/$path" 2>/dev/null; do
+            tries=$((tries+1))
+            if [ "$tries" -ge 20 ]; then
+                printf 'TreeFrog Ports: cannot unmount %s\n' "$view/$path" >&2
+                failed=yes;break
+            fi
+            /bin/busybox sleep 0.05
+        done
+    done
+    if [ "$failed" = yes ]; then
+        printf '%s\n' 'TreeFrog Ports: a legacy bind is still busy; do not export LILDRIVE' >&2
+        for process in /proc/[0-9]*; do
+            root_path=$(/bin/busybox readlink "$process/root" 2>/dev/null) || root_path=
+            cwd_path=$(/bin/busybox readlink "$process/cwd" 2>/dev/null) || cwd_path=
+            case "$root_path:$cwd_path" in *"$view"*)
+                printf 'Legacy holder pid=%s root=%s cwd=%s\n' "${process##*/}" "$root_path" "$cwd_path" >&2 ;;
+            esac
+            for descriptor in "$process"/fd/*; do
+                held_path=$(/bin/busybox readlink "$descriptor" 2>/dev/null) || continue
+                case "$held_path" in *"$view"*)
+                    printf 'Legacy descriptor %s -> %s\n' "$descriptor" "$held_path" >&2 ;;
+                esac
+            done
+        done
+        exit 74
+    fi
+    exit "$status"
+}
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+mkdir -p "$view/bin" "$view/lib" "$view/usr" "$view/dev" "$view/proc" "$view/sys" \
+    "$view/tmp" "$view/stock" "$view/native/bin" "$view/native/lib" "$view/storage/roms" \
+    "$view/mnt/sdcard/cubegm/usr" "$view/mnt/sdcard/frogui"
+bind() {
+    mkdir -p "$view/$2"
+    mount --bind "$1" "$view/$2" || fail "Cannot bind $2"
+    mounts="$2 $mounts"
+}
+link() { ln -snf "$1" "$view/$2"; }
+if [ "$abi" = glibc ]; then
+bind "$stock" stock
+# Preserve a decrypted/imported file-level driver mount as well as the directory.
+mount --bind "$stock/driver.so" "$view/stock/driver.so" || fail 'Cannot pin device driver'
+mounts="stock/driver.so $mounts"
+fi
+bind /bin native/bin
+bind /lib native/lib
+if [ -n "$application" ]; then
+    bind /usr/lib native/usr/lib
+    bind "$application" app
+    cp "$helper/lilsmoke-treefrog-check" "$view/native/treefrog-check"
+    chmod 0755 "$view/native/treefrog-check"
+    mkdir -p "$view/run"
+    if [ -f /run/lilsmoke-gamepads.state ]; then
+        : > "$view/run/lilsmoke-gamepads.state"
+        mount --bind /run/lilsmoke-gamepads.state "$view/run/lilsmoke-gamepads.state" || fail 'Cannot bind gamepad transport'
+        mounts="run/lilsmoke-gamepads.state $mounts"
+        mount -o remount,bind,ro "$view/run/lilsmoke-gamepads.state" || fail 'Cannot protect gamepad transport'
+    fi
+fi
+# On the stock-root profile these are absolute links into /os/files, rather
+# than regular ELF files. Preserve that namespace inside the legacy root.
+if [ -d /os/files ]; then
+    bind /os os
+    mount -o remount,bind,ro "$view/os" || fail 'Cannot protect native runtime objects'
+fi
+bind /dev dev
+bind /proc proc
+bind /sys sys
+bind /tmp tmp
+if [ -z "$application" ]; then bind /storage/treefrog-ports storage/roms/ports; fi
+# A port can itself live on a bind/OTG mount; a non-recursive parent bind does
+# not include that submount. Pin the selected folder explicitly as well.
+bind "$port_source" "storage/roms/ports/$port"
+if [ -z "$application" ] && [ -d "$runtime" ]; then bind "$runtime" runtime; fi
+link /native/bin/busybox bin/busybox
+link busybox bin/sh
+# BusyBox remains musl-linked. The rest of the view uses stock SONAMEs and SDL.
+link /native/lib/ld-musl-mipsel.so.1 lib/ld-musl-mipsel.so.1
+link /native/lib/libc.so lib/libc.so
+library_root=/native/lib
+if [ "$abi" = glibc ]; then library_root=/stock/lib; fi
+for library in "$view$library_root"/*; do
+    [ -f "$library" ] || continue
+    name=${library##*/}
+    case "$name" in libc.so|ld-musl-*) continue ;; esac
+    link "$library_root/$name" "lib/$name"
+done
+if [ -n "$application" ] && [ -d "$application/runtime/lib" ]; then
+    for library in "$application/runtime/lib"/*; do
+        [ -f "$library" ] || continue
+        name=${library##*/}
+        case "$name" in libc.so|ld-musl-*) continue ;; esac
+        link "/app/runtime/lib/$name" "lib/$name"
+    done
+fi
+if [ "$abi" = musl ]; then link /native/usr/lib usr/lib; else link /stock/usr/lib usr/lib; fi
+# Supply the installed BusyBox command set, not a per-game command whitelist.
+for command in $(/bin/busybox --list); do
+    case "$command" in busybox|*/*) continue ;; esac
+    link busybox "bin/$command"
+done
+link /bin usr/bin
+link /bin sbin
+link /bin usr/sbin
+link /storage/roms mnt/sdcard/roms
+link /lib mnt/sdcard/cubegm/lib
+link /usr/lib mnt/sdcard/cubegm/usr/lib
+link /runtime/picoarch mnt/sdcard/cubegm/picoarch
+if [ -z "$application" ] && [ "$port" = classicube ]; then
+    # Replace only our RAM symlink, never the platform companion it points at.
+    rm -f "$view/mnt/sdcard/cubegm/picoarch"
+    cp "$helper/lilsmoke-treefrog-launch" "$view/mnt/sdcard/cubegm/picoarch"
+    chmod 0755 "$view/mnt/sdcard/cubegm/picoarch"
+    LILSMOKE_TREEFROG_CORE="/mnt/sdcard/roms/ports/classicube/classicube_libretro.so"
+    export LILSMOKE_TREEFROG_CORE
+fi
+for name in driver.so driver_r36sx.so driver_r36sx27.so driver_sf3000.so driver_sf3500.so driver_gb350.so; do
+    link /stock/driver.so "mnt/sdcard/cubegm/$name"
+done
+cp "$helper/lilsmoke-treefrog-port-check" "$view/mnt/sdcard/cubegm/port_check.sh"
+chmod 0755 "$view/mnt/sdcard/cubegm/port_check.sh"
+cp "$helper/treefrog-keymap.txt" "$view/mnt/sdcard/frogui/keymap.txt"
+export PATH=/bin HOME="/mnt/sdcard/roms/ports/$port"
+if [ "$abi" = glibc ]; then
+    export TF_DRIVER=/stock/driver.so PICOARCH_DRIVER=/stock/driver.so TF_PRESENT=dispframe
+else
+    unset TF_DRIVER PICOARCH_DRIVER TF_PRESENT
+fi
+unset SDL_AUDIODRIVER SDL_RENDER_DRIVER SDL_GAMECONTROLLER_IGNORE_DEVICES SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT
+export LD_LIBRARY_PATH=/lib:/usr/lib SDL_VIDEODRIVER=fbcon SDL_NOMOUSE=1
+if [ -n "$application" ] && [ "$profile" = libretro ]; then
+    # SDL2's independent host chooses its own supported platform backend.
+    # Do not force SDL1's fbcon driver or load the legacy PicoArch companion.
+    unset SDL_VIDEODRIVER SDL_NOMOUSE
+    if [ "$abi" = musl ]; then export SDL_VIDEODRIVER=directfb SDL_RENDER_DRIVER=software; fi
+fi
+export LILSMOKE_POINTER_ENABLED=0
+cd "$view"
+engine_script="/mnt/sdcard/roms/ports/$port/run.sh"
+if [ -n "$application" ] && [ "$profile" = libretro ]; then
+    # Fixed shell text carries no package data. The helper constructs argv from
+    # parsed metadata and execs the independent host, never upstream run.sh.
+    printf '%s\n' '#!/bin/sh' 'exec /bin/busybox env LD_LIBRARY_PATH=/native/lib:/native/usr/lib /native/treefrog-check --application-exec' > "$view/application-launch.sh"
+    engine_script=/application-launch.sh
+elif [ -n "$application" ]; then
+    /bin/busybox chroot "$view" /bin/sh -n "/mnt/sdcard/roms/ports/$port/run.sh" || fail 'Original native launcher is not valid BusyBox syntax'
+    # The original native script keeps all setup/selection logic. Its private
+    # providers are available before it appends the standard device paths.
+    printf '%s\n' '#!/bin/sh' \
+        'export LD_LIBRARY_PATH=/app/runtime/lib:/app/runtime/port/lib:/app/runtime/port:/lib:/usr/lib' \
+        "exec /bin/sh /mnt/sdcard/roms/ports/$port/run.sh" > "$view/application-launch.sh"
+    engine_script=/application-launch.sh
+fi
+/bin/busybox chroot "$view" /bin/sh -n "$engine_script" || fail 'Launcher is not valid BusyBox shell syntax'
+/bin/busybox env -u LD_LIBRARY_PATH "$helper/lilsmoke-treefrog-input" --engine "$view" "$engine_script" &
+child=$!
+status=0
+wait "$child" || status=$?
+child=
+exit "$status"

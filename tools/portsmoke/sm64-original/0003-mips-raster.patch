@@ -1,0 +1,68 @@
+--- a/src/pc/gfx/gfx_soft.c
++++ b/src/pc/gfx/gfx_soft.c
+@@ -8,7 +8,10 @@
+ #include <stdbool.h>
+ #include <math.h>
+-#include <assert.h>
++#include <assert.h>
++
++static size_t z_capacity;
++extern bool sm64_raster_filter_enabled(void);
+ 
+ #ifndef _LANGUAGE_C
+ # define _LANGUAGE_C
+ #endif
+@@ -2443,1 +2445,1 @@
+-    cur_tex[tile]->filter = linear_filter;
++    cur_tex[tile]->filter = linear_filter && sm64_raster_filter_enabled();
+@@ -2588,11 +2590,29 @@
+ static void gfx_soft_tex_rect(int x0, int y0, int x1, int y1, const float u0, const float v0, const float dudx, const float dvdy, const uint8_t *rgba) {
+-    x0 = imax(0, x0);
+-    y0 = imax(0, y0);
++    const int original_x = x0, original_y = y0;
++    x0 = imax(0, x0);
++    y0 = imax(0, y0);
+     x1 = imin(scr_width, x1);
+     y1 = imin(scr_height, y1);
+     gfx_soft_pick_draw_func();
+-    if (cur_shader->cc.num_inputs)
+-        gfx_soft_tex_rect_modulate(x0, y0, x1, y1, u0, v0, dudx, dvdy, *(Color4 *)rgba);
+-    else
+-        gfx_soft_tex_rect_replace(x0, y0, x1, y1, u0, v0, dudx, dvdy);
++    const struct Texture *tex = cur_tex[0];
++    const int64_t du = (int64_t)(dudx * 65536.f), dv = (int64_t)(dvdy * 65536.f);
++    const int64_t first_u = (int64_t)(u0 * 65536.f) + (x0 - original_x) * du;
++    int64_t v = (int64_t)(v0 * 65536.f) + (y0 - original_y) * dv;
++    const uint32_t *source = (const uint32_t *)(texcache + tex->addr);
++    const bool modulate = cur_shader->cc.num_inputs != 0;
++    for (int y = y0; y < y1; ++y, v += dv) {
++        int64_t u = first_u;
++        const int row = opt_wrap((int)(v / 65536), tex->wrap_h, tex->wrap_mode_y) * tex->w;
++        for (int x = x0; x < x1; ++x, u += du) {
++            Color4 color = { .c = source[row + opt_wrap((int)(u / 65536), tex->wrap_w, tex->wrap_mode_x)] };
++            if (modulate) color = rgba_modulate(color, *(const Color4 *)rgba);
++            const int index = y * scr_width + x;
++            if ((cur_shader->draw_flags & DRAW_BLEND_EDGE) && color.a <= 0x80) continue;
++            if (cur_shader->draw_flags & (DRAW_BLEND | DRAW_BLEND_EDGE)) {
++                color = rgba_blend(color, gfx_read_dst(index), color.a);
++            }
++            gfx_output[index] = Color32Reverse(color.c);
++            if (z_write) z_buffer[index] = 0;
++        }
++    }
+ }
+@@ -2609,5 +2621,4 @@
+ static void gfx_soft_set_resolution(const int width, const int height) {
+-    if (z_buffer) free(z_buffer);
+ #ifndef SDL_SURFACE
+     if (gfx_output) free(gfx_output);
+ #endif
+@@ -2616,2 +2626,7 @@
+-    z_buffer = calloc(scr_width * scr_height, sizeof(int16_t));
++    if ((size_t)scr_size > z_capacity) {
++        uint16_t *grown = realloc(z_buffer, (size_t)scr_size * sizeof(*z_buffer));
++        if (!grown) abort();
++        z_buffer = grown;
++        z_capacity = scr_size;
++    }
+     if (!z_buffer) {

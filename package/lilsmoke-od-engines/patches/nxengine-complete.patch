@@ -1,0 +1,33 @@
+diff --git a/src/graphics/Renderer.cpp b/src/graphics/Renderer.cpp
+--- a/src/graphics/Renderer.cpp
++++ b/src/graphics/Renderer.cpp
+@@ -117,7 +117,7 @@
+   if (!_renderer)
+   {
+-    _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
++    _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_SOFTWARE);
+   }
+   if (!_renderer)
+   {
+     LOG_ERROR("Renderer::initVideo: error setting video mode (SDL_CreateRenderer: {})", SDL_GetError());
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -275,7 +275,8 @@
+ #include "native-menu.h"
++#include "nx-import.h"
+ int main(int argc, char *argv[])
+ {
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -296,6 +297,12 @@
+   } else return 2;
++  char prepared[4096];
++  if(nx_import(getenv("LILSMOKE_NX_DATA"),prepared,sizeof(prepared))) {
++    fputs("NXEngine: game import failed; source data has not been changed.\n",stderr);
++    return 1;
++  }
++  setenv("LILSMOKE_NX_DATA",prepared,1);
+ 
+   bool error            = false;

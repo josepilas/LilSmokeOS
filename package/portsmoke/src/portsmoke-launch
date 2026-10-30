@@ -1,0 +1,191 @@
+#!/bin/sh
+#
+# portsmoke-launch - central router for LilSmokeOS native PC ports.
+#
+# Usage: portsmoke-launch <game-folder>
+
+set -u
+if [ -f /run/lilsmoke-storage/exporting ]; then
+    echo "LILROMS is shared with the PC; safely eject LILDRIVE first" >&2
+    exit 1
+fi
+umask 022
+
+PORTSMOKE_ROOT="${PORTSMOKE_ROOT:-/storage/portsmoke}"
+ENGINES_DIR="${PORTSMOKE_ENGINES_DIR:-$PORTSMOKE_ROOT/engines}"
+PORTS_DIR="${PORTSMOKE_PORTS_DIR:-$PORTSMOKE_ROOT/ports}"
+MOUNT_ROOT="${PORTSMOKE_MOUNT_ROOT:-/mnt/portsmoke}"
+MOUNT_CMD="${PORTSMOKE_MOUNT_CMD:-mount}"
+UMOUNT_CMD="${PORTSMOKE_UMOUNT_CMD:-umount}"
+MOUNTS_FILE="${PORTSMOKE_MOUNTS_FILE:-/proc/mounts}"
+MEMINFO_FILE="${PORTSMOKE_MEMINFO_FILE:-/proc/meminfo}"
+
+usage() {
+    echo "usage: portsmoke-launch <game-folder>" >&2
+    exit 1
+}
+
+die() {
+    echo "portsmoke-launch: $*" >&2
+    exit 1
+}
+
+conf_get() {
+    key="$1"
+    file="$2"
+    awk -v wanted="$key" '
+        BEGIN { section = "" }
+        /^[[:space:]]*($|[#;])/ { next }
+        /^[[:space:]]*\[/ {
+            section = $0
+            sub(/^[[:space:]]*\[/, "", section)
+            sub(/\][[:space:]]*$/, "", section)
+            next
+        }
+        section == "PortSmoke" {
+            line = $0
+            sub(/^[[:space:]]*/, "", line)
+            keyEnd = index(line, "=")
+            if (keyEnd == 0) next
+            k = substr(line, 1, keyEnd - 1)
+            sub(/[[:space:]]*$/, "", k)
+            if (k == wanted) {
+                line = substr(line, keyEnd + 1)
+                sub(/^[[:space:]]*/, "", line)
+                sub(/[[:space:]]*$/, "", line)
+                print line
+                exit
+            }
+        }
+    ' "$file"
+}
+
+sanitize_component() {
+    value="$1"
+    case "$value" in
+        ""|/*|*/*|*..*|*\\*|*[!A-Za-z0-9._-]*) return 1 ;;
+    esac
+    return 0
+}
+
+mount_info() {
+    awk -v wanted="$1" '$2 == wanted { print $3 " " $4; exit }' "$MOUNTS_FILE"
+}
+
+mounted_by_us=no
+mount_dir=""
+
+cleanup() {
+    status=$?
+    trap - EXIT HUP INT TERM
+    if [ "$mounted_by_us" = yes ] && [ -n "$mount_dir" ]; then
+        if ! "$UMOUNT_CMD" "$mount_dir" >/dev/null 2>&1; then
+            echo "portsmoke-launch: warning: could not unmount $mount_dir" >&2
+        fi
+    fi
+    [ -z "$mount_dir" ] || rmdir "$mount_dir" >/dev/null 2>&1 || true
+    exit "$status"
+}
+
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+[ "$#" -eq 1 ] || usage
+game="$1"
+sanitize_component "$game" || die "unsafe game folder name: $game"
+
+game_dir="$PORTS_DIR/$game"
+conf_file="$game_dir/portsmoke.conf"
+
+[ -d "$game_dir" ] || die "game folder not found: $game_dir"
+[ -f "$conf_file" ] || die "metadata missing: $conf_file"
+
+engine_file="$(conf_get EngineFile "$conf_file")"
+script_file="$(conf_get Script "$conf_file")"
+architecture="$(conf_get Architecture "$conf_file")"
+abi="$(conf_get ABI "$conf_file")"
+libc="$(conf_get Libc "$conf_file")"
+renderer="$(conf_get Renderer "$conf_file")"
+minimum_memory_mb="$(conf_get MinimumMemoryMB "$conf_file")"
+
+[ -n "$engine_file" ] || die "EngineFile missing in $conf_file"
+[ -n "$script_file" ] || die "Script missing in $conf_file"
+sanitize_component "$engine_file" || die "unsafe EngineFile value: $engine_file"
+sanitize_component "$script_file" || die "unsafe Script value: $script_file"
+case "$engine_file" in *.peng) ;; *) die "EngineFile must end in .peng" ;; esac
+case "$script_file" in *.sh) ;; *) die "Script must end in .sh" ;; esac
+case "$architecture" in
+    ""|mips32r2|mipsel|any) ;;
+    *) die "unsupported Architecture: $architecture" ;;
+esac
+case "$abi" in
+    ""|o32-hard-float) ;;
+    *) die "unsupported ABI: $abi" ;;
+esac
+case "$libc" in
+    ""|musl) ;;
+    *) die "unsupported Libc: $libc (PortSmoke engines must be built for musl)" ;;
+esac
+case "$renderer" in
+    ""|software|directfb|fbdev) ;;
+    *) die "unsupported Renderer: $renderer" ;;
+esac
+if [ -n "$minimum_memory_mb" ]; then
+    case "$minimum_memory_mb" in
+        *[!0-9]*) die "MinimumMemoryMB must be numeric" ;;
+    esac
+    if [ -r "$MEMINFO_FILE" ]; then
+        physical_memory_mb="$(awk '/^MemTotal:/ { print int($2 / 1024); exit }' "$MEMINFO_FILE")"
+        case "$physical_memory_mb" in ""|*[!0-9]*) physical_memory_mb=0 ;; esac
+        if [ "$physical_memory_mb" -gt 0 ] && [ "$physical_memory_mb" -lt "$minimum_memory_mb" ]; then
+            die "port requires ${minimum_memory_mb} MB RAM; device has ${physical_memory_mb} MB"
+        fi
+    fi
+fi
+
+engine_name="${engine_file%.peng}"
+[ -n "$engine_name" ] || die "empty engine name"
+sanitize_component "$engine_name" || die "unsafe engine name: $engine_name"
+
+engine_image="$ENGINES_DIR/$engine_file"
+script_path="$game_dir/$script_file"
+mount_dir="$MOUNT_ROOT/$engine_name"
+
+[ -f "$engine_image" ] || die "engine image not found: $engine_image"
+[ -f "$script_path" ] || die "game script not found: $script_path"
+[ ! -L "$engine_image" ] || die "engine image must not be a symlink"
+[ ! -L "$script_path" ] || die "game script must not be a symlink"
+[ -x "$script_path" ] || die "game script is not executable: $script_path"
+
+mkdir -p "$MOUNT_ROOT" "$mount_dir" || die "cannot create engine mount point"
+
+info="$(mount_info "$mount_dir" 2>/dev/null || true)"
+if [ -n "$info" ]; then
+    case "$info" in
+        squashfs\ *ro,*|squashfs\ *,ro,*|squashfs\ *,ro)
+            echo "portsmoke-launch: reusing mounted engine $engine_name" >&2
+            ;;
+        *)
+            die "mount point is already in use by a non-read-only SquashFS mount"
+            ;;
+    esac
+else
+    "$MOUNT_CMD" -t squashfs -o loop,ro,nosuid,nodev \
+        "$engine_image" "$mount_dir" || die "cannot mount $engine_image"
+    mounted_by_us=yes
+fi
+
+[ -d "$mount_dir/bin" ] || die "engine image has no bin directory"
+
+export PORTSMOKE_ROOT
+export PORTSMOKE_GAME="$game"
+export PORTSMOKE_GAME_DIR="$game_dir"
+export PORTSMOKE_ENGINE="$engine_name"
+export PORTSMOKE_ENGINE_DIR="$mount_dir"
+export PORTSMOKE_SAVE_DIR="$PORTSMOKE_ROOT/saves/$game"
+
+cd "$game_dir" || die "cannot enter game folder: $game_dir"
+"./$script_file"
+exit $?

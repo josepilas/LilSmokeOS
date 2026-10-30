@@ -1,0 +1,16 @@
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -185,6 +185,7 @@
+   for (;;)
+   {
++    if (!game.running) break;
+     if (Renderer::getInstance()->isWindowVisible())
+     {
+@@ -227,7 +228,7 @@
+ #if !defined(DEBUG)
+       // pause game if window minimized
+-      if (!Renderer::getInstance()->isWindowVisible())
++      if (!getenv("LILSMOKE_OD_NATIVE") && !Renderer::getInstance()->isWindowVisible())
+       {
+         AppMinimized();

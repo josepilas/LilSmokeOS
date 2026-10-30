@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# S06overlay — mount OverlayFS over /etc and /var
+#
+# We keep the rootfs read-only (squashfs) so it's power-fail safe.
+# But users need to be able to change /etc/* (e.g., wpa_supplicant.conf)
+# and /var needs to accumulate logs/runtime data.
+#
+# Solution: OverlayFS.
+#   - Lower dir = the read-only /etc from squashfs
+#   - Upper dir = /persist/overlay/etc (writable, on the SD card's ext4 part)
+#   - Merged view = /etc (what apps see)
+#
+# This means changes to /etc are persisted across reboots, but the base
+# system stays immutable. An OTA update just replaces the squashfs — the
+# user's /persist/overlay/* is preserved.
+#
+# For QEMU (no real /persist partition), we just skip — rootfs is initramfs,
+# which is already writable.
+
+PERSIST_DIR="/persist"
+OVERLAY_BASE="$PERSIST_DIR/overlay"
+
+case "$1" in
+    start)
+        if [ ! -d "$PERSIST_DIR" ] || [ ! -w "$PERSIST_DIR" ]; then
+            echo "[lilsmoke] S06: /persist not writable, skipping overlay"
+            exit 0
+        fi
+
+        mkdir -p "$OVERLAY_BASE/etc" "$OVERLAY_BASE/etc-work"
+        mkdir -p "$OVERLAY_BASE/var" "$OVERLAY_BASE/var-work"
+
+        # Mount /etc overlay
+        # (Only if /etc isn't already an overlay — avoid double-mounting on re-exec)
+        if ! mountpoint -q /etc 2>/dev/null; then
+            echo "[lilsmoke] S06: mounting overlay on /etc"
+            # We need to bind-mount the original /etc somewhere first so we can
+            # use it as the lower dir. On a squashfs rootfs, /etc is already
+            # read-only, so we can use it directly.
+            mount -t overlay overlay \
+                -o lowerdir=/etc,upperdir=$OVERLAY_BASE/etc,workdir=$OVERLAY_BASE/etc-work \
+                /etc 2>/dev/null || \
+                echo "[lilsmoke] S06: /etc overlay failed (kernel may not support overlayfs)"
+        fi
+
+        # /var is more complex because /var/log needs to be writable but
+        # /var itself is often a tmpfs symlink. For J4 we just create it.
+        if [ ! -d /var ]; then
+            mkdir -p /var
+        fi
+        if ! mountpoint -q /var 2>/dev/null; then
+            echo "[lilsmoke] S06: mounting overlay on /var"
+            mount -t overlay overlay \
+                -o lowerdir=/var,upperdir=$OVERLAY_BASE/var,workdir=$OVERLAY_BASE/var-work \
+                /var 2>/dev/null || \
+                echo "[lilsmoke] S06: /var overlay failed (kernel may not support overlayfs)"
+        fi
+        ;;
+
+    stop)
+        # Don't unmount — overlays auto-unmount at shutdown
+        ;;
+esac
+exit 0

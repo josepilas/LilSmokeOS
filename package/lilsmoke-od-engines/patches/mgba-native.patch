@@ -1,0 +1,29 @@
+diff --git a/src/platform/sdl/main.c b/src/platform/sdl/main.c
+--- a/src/platform/sdl/main.c
++++ b/src/platform/sdl/main.c
+@@ -69,6 +69,19 @@
+ 	struct mSubParser subparser;
+ 
++	char chosen[1024];
++	char *menu_argv[3];
++	if (argc == 1) {
++		const char *root = getenv("LILSMOKE_OD_ROM_DIR");
++		if (!root) root = "/storage/roms/gba";
++		int selected = lilos_pick("mGBA", root, 2, chosen, sizeof(chosen));
++		if (selected <= 0) return selected < 0 ? 1 : 0;
++		const char *content = od_resolve_content(chosen, "gba");
++		if (!content) return 1;
++		menu_argv[0] = argv[0]; menu_argv[1] = (char *)content; menu_argv[2] = NULL;
++		argv = menu_argv; argc = 2;
++	}
+ 	mSubParserGraphicsInit(&subparser, &graphicsOpts);
+ 	bool parsed = mArgumentsParse(&args, argc, argv, &subparser, 1);
+diff --git a/src/platform/sdl/main.c b/src/platform/sdl/main.c
+--- a/src/platform/sdl/main.c
++++ b/src/platform/sdl/main.c
+@@ -1,3 +1,5 @@
++#include "native-menu.h"
++#include "od-content.h"
+ /* Copyright (c) 2013-2015 Jeffrey Pfau
+  *
+  * This Source Code Form is subject to the terms of the Mozilla Public

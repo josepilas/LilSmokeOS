@@ -1,0 +1,67 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] HIDAPI: opt-in usbfs polling without hidraw notifications
+
+The stock M8 can watch /dev successfully but never creates hidraw nodes.
+Its USB nodes are nested below /dev/bus/usb, outside the inotify watch.
+Keep discovery counters advancing for the controller daemon in that case.
+The shared-state daemon is the sole HID owner. SDL joystick consumers must
+not claim the same USB interface during enumeration; they use shared input.
+Gate by state-file presence, not freshness: a crashed daemon must leave
+consumers neutral instead of causing USB ownership to oscillate. The daemon
+sets the polling hint before SDL_Init and is exempt. This also protects
+cached old clients without recompilation. Without a state file, SDL behaves
+normally. Native evdev/keyboard/mouse drivers are not affected.
+
+--- a/src/hidapi/SDL_hidapi.c
++++ b/src/hidapi/SDL_hidapi.c
+@@ -29,6 +29,7 @@
+ #include "../SDL_internal.h"
+ 
+ #include "SDL_loadso.h"
++#include "SDL_hints.h"
+ #include "SDL_hidapi.h"
+ #include "SDL_thread.h"
+ #include "SDL_timer.h"
+@@ -366,8 +366,9 @@ static void HIDAPI_UpdateDiscovery()
+         HIDAPI_InitializeDiscovery();
+     }
+ 
+-    if (!SDL_HIDAPI_discovery.m_bCanGetNotifications) {
+-        const Uint32 SDL_HIDAPI_DETECT_INTERVAL_MS = 3000; /* Update every 3 seconds */
++    if (!SDL_HIDAPI_discovery.m_bCanGetNotifications ||
++        SDL_GetHintBoolean("LILSMOKE_HIDAPI_POLL", SDL_FALSE)) {
++        const Uint32 SDL_HIDAPI_DETECT_INTERVAL_MS = SDL_GetHintBoolean("LILSMOKE_HIDAPI_POLL", SDL_FALSE) ? 250 : 3000;
+         Uint32 now = SDL_GetTicks();
+         if (!SDL_HIDAPI_discovery.m_unLastDetect || SDL_TICKS_PASSED(now, SDL_HIDAPI_discovery.m_unLastDetect + SDL_HIDAPI_DETECT_INTERVAL_MS)) {
+             ++SDL_HIDAPI_discovery.m_unDeviceChangeCounter;
+--- a/src/joystick/hidapi/SDL_hidapijoystick.c
++++ b/src/joystick/hidapi/SDL_hidapijoystick.c
+@@ -31,6 +31,9 @@
+ #include "SDL_hidapijoystick_c.h"
+ #include "SDL_hidapi_rumble.h"
+ #include "../../SDL_hints_c.h"
++#ifdef __LINUX__
++#include <unistd.h>
++#endif
+ 
+ #if defined(__WIN32__) || defined(__WINGDK__)
+ #include "../windows/SDL_rawinputjoystick_c.h"
+@@ -412,6 +415,18 @@ static void HIDAPI_SetupDeviceDriver(SDL_HIDAPI_Device *device, SDL_bool *removed) SDL_NO_THREAD_SAFETY_ANALYSIS
+ {
+     *removed = SDL_FALSE;
+ 
++#ifdef __LINUX__
++    if (!SDL_GetHintBoolean("LILSMOKE_HIDAPI_POLL", SDL_FALSE)) {
++        const char *state = SDL_getenv("LILSMOKE_GAMEPAD_STATE");
++        if (access(state ? state : "/run/lilsmoke-gamepads.state", F_OK) == 0) {
++            if (device->driver) {
++                HIDAPI_CleanupDeviceDriver(device);
++            }
++            return;
++        }
++    }
++#endif
++
+     if (device->driver) {
+         SDL_bool enabled;
+ 

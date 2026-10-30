@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    LilSmokeOS default theme
+
+    Uses the LilSmokeOS palette:
+      dark grey   #2B2D31  — main background
+      dark green  #1F3D2B  — accent / borders
+      dark blue   #1E2A47  — secondary background
+      light beige #D9C9A3  — primary text
+
+    This theme is intentionally minimal — LilSmokeUI v0.1 supports
+    only list + grid views and basic backgrounds. More elaborate
+    themes can be added later (or pulled from EmuELEC/ArkOS).
+
+    Format is shared with EmuELEC/ArkOS so users can drop those
+    themes into /storage/themes/ and they'll work.
+-->
+<theme>
+    <formatVersion>7</formatVersion>
+
+    <variables>
+        <primaryColor>D9C9A3</primaryColor>
+        <accentColor>1F3D2B</accentColor>
+        <backgroundColor>2B2D31</backgroundColor>
+        <secondaryBgColor>1E2A47</secondaryBgColor>
+        <systemName>LilSmokeOS</systemName>
+    </variables>
+
+    <view name="system">
+        <image name="background" extra="true">
+            <color>2B2D31</color>
+            <origin>0 0</origin>
+            <pos>0 0</pos>
+            <size>1 1</size>
+        </image>
+        <text name="logoText">
+            <color>D9C9A3</color>
+            <fontPath>./art/font.ttf</fontPath>
+            <fontSize>0.06</fontSize>
+            <pos>0.5 0.12</pos>
+        </text>
+        <text name="systemInfo">
+            <color>D9C9A3</color>
+            <fontSize>0.03</fontSize>
+            <pos>0.5 0.92</pos>
+        </text>
+    </view>
+
+    <view name="basic, detailed">
+        <image name="background" extra="true">
+            <color>1E2A47</color>
+            <origin>0 0</origin>
+            <pos>0 0</pos>
+            <size>1 1</size>
+        </image>
+        <textlist name="gamelist">
+            <selectorColor>1F3D2B</selectorColor>
+            <selectedColor>D9C9A3</selectedColor>
+            <primaryColor>D9C9A3</primaryColor>
+            <secondaryColor>9C9C9C</secondaryColor>
+            <fontSize>0.04</fontSize>
+            <pos>0.05 0.20</pos>
+            <size>0.55 0.70</size>
+        </textlist>
+        <image name="md_image">
+            <pos>0.75 0.40</pos>
+            <maxSize>0.35 0.45</maxSize>
+            <origin>0.5 0.5</origin>
+        </image>
+    </view>
+
+    <view name="grid">
+        <image name="background" extra="true">
+            <color>2B2D31</color>
+            <origin>0 0</origin>
+            <pos>0 0</pos>
+            <size>1 1</size>
+        </image>
+        <gridtile name="default">
+            <backgroundColor>1E2A47</backgroundColor>
+            <imageColor>FFFFFF</imageColor>
+            <padding>8 8</padding>
+            <size>0.18 0.20</size>
+        </gridtile>
+        <gridtile name="selected">
+            <backgroundColor>1F3D2B</backgroundColor>
+            <imageColor>D9C9A3</imageColor>
+            <padding>6 6</padding>
+            <size>0.20 0.22</size>
+        </gridtile>
+    </view>
+</theme>

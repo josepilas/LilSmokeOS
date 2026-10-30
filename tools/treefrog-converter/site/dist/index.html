@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; style-src 'self'; img-src 'self' blob: data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>TreeFrog Converter | LilSmoke</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./icons.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div id="app" data-testid="converter" data-state="idle" data-engine="unloaded" data-worker="stopped" data-runtime="unreported" data-phase="idle" data-selected-port="" data-output-bytes="0">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" data-icon="package"></span><span>LILSMOKE<span class="brand-divider">/</span><span class="brand-tool">TreeFrog converter</span></span></div>
+      <span class="engine-status"><span id="engine-dot" class="status-dot"></span><span id="engine-status" data-testid="engine-status">C / WASM &middot; not loaded</span></span>
+    </header>
+
+    <main class="workspace">
+      <div class="page-heading">
+        <div><p class="eyebrow">PORT WORKSPACE</p><h1>TreeFrog <span class="heading-arrow" data-icon="arrow-right"></span> LilSmoke</h1>
+          <div class="scope-note" data-testid="tool-objective">
+            <p>For ports that LilSmokeOS's native TreeFrog compatibility cannot handle.</p>
+            <p class="direct-compat">Working ports can be copied directly: <code>.sh + game folder</code> -&gt; <code>LILROMS/treefrog-ports</code>.<span class="device-path">Device path: <code>/storage/treefrog-ports</code></span></p>
+          </div>
+        </div>
+        <button id="reset" class="button quiet" type="button" title="Reset and release memory" data-testid="reset" disabled><span data-icon="rotate-ccw"></span><span>Reset</span></button>
+      </div>
+
+      <div class="work-grid">
+        <section class="source-section" aria-labelledby="source-heading">
+          <div class="section-heading"><h2 id="source-heading"><span class="step-number">01</span> Source archive</h2><span class="format-tag">.ZIP</span></div>
+          <label id="dropzone" class="dropzone" for="archive-input" data-testid="dropzone">
+            <input id="archive-input" data-testid="archive-input" class="file-input" type="file" accept=".zip,application/zip,application/x-zip-compressed" aria-label="Choose TreeFrog ZIP archive" aria-describedby="archive-limit">
+            <span class="archive-symbol" data-icon="file-archive"></span>
+            <span id="file-name" class="file-name">Choose ZIP archive</span>
+            <span id="file-meta" class="muted small">Drop .zip archive</span>
+            <span class="file-choose"><span data-icon="folder-open"></span><span id="file-choose-label">Browse files</span></span>
+          </label>
+          <div class="source-meta"><span id="archive-limit">384 MiB max &middot; 768 MiB expanded</span><span class="privacy"><span data-icon="shield-check"></span>Local processing</span></div>
+          <button id="analyze" class="button primary full-width" type="button" data-testid="analyze" disabled><span data-icon="scan-search"></span><span>Analyze archive</span></button>
+          <dl class="archive-stats">
+            <div><dt>Archive</dt><dd id="stat-archive">--</dd></div>
+            <div><dt>Expanded</dt><dd id="stat-expanded">--</dd></div>
+            <div><dt>Files</dt><dd id="stat-files">--</dd></div>
+            <div><dt>Ports</dt><dd id="stat-ports">--</dd></div>
+          </dl>
+        </section>
+
+        <section class="package-section" aria-labelledby="package-heading">
+          <div class="section-heading"><h2 id="package-heading"><span class="step-number">02</span> Port &amp; package</h2><span id="port-status" class="status-label" data-status="unreported" data-testid="port-status">Awaiting analysis</span></div>
+          <div class="field"><label for="port-select">Detected port</label><div class="select-wrap"><select id="port-select" data-testid="port-select" disabled><option value="">No archive analyzed</option></select><span data-icon="chevron-down"></span></div></div>
+          <div class="metadata-fields">
+            <div class="field"><label for="display-name">Display name</label><input id="display-name" data-testid="display-name" type="text" autocomplete="off" maxlength="128" disabled></div>
+            <div class="field"><label for="version">Version</label><input id="version" data-testid="version" type="text" autocomplete="off" maxlength="48" disabled></div>
+          </div>
+          <dl class="port-details">
+            <div><dt>Architecture / ABI</dt><dd id="port-architecture" data-testid="architecture">Not reported</dd></div>
+            <div><dt>Profile</dt><dd id="port-profile">Not reported</dd></div>
+            <div><dt>Binary</dt><dd id="port-binary">Not reported</dd></div>
+            <div><dt>Content / icon</dt><dd id="port-content">Not reported</dd></div>
+          </dl>
+          <p id="port-reason" class="port-reason" data-testid="port-reason">No port selected.</p>
+          <div class="package-actions">
+            <button id="convert" class="button primary" type="button" data-testid="convert" disabled><span data-icon="package"></span><span>Convert to .lilpck</span></button>
+            <button id="download" class="button secondary" type="button" data-testid="download" disabled><span data-icon="download"></span><span>Download</span></button>
+          </div>
+          <div id="output-summary" class="output-summary" data-testid="output-summary" hidden><span data-icon="check"></span><span id="output-name"></span><span id="output-size" class="muted"></span></div>
+        </section>
+      </div>
+
+      <section class="progress-section" aria-label="Processing status" data-testid="progress-section">
+        <div class="progress-heading"><div class="status-copy"><span id="activity-icon" data-icon="cpu"></span><p id="status-message" role="status" aria-live="polite" data-testid="status-message">Choose an archive to begin.</p></div><button id="cancel" class="button quiet cancel" type="button" title="Cancel and release memory" data-testid="cancel" hidden><span data-icon="x"></span><span>Cancel</span></button></div>
+        <div class="progress-metrics"><span id="phase-label" data-testid="phase">Idle</span><span id="progress-bytes" data-testid="progress-bytes">-- MB</span><span id="progress-percent" data-testid="progress-percent">--%</span></div>
+        <progress id="progress" data-testid="progress" max="100" value="0" data-unit="bytes" data-processed="0" data-total="0" aria-label="Archive processing progress"></progress>
+        <p id="status-detail" class="status-detail" data-testid="status-detail" hidden></p>
+      </section>
+
+      <section class="analysis-section" aria-labelledby="analysis-heading">
+        <div class="section-heading"><h2 id="analysis-heading"><span class="step-number">03</span> Adaptation analysis</h2><span id="analysis-count" class="muted small">Awaiting engine report</span></div>
+        <div class="analysis-table-wrap"><table class="analysis-table" data-testid="analysis-table"><thead><tr><th scope="col">Stage</th><th scope="col">Status</th><th scope="col">Detail</th></tr></thead><tbody id="analysis-rows"></tbody></table></div>
+        <div class="readiness-grid" data-testid="readiness"><div><h3>Static readiness</h3><p id="static-readiness">Not reported</p></div><div><h3>Device probe</h3><p id="device-readiness">Not reported</p></div></div>
+        <div id="adaptations-section" class="adaptations" hidden><h3>Generated adaptation plan</h3><ul id="adaptations" data-testid="adaptations"></ul></div>
+        <div id="strategies-section" class="adaptations" hidden><h3>Strategies examined</h3><ul id="strategies" data-testid="strategies"></ul></div>
+      </section>
+
+      <section class="runtime-section" aria-labelledby="runtime-heading">
+        <div class="section-heading"><h2 id="runtime-heading"><span class="step-number">04</span> Runtime &amp; dependencies</h2><span id="runtime-status" class="status-label" data-status="unreported" data-testid="runtime-status">Not reported</span></div>
+        <dl class="runtime-details">
+          <div class="runtime-required"><dt>Required runtime</dt><dd id="runtime-required">LilSmoke TreeFrog device compatibility runtime</dd></div>
+          <div><dt>Selected runtime profile</dt><dd id="runtime-profile" data-testid="runtime-profile">Not reported</dd></div>
+          <div><dt>ABI / dependency closure</dt><dd id="runtime-abi" data-testid="runtime-abi">Not reported</dd></div>
+          <div><dt>Bundled dependencies</dt><dd id="runtime-bundled" data-testid="runtime-bundled">Not reported</dd></div>
+          <div><dt>Missing dependencies</dt><dd id="runtime-missing-count" data-testid="runtime-missing-count">Not reported</dd></div>
+        </dl>
+        <p id="runtime-pack-detail" class="muted small" hidden></p>
+        <div class="dependency-grid"><details id="dependencies-section" hidden><summary>Dependency closure <span id="dependency-count"></span></summary><ul id="dependencies" data-testid="dependencies"></ul></details><div id="missing-section" class="missing-dependencies" hidden><h3>Missing dependencies</h3><ul id="missing-dependencies" data-testid="missing-dependencies"></ul></div></div>
+      </section>
+
+      <section class="warnings-section" aria-labelledby="warnings-heading">
+        <div class="section-heading"><h2 id="warnings-heading"><span data-icon="triangle-alert"></span> Compatibility &amp; warnings</h2><span id="warning-count" class="muted small">0 reported</span></div>
+        <p class="runtime-caution">Package readiness is not a guarantee of working gameplay. Device compatibility requires a device probe.</p>
+        <ul id="warnings" data-testid="warnings"></ul>
+      </section>
+    </main>
+    <footer class="footer"><span>TreeFrog / LilSmoke &middot; 0.2.0</span><a href="./source/LilSmoke-Port-Converter-0.2.0-source.zip" download>Converter source &middot; MPL-2.0</a><span>384 MiB archive &middot; 768 MiB expanded &middot; 1,536 MiB WASM ceiling</span></footer>
+  </div>
+  <noscript><p class="noscript">JavaScript and WebAssembly are required. No archive has been processed.</p></noscript>
+</body>
+</html>

@@ -1,0 +1,77 @@
+From: LilSmokeOS <dev@lilsmoke.local>
+Subject: [PATCH] fusion: join the single-process dispatcher before freeing its world
+
+The non-multi implementation of fusion_exit signals its dispatcher, then
+destroys mutexes and frees the world without joining that thread. With musl,
+pthread_exit can subsequently walk a recursive mutex in the freed world.
+The dispatcher also dereferences an empty buffer list after a stop or spurious
+wakeup. Check the stop predicate under its mutex and recheck after each wait.
+
+Keep the world and shared pools alive until the dispatcher has returned and
+joined; no pthread cancellation or libc-specific robust-list workaround is
+needed. The multi-process implementations are unchanged.
+
+Signed-off-by: LilSmokeOS <dev@lilsmoke.local>
+---
+ lib/fusion/fusion.c | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/lib/fusion/fusion.c b/lib/fusion/fusion.c
+--- a/lib/fusion/fusion.c
++++ b/lib/fusion/fusion.c
+@@ -3475,8 +3475,15 @@ event_dispatcher_loop( DirectThread *thread, void *arg )
+           direct_mutex_lock( &world->event_dispatcher_mutex );
+ 
+           while (1) {
+-               if (!world->event_dispatcher_buffers)
++               if (world->dispatch_stop) {
++                    direct_mutex_unlock( &world->event_dispatcher_mutex );
++                    return NULL;
++               }
++
++               if (!world->event_dispatcher_buffers) {
+                     direct_waitqueue_wait( &world->event_dispatcher_cond, &world->event_dispatcher_mutex );
++                    continue;
++               }
+ 
+                buf = (FusionEventDispatcherBuffer *)world->event_dispatcher_buffers;
+                D_MAGIC_ASSERT( buf, FusionEventDispatcherBuffer );
+@@ -3494,6 +3501,7 @@ event_dispatcher_loop( DirectThread *thread, void *arg )
+ //D_INFO("waiting...\n");
+                     D_ASSERT( buf->read_pos == buf->write_pos );
+                     direct_waitqueue_wait( &world->event_dispatcher_cond, &world->event_dispatcher_mutex );
++                    continue;
+                }
+ 
+                buf = (FusionEventDispatcherBuffer *)world->event_dispatcher_buffers;
+@@ -3975,17 +3983,27 @@ fusion_exit( FusionWorld *world,
+      D_MAGIC_ASSERT( world, FusionWorld );
+      D_MAGIC_ASSERT( world->shared, FusionWorldShared );
+ 
+-     fusion_shm_pool_destroy( world, world->shared->main_pool );
++     if (direct_thread_self() == world->event_dispatcher_thread)
++          return DR_BUSY;
+ 
+      direct_mutex_lock( &world->event_dispatcher_mutex );
+      world->dispatch_stop = 1;
++     direct_waitqueue_broadcast( &world->event_dispatcher_cond );
+      direct_mutex_unlock( &world->event_dispatcher_mutex );
+ 
+-     direct_waitqueue_signal( &world->event_dispatcher_call_cond );
+-     direct_waitqueue_signal( &world->event_dispatcher_cond );
++     direct_waitqueue_broadcast( &world->event_dispatcher_call_cond );
++
++     if (world->event_dispatcher_thread) {
++          direct_thread_join( world->event_dispatcher_thread );
++          direct_thread_destroy( world->event_dispatcher_thread );
++          world->event_dispatcher_thread = NULL;
++     }
++
++     fusion_shm_pool_destroy( world, world->shared->main_pool );
+ 
+      direct_mutex_deinit( &world->event_dispatcher_mutex );
+      direct_waitqueue_deinit( &world->event_dispatcher_cond );
++     direct_waitqueue_deinit( &world->event_dispatcher_process_cond );
+      direct_mutex_deinit( &world->event_dispatcher_call_mutex );
+      direct_waitqueue_deinit( &world->event_dispatcher_call_cond );
+ 

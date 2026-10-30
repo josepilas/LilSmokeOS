@@ -1,0 +1,4 @@
+include Makefile
+.DEFAULT_GOAL := oswan
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DHOME_SUPPORT -DSOUND_ON -DSOUND_EMULATION -DPOSIX -DNOSCREENSHOTS -DZIP_SUPPORT -DJOYSTICK -I./main/emu -I./main/sdl -I./main/headers -I./minizip -I$(OD_SYSROOT)/usr/include/SDL
+override LDFLAGS := -lSDL -lz -lm -pthread

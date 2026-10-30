@@ -1,0 +1,43 @@
+# LilSmokeOS default input map
+#
+# Format: <device> <code> <action>
+#   device  = "evdev" | "js"
+#   code    = evdev keycode (decimal) OR js button index
+#   action  = "up" "down" "left" "right" "a" "b" "x" "y"
+#             "l1" "r1" "l2" "r2" "select" "start" "home"
+#             "vol_up" "vol_down" "power" "menu"
+#
+# This mirrors the open SF3000 mapping. GB350 remains unverified.
+
+# Keyboard codes mirror the current open SF3000 HC16xx DTS so VM input tests
+# exercise the same userspace bindings as the target board.
+evdev 103 up
+evdev 108 down
+evdev 105 left
+evdev 106 right
+evdev 28  start
+evdev 14  r1        # KEY_BACKSPACE
+evdev 1   select    # KEY_ESC
+evdev 29  a         # KEY_LEFTCTRL
+evdev 56  b         # KEY_LEFTALT
+evdev 57  x         # KEY_SPACE
+evdev 42  y         # KEY_LEFTSHIFT
+evdev 15  l1        # KEY_TAB
+evdev 104 l2        # KEY_PAGEUP
+evdev 109 r2        # KEY_PAGEDOWN
+evdev 115 vol_up
+evdev 114 vol_down
+evdev 116 power
+
+# Standard Linux gamepad buttons. ABS_HAT0X/Y is decoded by LilSmokeUI.
+evdev 304 a
+evdev 305 b
+evdev 308 x
+evdev 307 y
+evdev 310 l1
+evdev 311 r1
+evdev 312 l2
+evdev 313 r2
+evdev 314 select
+evdev 315 start
+evdev 316 home

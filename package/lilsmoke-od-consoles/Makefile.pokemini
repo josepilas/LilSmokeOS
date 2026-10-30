@@ -1,0 +1,9 @@
+include Makefile
+.DEFAULT_GOAL := all
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DPERFORMANCE -DNO_ZIP $(INCLUDE) -I$(OD_SYSROOT)/usr/include/SDL
+override LDFLAGS := -lSDL -lm -lz -pthread
+override STRIP := true
+$(BUILDOBJS): | $(BUILD)
+$(TARGET): | pokemini
+pokemini:
+	mkdir -p pokemini

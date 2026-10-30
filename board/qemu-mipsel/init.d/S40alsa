@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# S40alsa — restore ALSA mixer state (volume, etc.)
+#
+# On real hardware: also unmute the speaker amplifier GPIO.
+# On QEMU: just restore whatever state we have (probably none).
+
+case "$1" in
+    start)
+        echo "[lilsmoke] S40: ALSA restore"
+        if [ -f /persist/config/asound.state ]; then
+            alsactl restore -f /persist/config/asound.state 2>/dev/null || true
+        else
+            # Sensible default: master 70%, headphone 70%, PCM 90%
+            amixer -q set Master 70% unmute 2>/dev/null || true
+            amixer -q set Headphone 70% unmute 2>/dev/null || true
+            amixer -q set PCM 90% unmute 2>/dev/null || true
+        fi
+        ;;
+    stop)
+        mkdir -p /persist/config
+        alsactl store -f /persist/config/asound.state 2>/dev/null || true
+        ;;
+esac
+exit 0

@@ -1,0 +1,391 @@
+{
+  "findings": [
+    {
+      "line": 148,
+      "match_sha256": "78f97d2d314af65453063faf57cbc3d32591f987294c56af872e987b848e8dd5",
+      "path": "package/opendingux-emulators/src/atari800/libretro/libretro-common/vfs/vfs_implementation_uwp.cpp",
+      "rationale": "Retained upstream UWP comment uses the synthetic somebody path; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 150,
+      "match_sha256": "78f97d2d314af65453063faf57cbc3d32591f987294c56af872e987b848e8dd5",
+      "path": "package/opendingux-emulators/src/cannonball/deps/libretro-common/vfs/vfs_implementation_uwp.cpp",
+      "rationale": "Retained upstream UWP comment uses the synthetic somebody path; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 143,
+      "match_sha256": "78f97d2d314af65453063faf57cbc3d32591f987294c56af872e987b848e8dd5",
+      "path": "package/opendingux-emulators/src/dgen/libretro/libretro-common/vfs/vfs_implementation_uwp.cpp",
+      "rationale": "Retained upstream UWP comment uses the synthetic somebody path; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 321,
+      "match_sha256": "7218479c3d1ea15bcdc4e214496ff293cea07f0f482be98ebb3f45fdc281a335",
+      "path": "package/opendingux-emulators/src/exult/FAQ",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 197,
+      "match_sha256": "7218479c3d1ea15bcdc4e214496ff293cea07f0f482be98ebb3f45fdc281a335",
+      "path": "package/opendingux-emulators/src/exult/README",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 1983,
+      "match_sha256": "26352c25589cb01ea734c0d6652da7ee9d90c8534b890ef5e7c998d466a70f0c",
+      "path": "package/opendingux-emulators/src/exult/README",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 1987,
+      "match_sha256": "72677400f713376ab680fca7e942552b2e04f5ab23075b4c1ed3bb493599dff2",
+      "path": "package/opendingux-emulators/src/exult/README",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 1988,
+      "match_sha256": "dbf73f8f1fcb63bf45b08008686a5b59bf9ccce782b5b66f0aff27453bd4ff86",
+      "path": "package/opendingux-emulators/src/exult/README",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 1989,
+      "match_sha256": "c1eb005b50e2d04a48ec921945e6afc92e08c89f282e295a9462112c42e8a67e",
+      "path": "package/opendingux-emulators/src/exult/README",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 131,
+      "match_sha256": "fb8cb1f53a8f08ffc025b1d1669598cd5e5497f2a9f4adc5506596bb8c2221c0",
+      "path": "package/opendingux-emulators/src/exult/README.windows",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 133,
+      "match_sha256": "3f976d6882ea58990097d48f5cabda351c63c5070bfd09ab355c6d27b90304f1",
+      "path": "package/opendingux-emulators/src/exult/README.windows",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 135,
+      "match_sha256": "782f219a8552688376d6e6ddef39243f84e1cb9a6a09ca261e5662574da48f9a",
+      "path": "package/opendingux-emulators/src/exult/README.windows",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 243,
+      "match_sha256": "63556e7474ea5958377e371f228d2a6827eb1bf511222d26e81888e26905cc16",
+      "path": "package/opendingux-emulators/src/exult/docs/ReadMe.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 4533,
+      "match_sha256": "6885421483bdb99fddd3d5cfbf421d9efe5abb2fc1d79138750a98b895fa0f63",
+      "path": "package/opendingux-emulators/src/exult/docs/ReadMe.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 4546,
+      "match_sha256": "90af12841827a98e02d98c0c3f9738f72f55cfa484b699898cc86e410d0aa23d",
+      "path": "package/opendingux-emulators/src/exult/docs/ReadMe.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 4549,
+      "match_sha256": "cf328d450b47d7d0ca7c813ed3ffa494c8124bc6b7d9e402411c122e175c8a8c",
+      "path": "package/opendingux-emulators/src/exult/docs/ReadMe.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 4550,
+      "match_sha256": "d67b483bb8a157d70c5d4ebad77b92e00b99d853e3d01190ca05bb0db3fd4308",
+      "path": "package/opendingux-emulators/src/exult/docs/ReadMe.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 4553,
+      "match_sha256": "e154185dc8369d29780be6af24ad39e3a64d7962f793da0c18a867aa9cf322b4",
+      "path": "package/opendingux-emulators/src/exult/docs/ReadMe.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 532,
+      "match_sha256": "63556e7474ea5958377e371f228d2a6827eb1bf511222d26e81888e26905cc16",
+      "path": "package/opendingux-emulators/src/exult/docs/faq.html",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 146,
+      "match_sha256": "dd611baa41ff68bbf1aa004088f824646ea96eac1c7838e2c980395760604ee0",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/docs.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 2808,
+      "match_sha256": "946999bd67354ed45e8feac31c2e80c8003d4d6e6caf66742fee45917932692a",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/docs.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 2821,
+      "match_sha256": "ddd58a52e6a476c002777943043b4c6b85c928d28d3e753c8cafe6ac6bd8835a",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/docs.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 2824,
+      "match_sha256": "d20c88fd1b1b1d383d2c97e1f4b29b1a2b78a4c0a8714a622c5379241e7d6a3a",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/docs.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 2825,
+      "match_sha256": "cefe92a1e693dc289964698cc0ad1ead335ffe9b2cc6dedea763c095b6dbc8ae",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/docs.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 2828,
+      "match_sha256": "931ec0d755a423402eaf4757ac44a75dd2a373322820676f59450b73c2a3c525",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/docs.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 449,
+      "match_sha256": "dd611baa41ff68bbf1aa004088f824646ea96eac1c7838e2c980395760604ee0",
+      "path": "package/opendingux-emulators/src/exult/docs/xml/faq.xml",
+      "rationale": "Retained upstream installation docs use YourUsername, username or FooBar example paths; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 133,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 136,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 170,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 173,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 207,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 210,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 246,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 249,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 267,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 284,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 287,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 297,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 313,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 316,
+      "match_sha256": "ba36b68d7728b46293a13bd7552114ef90c70003d0264d4481e80718e3be23f5",
+      "path": "package/opendingux-emulators/src/mupen64/GLideN64/projects/msvc12/libGLideNHQ.vcxproj",
+      "rationale": "Unmodified upstream MSVC dependency path, not owner data; unused by MIPS recipes.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 112,
+      "match_sha256": "08279df629a80b8f93bccdbc3879b9539ac452eb00693ecd61908e127d9abe26",
+      "path": "package/opendingux-emulators/src/scummvm/engines/wintermute/base/file/base_disk_file.cpp",
+      "rationale": "Upstream functional game-compatibility path matching/comment, not owner data; must not rewrite.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 112,
+      "match_sha256": "e9e3b86d0a788f49a036a6007fb84842fcfe2bf2ed453beb4cd0f0b0433a40c7",
+      "path": "package/opendingux-emulators/src/scummvm/engines/wintermute/base/file/base_disk_file.cpp",
+      "rationale": "Upstream functional game-compatibility path matching/comment, not owner data; must not rewrite.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 116,
+      "match_sha256": "ca8579f898cd879ad2facf560c90b907d7d7f949c3112109b75a57e9d812b425",
+      "path": "package/opendingux-emulators/src/scummvm/engines/wintermute/base/file/base_disk_file.cpp",
+      "rationale": "Upstream functional game-compatibility path matching/comment, not owner data; must not rewrite.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 116,
+      "match_sha256": "bb1c66601a8c5c9518b251458b795cd356402826f15c892de863e7468a348f9e",
+      "path": "package/opendingux-emulators/src/scummvm/engines/wintermute/base/file/base_disk_file.cpp",
+      "rationale": "Upstream functional game-compatibility path matching/comment, not owner data; must not rewrite.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 143,
+      "match_sha256": "78f97d2d314af65453063faf57cbc3d32591f987294c56af872e987b848e8dd5",
+      "path": "package/opendingux-emulators/src/smsplus/libretro/libretro-common/vfs/vfs_implementation_uwp.cpp",
+      "rationale": "Retained upstream UWP comment uses the synthetic somebody path; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 143,
+      "match_sha256": "78f97d2d314af65453063faf57cbc3d32591f987294c56af872e987b848e8dd5",
+      "path": "package/opendingux-emulators/src/smssdl/libretro/libretro-common/vfs/vfs_implementation_uwp.cpp",
+      "rationale": "Retained upstream UWP comment uses the synthetic somebody path; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    },
+    {
+      "line": 143,
+      "match_sha256": "78f97d2d314af65453063faf57cbc3d32591f987294c56af872e987b848e8dd5",
+      "path": "package/retroarch-mips/cores/genesis_plus_gx/libretro/libretro-common/vfs/vfs_implementation_uwp.cpp",
+      "rationale": "Retained upstream UWP comment uses the synthetic somebody path; not owner data.",
+      "rule": "personal-workstation-path",
+      "status": "reviewed-fixture"
+    }
+  ],
+  "limits": "shape/path checks are not exhaustive secret detection or legal clearance",
+  "passed": true,
+  "rationale": [
+    "No arbitrary regex removal of credentials; unknown findings block the checkout.",
+    "Finite inspected authored fixture paths use public input placeholders.",
+    "Generic /root build examples and target /home paths are not owner identities.",
+    "Private checkpoints and controller captures are excluded before scanning.",
+    "Upstream fixtures require exact matched-hash review, never directory-wide exceptions."
+  ],
+  "scan_scope": "every selected source/text file; no credential text in reports",
+  "version": "Alpha-0.0.1"
+}

@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LILSMOKE_OD_SDL
+	bool "LilSmoke native SDL OpenDingux adapter"
+	depends on BR2_mipsel
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_SDL2
+	select BR2_PACKAGE_LILSMOKE_SDL12
+	help
+	  Real stock-M8 PCM, shared evdev/touchpad input and engine hotkeys.
+	  Public SDL1.2 and SDL2 APIs; enabled only on verified hcfb hardware.

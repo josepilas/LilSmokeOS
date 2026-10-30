@@ -1,0 +1,13 @@
+--- a/menu/main.cpp
++++ b/menu/main.cpp
+@@ -254,7 +254,10 @@
+ 	}
+ 
+ 	sal_VideoFlip(0);
++	static bool firstFrame = true;
++	if (firstFrame) { fprintf(stderr, "POCKETSNES_FRAME_READY\n"); fflush(stdout); firstFrame = false; }
++	return TRUE;
+ }
+ 
+ const char *S9xGetFilename (const char *ex)
+ {

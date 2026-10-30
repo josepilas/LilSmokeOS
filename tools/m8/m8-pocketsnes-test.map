@@ -1,0 +1,13 @@
+# Native input user override fixture. Codes and actions match LilSmokeUI.
+evdev 304 b
+evdev 305 a
+evdev 57 x
+evdev 28 start
+evdev 1 select
+evdev 310 l1
+evdev 115 vol_up
+evdev -1 a
+evdev 999999 a
+evdev 304oops a
+evdev 304 unknown
+js 304 a

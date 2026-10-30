@@ -1,0 +1,38 @@
+From: LilSmokeOS developers
+Subject: [PATCH] directfb: enumerate key capabilities and bound keyboard lookup
+
+DIDTF_KEYBOARD is a device type, not a capability bit. Using it against
+desc.caps can miss evdev keyboards. Unknown devices must use the key-ID
+fallback without indexing keyboard[-1]. Bound hotplug enumeration as well.
+
+--- a/src/video/directfb/SDL_DirectFB_events.c
++++ b/src/video/directfb/SDL_DirectFB_events.c
+@@ -575,1 +575,1 @@
+-    DFB_KeyboardData *kbd = &devdata->keyboard[kbd_idx];
++    DFB_KeyboardData *kbd = devdata->num_keyboard > 0 ? &devdata->keyboard[kbd_idx] : NULL;
+@@ -578,3 +578,3 @@
+-    if (kbd->map && evt->key_code >= kbd->map_adjust &&
++    if (kbd && kbd->map && evt->key_code >= kbd->map_adjust &&
+         evt->key_code < kbd->map_size + kbd->map_adjust)
+         keysym->scancode = kbd->map[evt->key_code - kbd->map_adjust];
+@@ -582,2 +582,1 @@
+-    if (keysym->scancode == SDL_SCANCODE_UNKNOWN ||
+-        devdata->keyboard[kbd_idx].is_generic) {
++    if (!kbd || keysym->scancode == SDL_SCANCODE_UNKNOWN || kbd->is_generic) {
+@@ -605,1 +604,1 @@
+-    DFB_KeyboardData *kbd = &devdata->keyboard[kbd_idx];
++    DFB_KeyboardData *kbd = kbd_idx >= 0 && kbd_idx < devdata->num_keyboard ? &devdata->keyboard[kbd_idx] : NULL;
+@@ -608,3 +607,3 @@
+-    if (kbd->map && evt->key_code >= kbd->map_adjust &&
++    if (kbd && kbd->map && evt->key_code >= kbd->map_adjust &&
+         evt->key_code < kbd->map_size + kbd->map_adjust)
+         keysym->scancode = kbd->map[evt->key_code - kbd->map_adjust];
+@@ -612,1 +611,1 @@
+-    if (keysym->scancode == SDL_SCANCODE_UNKNOWN || devdata->keyboard[kbd_idx].is_generic) {
++    if (!kbd || keysym->scancode == SDL_SCANCODE_UNKNOWN || kbd->is_generic) {
+@@ -664,2 +663,4 @@
+-    if ((desc.caps & DIDTF_KEYBOARD)) {
++    if (desc.caps & DICAPS_KEYS) {
++        if (devdata->num_keyboard >= SDL_arraysize(devdata->keyboard))
++            return DFENUM_CANCEL;
+ #if USE_MULTI_API

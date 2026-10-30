@@ -1,0 +1,79 @@
+{
+  "bytes": 12212828,
+  "file_count": 17,
+  "files": {
+    "PC-Tools/LilSmoke Device Adapter/LICENSE": {
+      "bytes": 1080,
+      "sha256": "1f38daeb83bf04e1f2f0341f004df4fb779164a5de857be5899a41b449ca602b"
+    },
+    "PC-Tools/LilSmoke Device Adapter/LilSmoke Device Adapter.cmd": {
+      "bytes": 165,
+      "sha256": "97ccb1756dacda7a4cddcd2a375502e44c24f7d39987b361e11c6313f9aa2aee"
+    },
+    "PC-Tools/LilSmoke Device Adapter/LilSmoke Device Adapter.command": {
+      "bytes": 104,
+      "sha256": "c7665d4a3fbe33176b4856179f1971c264bdce337e68cd26d5c735ec4f8d7f0d"
+    },
+    "PC-Tools/LilSmoke Device Adapter/LilSmoke Device Adapter.exe": {
+      "bytes": 12008389,
+      "sha256": "a4c9e0e48432a0d159953cf2bea2872dfce06a0e584fd26671fc43f6feb00106"
+    },
+    "PC-Tools/LilSmoke Device Adapter/LilSmoke Device Adapter.sh": {
+      "bytes": 104,
+      "sha256": "c7665d4a3fbe33176b4856179f1971c264bdce337e68cd26d5c735ec4f8d7f0d"
+    },
+    "PC-Tools/LilSmoke Device Adapter/README.md": {
+      "bytes": 7035,
+      "sha256": "ead39d8f6daa569309711beb723d9a9fe2a0bbd2189f1226b436fa6f6b11ee60"
+    },
+    "PC-Tools/LilSmoke Device Adapter/adapter.py": {
+      "bytes": 43165,
+      "sha256": "c723b7fd4dadda2f25ee7481efef301a9ecf2baab362c1e97f2b91268bcc33c6"
+    },
+    "PC-Tools/LilSmoke Device Adapter/gui.py": {
+      "bytes": 9974,
+      "sha256": "411ae330fde976e27457851bf5d6832ba7dd6deb152082c8e2eefa51eba0441e"
+    },
+    "PC-Tools/LilSmoke Device Adapter/launch.py": {
+      "bytes": 156,
+      "sha256": "89a683b9f7478d9ecf61aab9828a4f700b77bd5056e38ac37f0ad0e45599a080"
+    },
+    "PC-Tools/LilSmoke Device Adapter/profiles/segam-m8-v6.json": {
+      "bytes": 57699,
+      "sha256": "550cb16ad57724da80fb12b5b8524730f4867a073e927722feab53fc86e82753"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/NOTICE.md": {
+      "bytes": 1808,
+      "sha256": "59cf4fdbd673c138531ab7b62ca4f2c0126ee34b1d1c9d7615f95d68f4e3cf3f"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/OpenSSL-LICENSE.txt": {
+      "bytes": 10175,
+      "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/PyInstaller-COPYING.txt": {
+      "bytes": 32138,
+      "sha256": "dcf75fdb959db1e3b41c0f8505069d2ece781b5ec6b3d0a4d30975cfc6580245"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/Python-LICENSE.txt": {
+      "bytes": 35407,
+      "sha256": "935cf13e19f8c31b497d20b05d73623431a226b230c3599bc30fa3348979bc68"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/Tcl-LICENSE.txt": {
+      "bytes": 2255,
+      "sha256": "c0a69a2bfd757361ec7e6143973b103c90409316b49e9c88db26ad6388e79f16"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/Tk-LICENSE.txt": {
+      "bytes": 2307,
+      "sha256": "0d1e4405f6273f091732764ed89b57066be63ce64869be6c71ea337dc4f2f9b5"
+    },
+    "PC-Tools/LilSmoke Device Adapter/third_party/zlib-ng-LICENSE.md": {
+      "bytes": 867,
+      "sha256": "6c9f0d975b41afaa34d22f55bb8986ce69e5cb7ad327cb2b28820cd425edf5ee"
+    }
+  },
+  "linux_macos_python_required": true,
+  "proprietary_firmware_included": false,
+  "schema": 1,
+  "sd_written": false,
+  "windows_frozen": true
+}

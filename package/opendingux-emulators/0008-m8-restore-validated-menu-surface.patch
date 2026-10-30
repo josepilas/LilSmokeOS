@@ -1,0 +1,21 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] Restore and clear the full software menu surface
+
+--- a/sal/linux/sal.c
++++ b/sal/linux/sal.c
+@@ -275,7 +275,14 @@
+ #ifdef GCW_ZERO
+ 	m8_video_set_native(0);
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_UnlockSurface(mScreen);
+-	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, mBpp, SDL_SWSURFACE | SDL_FULLSCREEN | SDL_DOUBLEBUF);
++	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, mBpp, SDL_SWSURFACE | SDL_FULLSCREEN);
++	if (!mScreen || mScreen->w != SAL_SCREEN_WIDTH || mScreen->h != SAL_SCREEN_HEIGHT ||
++	    mScreen->format->BitsPerPixel != 16 || mScreen->pitch < SAL_SCREEN_WIDTH * 2)
++	{ fprintf(stderr, "POCKETSNES_MENU_VIDEO_FAILED %s\n", SDL_GetError()); exit(1); }
++	(void)m8_video_aspect();
++	fprintf(stderr, "POCKETSNES_MENU_VIDEO width=%d height=%d pitch=%u\n",
++	        mScreen->w, mScreen->h, (unsigned)mScreen->pitch);
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_LockSurface(mScreen);
++	sal_VideoClear(0);
+ #endif
+ }

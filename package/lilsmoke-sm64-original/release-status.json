@@ -1,0 +1,8 @@
+{
+  "private_version": "0.6.0",
+  "public_port_finished": false,
+  "binary_redistribution_allowed": false,
+  "asset_free_runtime_implemented": false,
+  "implemented": ["original game engine", "native input", "native audio adapter", "budgeted software rendering", "controller options menu", "settings and save restart"],
+  "remaining": ["redistributable graphics layer", "asset-free runtime and relocation/extraction", "upstream engine and artwork provenance review", "physical 0.6 menu and complete-game acceptance"]
+}

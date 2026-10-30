@@ -1,0 +1,42 @@
+*.o
+*.dylib
+*.dll
+*.so
+*.a
+*.exe
+*.out
+
+# Build directories and artifacts
+obj/
+build/
+dist/
+bin/
+
+# Dependency files
+*.d
+*.o.d
+
+# Android NDK specific
+libs/arm64-v8a/
+libs/armeabi-v7a/
+libs/x86/
+libs/x86_64/
+jni/obj/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Local build and test scripts
+build-test.ps1
+
+# Temporary and log files
+*.tmp
+*.temp
+*.log
+Assets/Thumbs.db
+screenshots/Thumbs.db

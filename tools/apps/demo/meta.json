@@ -1,0 +1,9 @@
+{
+  "id": "org.lilsmoke.button-tester",
+  "name": "Button Tester",
+  "version": "1.0.0",
+  "description": "Native software-rendered gamepad diagnostics",
+  "author": "LilSmokeOS",
+  "architecture": "mipsel-linux-musl",
+  "license": "MIT"
+}

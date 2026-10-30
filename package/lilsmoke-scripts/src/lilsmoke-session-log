@@ -1,0 +1,20 @@
+#!/bin/sh
+# A failed persistent log must not prevent an emulator from starting.
+set -eu
+name=${1:?log name required}
+case "$name" in ''|*[!A-Za-z0-9_-]*) exit 2 ;; esac
+preferred=${LILSMOKE_LOG_DIR:-/persist/logs}
+fallback=${LILSMOKE_RAM_LOG_DIR:-/run/lilsmoke/logs}
+secondary=${LILSMOKE_RECOVERY_LOG_DIR:-/storage/.lilsmoke-diagnostics/logs}
+for directory in "$preferred" "$secondary" "$fallback"; do
+    if mkdir -p "$directory" 2>/dev/null &&
+       ( : >> "$directory/$name.log" ) 2>/dev/null; then
+        if [ "$directory" != "$preferred" ]; then
+            printf '%s\n' "Preferred log unavailable; using fallback: $directory/$name.log" >&2
+        fi
+        printf '%s\n' "$directory/$name.log"
+        exit 0
+    fi
+done
+printf '%s\n' 'No writable log directory; continuing with console output' >&2
+printf '%s\n' /dev/null

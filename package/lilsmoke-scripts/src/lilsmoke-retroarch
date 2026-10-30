@@ -1,0 +1,512 @@
+#!/bin/sh
+#
+# lilsmoke-retroarch - RetroArch app backend for LilSmokeOS
+#
+# Usage:
+#   lilsmoke-retroarch menu
+#   lilsmoke-retroarch run <system> <rom_path>
+#
+# This script is intentionally POSIX/BusyBox friendly. It owns the hardware
+# profile, runtime config, save paths, and logs for every
+# RetroArch launch. LilSmokeUI only presents the menu and hands off here.
+# Archive validation/extraction belongs exclusively to lilsmoke-rom.
+
+set -eu
+MODE="${1:-}"
+if [ -n "$MODE" ]; then shift; fi
+
+CORES_DIR="${LILSMOKE_CORES_DIR:-/usr/lib/libretro}"
+EXTRA_CORES_DIR="${LILSMOKE_EXTRA_CORES_DIR:-/storage/emulators/libretro}"
+AVAILABLE_CORES_DIR="$CORES_DIR"
+INFO_DIR=${LILSMOKE_CORE_INFO_DIR:-/usr/share/libretro/info}
+EXTRA_INFO_DIR=${LILSMOKE_EXTRA_CORE_INFO_DIR:-/storage/emulators/info}
+AVAILABLE_INFO_DIR="$INFO_DIR"
+BASE_CONFIG="${LILSMOKE_RETROARCH_BASE_CONFIG:-/etc/retroarch.cfg}"
+USER_CONFIG="${LILSMOKE_RETROARCH_USER_CONFIG:-/persist/config/retroarch.cfg}"
+CORE_OPTIONS_FILE="${LILSMOKE_RETROARCH_CORE_OPTIONS:-/persist/config/retroarch-core-options.cfg}"
+AUTOCONFIG_DIR="${LILSMOKE_RETROARCH_AUTOCONFIG:-/persist/config/retroarch-autoconfig}"
+PROFILE_DIR="${LILSMOKE_RETROARCH_PROFILES:-/usr/share/lilsmoke/gamepads}"
+RUN_DIR="${LILSMOKE_RETROARCH_RUN_DIR:-/tmp/lilsmoke-retroarch}"
+RUN_CONFIG="$RUN_DIR/retroarch.cfg"
+LOG_DIR="${LILSMOKE_LOG_DIR:-/persist/logs}"
+LOG_FILE="$LOG_DIR/retroarch.log"
+log_helper=${LILSMOKE_SESSION_LOG:-/usr/lib/lilsmoke/lilsmoke-session-log}
+if [ -x "$log_helper" ]; then
+    LOG_FILE=$("$log_helper" retroarch)
+    LOG_DIR=$(dirname "$LOG_FILE")
+fi
+SAVE_ROOT="${LILSMOKE_SAVE_ROOT:-/persist/saves}"
+STATE_ROOT="${LILSMOKE_STATE_ROOT:-/persist/states}"
+SCREENSHOT_DIR="${LILSMOKE_SCREENSHOT_DIR:-/persist/screenshots}"
+PLAYLIST_DIR="${LILSMOKE_PLAYLIST_DIR:-/persist/playlists}"
+THUMBNAIL_DIR="${LILSMOKE_THUMBNAIL_DIR:-/persist/thumbnails}"
+ARCHIVE_CACHE_ROOT="${LILSMOKE_ARCHIVE_CACHE:-/storage/.cache/lilsmoke/archives}"
+SYSTEM_CONFIG="${LILSMOKE_CONFIG:-/persist/config/lilsmoke.conf}"
+
+usage() {
+    echo "usage: lilsmoke-retroarch menu | run <system> <rom_path>" >&2
+}
+
+core_for_system() {
+    case "$1" in
+        nes|famicom|fds)         echo "$CORES_DIR/fceumm_libretro.so" ;;
+        gb|gbc)                  echo "$CORES_DIR/gambatte_libretro.so" ;;
+        gba)                     echo "$CORES_DIR/mgba_libretro.so" ;;
+        snes|sfc)                echo "$CORES_DIR/snes9x_2005_libretro.so" ;;
+        n64)                     echo "$CORES_DIR/parallel_n64_libretro.so" ;;
+        md|genesis|megadrive)    echo "$CORES_DIR/genesis_plus_gx_libretro.so" ;;
+        sms|mastersystem)        echo "$CORES_DIR/genesis_plus_gx_libretro.so" ;;
+        gg|gamegear)             echo "$CORES_DIR/genesis_plus_gx_libretro.so" ;;
+        pce|pcengine|tg16)       echo "$CORES_DIR/mednafen_pce_fast_libretro.so" ;;
+        arcade|fbneo)            echo "$CORES_DIR/fbneo_libretro.so" ;;
+        lynx)                    echo "$CORES_DIR/handy_libretro.so" ;;
+        psx|ps1|playstation)
+            if [ -f "$CORES_DIR/pcsx_rearmed_libretro.so" ]; then echo "$CORES_DIR/pcsx_rearmed_libretro.so"
+            else echo "$EXTRA_CORES_DIR/pcsx_rearmed_libretro.so"; fi ;;
+        atari2600|a26)           echo "$EXTRA_CORES_DIR/stella2014_libretro.so" ;;
+        atari7800|a78)           echo "$EXTRA_CORES_DIR/prosystem_libretro.so" ;;
+        atari800|atari5200)      echo "$EXTRA_CORES_DIR/atari800_libretro.so" ;;
+        ngpc|ngp)                echo "$EXTRA_CORES_DIR/race_libretro.so" ;;
+        wswan|wonderswan)        echo "$EXTRA_CORES_DIR/mednafen_wswan_libretro.so" ;;
+        pokemini|pokemonmini)    echo "$EXTRA_CORES_DIR/pokemini_libretro.so" ;;
+        doom|prboom)             echo "$EXTRA_CORES_DIR/prboom_libretro.so" ;;
+        cavestory|nxengine)      echo "$EXTRA_CORES_DIR/nxengine_libretro.so" ;;
+        easyrpg|rpgmaker)        echo "$EXTRA_CORES_DIR/easyrpg_libretro.so" ;;
+        scummvm)                 echo "$EXTRA_CORES_DIR/scummvm_libretro.so" ;;
+        *)                       return 2 ;;
+    esac
+}
+
+prepare_environment() {
+    mkdir -p "$RUN_DIR" "$LOG_DIR" "$SAVE_ROOT" "$STATE_ROOT" \
+        "$SCREENSHOT_DIR" "$PLAYLIST_DIR" "$THUMBNAIL_DIR" \
+        "$ARCHIVE_CACHE_ROOT" "$(dirname "$CORE_OPTIONS_FILE")" || return 1
+
+    # RetroArch accepts one core directory. Merge installed locations in RAM,
+    # preserving OS defaults when an optional payload has the same filename.
+    for optional in "$EXTRA_CORES_DIR/"*_libretro.so; do
+        [ -f "$optional" ] || continue
+        AVAILABLE_CORES_DIR="$RUN_DIR/cores"
+        mkdir -p "$AVAILABLE_CORES_DIR" || return 1
+        for previous in "$AVAILABLE_CORES_DIR/"*_libretro.so; do
+            [ ! -L "$previous" ] || rm -f -- "$previous" || return 1
+        done
+        for directory in "$EXTRA_CORES_DIR" "$CORES_DIR"; do
+            for library in "$directory/"*_libretro.so; do
+                [ -f "$library" ] || continue
+                name=${library##*/}
+                case "$name" in *[!A-Za-z0-9_.-]*|*..*) continue ;; esac
+                ln -sf -- "$library" "$AVAILABLE_CORES_DIR/$name" || return 1
+            done
+        done
+        break
+    done
+
+    for optional in "$EXTRA_INFO_DIR/"*.info; do
+        [ -f "$optional" ] || continue
+        AVAILABLE_INFO_DIR="$RUN_DIR/core-info"
+        mkdir -p "$AVAILABLE_INFO_DIR" || return 1
+        for previous in "$AVAILABLE_INFO_DIR/"*.info; do
+            [ ! -L "$previous" ] || rm -f -- "$previous" || return 1
+        done
+        for directory in "$EXTRA_INFO_DIR" "$INFO_DIR"; do
+            for info in "$directory/"*.info; do
+                [ -f "$info" ] || continue
+                name=${info##*/}
+                case "$name" in *[!A-Za-z0-9_.-]*|*..*) continue ;; esac
+                ln -sf -- "$info" "$AVAILABLE_INFO_DIR/$name" || return 1
+            done
+        done
+        break
+    done
+
+    if [ ! -f "$CORE_OPTIONS_FILE" ]; then
+        cat > "$CORE_OPTIONS_FILE" <<'EOF'
+# Render every frame by default; optional frameskip is a user tradeoff.
+snes9x_2005_frameskip = "disabled"
+snes9x_2005_frameskip_threshold = "33"
+parallel-n64-cpucore = "cached_interpreter"
+parallel-n64-gfxplugin = "angrylion"
+parallel-n64-rspplugin = "auto"
+parallel-n64-angrylion-multithread = "off"
+parallel-n64-angrylion-vioverlay = "Unfiltered"
+parallel-n64-upscaling = "1x"
+EOF
+    fi
+
+    for driver in linuxraw sdl2; do
+        destination="$AUTOCONFIG_DIR/$driver"
+        mkdir -p "$destination" || return 1
+        for profile in "$PROFILE_DIR/$driver"/*.cfg; do
+            [ -f "$profile" ] || continue
+            identity="$(sed -n '/^input_device[[:space:]]*=/p' "$profile" | head -n 1)"
+            known=0
+            for generated in "$destination"/[0-9a-f]*.cfg; do
+                [ -f "$generated" ] || continue
+                if [ -n "$identity" ] && grep -F -x "$identity" "$generated" >/dev/null 2>&1; then
+                    known=1
+                    break
+                fi
+            done
+            [ "$known" = 0 ] || continue
+            [ -e "$destination/upstream-${profile##*/}" ] ||
+                cp "$profile" "$destination/upstream-${profile##*/}" || return 1
+        done
+    done
+
+    export SDL_VIDEODRIVER="directfb"
+    export LILSMOKE_DFB_EVDEV_KEYCODES=1
+    export SDL_AUDIODRIVER="alsa"
+    export SDL_RENDER_DRIVER="software"
+    export DFBARGS="no-hardware,no-sighandler,quiet,vt,no-vt-switch,no-vt-switching,disable-module=keyboard,linux-input-force"
+    if [ "${LILSMOKE_HCFB:-0}" = 1 ]; then
+        export SDL_AUDIODRIVER=dummy
+        export DFBARGS="$DFBARGS,${LILSMOKE_DFB_PIXEL_OPTIONS:-depth=32,pixelformat=ARGB},no-cursor"
+        export LILSMOKE_CAPTURE_FRAME=/lilos/lilsmoke/retroarch-menu.ppm
+        if [ -f "$LILSMOKE_CAPTURE_FRAME" ]; then
+            mv "$LILSMOKE_CAPTURE_FRAME" /lilos/lilsmoke/retroarch-menu.previous.ppm
+        fi
+    fi
+    if [ "${LILSMOKE_M8_AUDIO:-0}" = 1 ]; then
+        config_reader="${LILSMOKE_CONFIG_READER:-/usr/lib/lilsmoke/lilsmoke-config-read}"
+        volume=$("$config_reader" MASTER_VOLUME 50 2>/dev/null) || volume=50
+        case "$volume" in ''|*[!0-9]*|????*) volume=50 ;; esac
+        # Settings uses 0-100; the native PCM API uses 0-50, as in od-launch.
+        volume=$(printf '%s\n' "$volume" | awk '{v=$0+0; if(v>100)v=100; print int(v/2)}')
+        export LILSMOKE_M8_VOLUME="$volume"
+    fi
+    export HOME="/persist"
+    export XDG_CONFIG_HOME="/persist/config"
+    export XDG_CACHE_HOME="/storage/.cache"
+    export LIBGL_ALWAYS_SOFTWARE="1"
+    export LILSMOKE_USE_ROM_RESOLVER=1
+    if [ "${LILSMOKE_HCFB:-0}" = 1 ]; then export LILSMOKE_M8_NATIVE_VIDEO=1; fi
+    unset DISPLAY
+    unset WAYLAND_DISPLAY
+}
+
+write_runtime_config() {
+    display_width="$(sed -n 's/^DISPLAY_WIDTH=//p' "$SYSTEM_CONFIG" 2>/dev/null | sed -n '1p')"
+    display_height="$(sed -n 's/^DISPLAY_HEIGHT=//p' "$SYSTEM_CONFIG" 2>/dev/null | sed -n '1p')"
+    show_fps="$(sed -n 's/^SHOW_FPS=//p' "$SYSTEM_CONFIG" 2>/dev/null | sed -n '1p' | tr '[:upper:]' '[:lower:]')"
+    case "$display_width" in ''|*[!0-9]*) display_width=854 ;; esac
+    case "$display_height" in ''|*[!0-9]*) display_height=480 ;; esac
+    case "$show_fps" in 1|on|true|yes) show_fps=true ;; *) show_fps=false ;; esac
+
+    # Opt-in content resume uses RetroArch's own clean-exit auto state, never a
+    # manual slot or a pause hook. Menu-only launches must not inherit it.
+    auto_resume=false
+    if [ "$MODE" = run ]; then
+        config_reader="${LILSMOKE_CONFIG_READER:-/usr/lib/lilsmoke/lilsmoke-config-read}"
+        if [ -x "$config_reader" ]; then
+            requested_resume=$("$config_reader" RETROARCH_AUTO_RESUME false 2>/dev/null) || requested_resume=false
+            requested_resume=$(printf '%s\n' "$requested_resume" | tr '[:upper:]' '[:lower:]')
+            case "$requested_resume" in 1|on|true|yes) auto_resume=true ;; esac
+        fi
+    fi
+
+    joypad_driver="$(sed -n 's/^GAMEPAD_BACKEND=//p' "$SYSTEM_CONFIG" 2>/dev/null | tail -n 1)"
+    case "$joypad_driver" in sdl2|linuxraw) ;; *) joypad_driver=linuxraw ;; esac
+    native_m8=false
+    audio_driver=alsa
+    audio_enabled=true
+    menu_ratio=0
+    menu_lock=1
+    video_integer=true
+    windowed_fullscreen=true
+    input_autodetect=true
+    audio_synchronised=true
+    video_aspect=1.3333
+    if [ "${LILSMOKE_HCFB:-0}" = 1 ]; then
+        native_m8=true
+        joypad_driver=lilsmoke
+        audio_driver=lilsmoke
+        menu_ratio=1
+        menu_lock=3
+        video_integer=false
+        windowed_fullscreen=false
+        input_autodetect=false
+        audio_synchronised=false
+        [ "$MODE" != menu ] || video_aspect=1.777778
+    fi
+
+    audio_device=default
+    if [ -x /usr/bin/lilsmoke-bt ] && [ -r /persist/config/bluetooth-audio ]; then
+        IFS= read -r audio_mac </persist/config/bluetooth-audio || audio_mac=
+        bt_pcm=$(/usr/bin/lilsmoke-bt audio "$audio_mac" 2>/dev/null) || bt_pcm=
+        case "$bt_pcm" in bluealsa:DEV=*,PROFILE=a2dp) audio_device=$bt_pcm ;; esac
+    fi
+
+    # RetroArch 1.19 keeps the FIRST definition, not the last. Put mandatory
+    # hardware constraints first, then user preferences and missing defaults.
+    cat > "$RUN_CONFIG" <<EOF
+
+# --- LilSmokeOS runtime overrides ---
+libretro_directory = "$AVAILABLE_CORES_DIR"
+libretro_info_path = "$AVAILABLE_INFO_DIR"
+system_directory = "/storage/bios"
+# Eight small metadata files: avoid retaining a pre-update no-info cache.
+core_info_cache_enable = false
+core_options_path = "$CORE_OPTIONS_FILE"
+content_directory = "/storage/roms"
+savefile_directory = "$SAVE_ROOT"
+savestate_directory = "$STATE_ROOT"
+screenshot_directory = "$SCREENSHOT_DIR"
+playlist_directory = "$PLAYLIST_DIR"
+thumbnails_directory = "$THUMBNAIL_DIR"
+video_driver = "sdl2"
+audio_driver = "$audio_driver"
+audio_device = "$audio_device"
+# DirectFB owns the console keyboard; do not also read it through linuxraw.
+input_driver = "sdl2"
+input_joypad_driver = "$joypad_driver"
+joypad_autoconfig_dir = "$AUTOCONFIG_DIR"
+input_autodetect_enable = $input_autodetect
+menu_driver = "rgui"
+# Use the 1.19 Quick Menu keys; menu_show_savestates is not a setting.
+quick_menu_show_save_load_state = true
+quick_menu_show_savestate_submenu = false
+quick_menu_show_resume_content = true
+menu_savestate_resume = false
+menu_pause_libretro = true
+notification_show_save_state = true
+video_font_enable = true
+# Keep slot files separate from battery saves and from other cores/content.
+savestates_in_content_dir = false
+sort_savestates_enable = true
+sort_savestates_by_content_enable = true
+savestate_auto_index = false
+savestate_auto_save = $auto_resume
+savestate_auto_load = $auto_resume
+# State actions remain in the menu, never on unmodified gameplay keys.
+input_save_state = "nul"
+input_load_state = "nul"
+input_state_slot_increase = "nul"
+input_state_slot_decrease = "nul"
+menu_mouse_enable = false
+menu_pointer_enable = false
+rgui_aspect_ratio = $menu_ratio
+rgui_aspect_ratio_lock = $menu_lock
+menu_show_online_updater = false
+menu_show_core_updater = false
+midi_driver = "null"
+video_fullscreen = true
+video_windowed_fullscreen = $windowed_fullscreen
+video_fullscreen_x = $display_width
+video_fullscreen_y = $display_height
+video_scale = 2
+video_smooth = false
+video_scale_integer = $video_integer
+video_aspect_ratio_auto = false
+aspect_ratio_index = 22
+video_aspect_ratio = $video_aspect
+video_vsync = true
+# Native hcfb copies and the nonblocking PCM queue cannot pace the core.
+# RetroArch's content-rate limiter supplies timing independently of scanout.
+vrr_runloop_enable = $native_m8
+video_threaded = false
+video_hard_sync = false
+video_shared_context = false
+video_disable_composition = true
+fps_show = $show_fps
+audio_enable = $audio_enabled
+audio_sync = $audio_synchronised
+audio_latency = 64
+input_max_users = 4
+# Space and Escape are game buttons, not fast-forward and exit hotkeys.
+input_toggle_fast_forward = "nul"
+input_hold_fast_forward = "nul"
+input_exit_emulator = "f12"
+input_overlay_enable = false
+rewind_enable = false
+run_ahead_enabled = false
+preemptive_frames_enable = false
+video_shader_enable = false
+video_filter = ""
+audio_dsp_plugin = ""
+video_frame_delay = 0
+video_frame_delay_auto = false
+video_black_frame_insertion = 0
+video_shader_subframes = 1
+microphone_enable = false
+gamemode_enable = false
+cheevos_enable = false
+netplay_public_announce = false
+config_save_on_exit = false
+EOF
+    if [ "$native_m8" = true ]; then
+        # Keep game audio enabled when content is opened from the menu playlist.
+        printf '%s\n' 'audio_enable_menu = false' >> "$RUN_CONFIG"
+        printf '%s\n' 'rgui_internal_upscale_level = 0' \
+            'menu_rgui_transparency = false' >> "$RUN_CONFIG"
+        # The native joypad driver uses libretro IDs, not SDL's button order.
+        for binding in b:0 y:1 select:2 start:3 up:4 down:5 left:6 right:7 a:8 x:9 l:10 r:11 l2:12 r2:13 l3:14 r3:15; do
+            button=${binding%:*}
+            index=${binding#*:}
+            printf 'input_player1_%s_btn = "%s"\n' "$button" "$index" >> "$RUN_CONFIG"
+        done
+        # Autoconfiguration is disabled on M8. Bind the driver's four logical
+        # axes explicitly; their indices do not depend on the physical pad mode.
+        for player in 1 2 3 4; do
+            for binding in l_x_minus:-0 l_x_plus:+0 l_y_minus:-1 l_y_plus:+1 \
+                           r_x_minus:-2 r_x_plus:+2 r_y_minus:-3 r_y_plus:+3; do
+                direction=${binding%:*}
+                index=${binding#*:}
+                printf 'input_player%s_%s_axis = "%s"\n' "$player" "$direction" "$index" >> "$RUN_CONFIG"
+            done
+        done
+        printf '%s\n' 'input_menu_toggle_btn = "16"' \
+            'input_exit_emulator_btn = "17"' 'input_menu_toggle_gamepad_combo = 0' \
+            'quit_press_twice = false' >> "$RUN_CONFIG"
+    fi
+    if [ "${system:-}" = n64 ]; then
+        # Keyboard-only handhelds need an analog stick for N64 movement.
+        # Keep user bindings ahead of these defaults; real gamepad axes remain intact.
+        [ ! -f "$USER_CONFIG" ] || cat "$USER_CONFIG" >> "$RUN_CONFIG"
+        cat >> "$RUN_CONFIG" <<'EOF'
+input_player1_l_x_plus = "right"
+input_player1_l_x_minus = "left"
+input_player1_l_y_plus = "down"
+input_player1_l_y_minus = "up"
+EOF
+    fi
+    for source_config in "$USER_CONFIG" "$BASE_CONFIG"; do
+        if [ -f "$source_config" ]; then
+            printf '\n' >> "$RUN_CONFIG"
+            cat "$source_config" >> "$RUN_CONFIG"
+        fi
+    done
+    if [ "$native_m8" = true ]; then
+        # Non-forced mode preserves native analog input when a core requests it.
+        # Defaults follow preferences so saved choices retain first-definition priority.
+        for player in 1 2 3 4; do
+            printf 'input_player%s_analog_dpad_mode = 1\n' "$player" >> "$RUN_CONFIG"
+        done
+    fi
+    awk '
+        /^[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=/ {
+            key=$0; sub(/=.*/, "", key); gsub(/[[:space:]]/, "", key)
+            if (seen[key]++) next
+        }
+        { print }
+    ' "$RUN_CONFIG" > "$RUN_CONFIG.tmp"
+    mv "$RUN_CONFIG.tmp" "$RUN_CONFIG"
+}
+
+run_retroarch_menu() {
+    prepare_environment || exit 10
+    write_runtime_config
+    command -v retroarch >/dev/null 2>&1 || {
+        echo "lilsmoke-retroarch: retroarch binary missing" >&2
+        exit 11
+    }
+    echo "=== LilSmokeOS RetroArch menu $(date) ===" > "$LOG_FILE"
+    cd /storage 2>/dev/null || cd /
+    exec retroarch --verbose --config "$RUN_CONFIG" >> "$LOG_FILE" 2>&1
+}
+
+run_retroarch_game() {
+    system="$1"
+    rom_path="$2"
+    [ -n "$system" ] || { usage; exit 1; }
+    [ -n "$rom_path" ] || { usage; exit 1; }
+    [ -f "$rom_path" ] || { echo "lilsmoke-retroarch: rom missing: $rom_path" >&2; exit 4; }
+    if [ -n "${3:-}" ]; then
+        core_arg=$3
+        case "$core_arg" in
+            "$CORES_DIR/"*) core_name=${core_arg#"$CORES_DIR/"}; core="$core_arg" ;;
+            "${LILSMOKE_EXTRA_CORES_DIR:-/storage/emulators/libretro}/"*)
+                core_name=${core_arg##*/}; core="${LILSMOKE_EXTRA_CORES_DIR:-/storage/emulators/libretro}/$core_name"
+                [ "$core_arg" = "$core" ] || exit 2 ;;
+            *) core_name=$core_arg; core="$CORES_DIR/$core_name" ;;
+        esac
+        case "$core_name" in ''|*[!A-Za-z0-9_.-]*|*..*) echo 'Invalid core filename' >&2; exit 2 ;; esac
+        case "$core_name" in *_libretro.so) ;; *) exit 2 ;; esac
+    else
+    core="$(core_for_system "$system")" || {
+        echo "lilsmoke-retroarch: unsupported system '$system'" >&2
+        exit 2
+    }
+    fi
+    [ -f "$core" ] || { echo "lilsmoke-retroarch: core missing: $core" >&2; exit 3; }
+
+    prepare_environment || exit 10
+
+    resolver="${LILSMOKE_ROM_RESOLVER:-/usr/lib/lilsmoke/lilsmoke-rom}"
+    [ -x "$resolver" ] || { echo 'ROM archive resolver is not installed' >&2; exit 3; }
+    loading_progress 30 'Resolving ROM'
+    rom_path=$("$resolver" "$system" "$rom_path") || exit $?
+
+    [ -f "$rom_path" ] || { echo "lilsmoke-retroarch: rom missing: $rom_path" >&2; exit 4; }
+
+    if [ "$system" = psx ] && [ "${LILSMOKE_HCFB:-0}" = 1 ]; then
+        psx_options="$RUN_DIR/psx-core-options.cfg"
+        {
+            printf '%s\n' 'pcsx_rearmed_drc = "enabled"' \
+                'pcsx_rearmed_gpu_thread_rendering = "disabled"' 'pcsx_rearmed_spu_thread = "disabled"' \
+                'pcsx_rearmed_neon_enhancement_enable = "disabled"'
+            cat "$CORE_OPTIONS_FILE"
+        } | awk '/^[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*=/ {
+            key=$0; sub(/=.*/, "", key); gsub(/[[:space:]]/, "", key);
+            if (seen[key]++) next
+        } { print }' > "$psx_options"
+        CORE_OPTIONS_FILE="$psx_options"
+    fi
+    if [ "$system" = n64 ]; then
+        # Existing user options must not select a missing GPU plugin or worker pool.
+        n64_options="$RUN_DIR/n64-core-options.cfg"
+        {
+            printf '%s\n' 'parallel-n64-cpucore = "cached_interpreter"' \
+                'parallel-n64-gfxplugin = "angrylion"' 'parallel-n64-rspplugin = "auto"' \
+                'parallel-n64-angrylion-multithread = "off"' \
+                'parallel-n64-angrylion-vioverlay = "Unfiltered"' \
+                'parallel-n64-upscaling = "1x"'
+            cat "$CORE_OPTIONS_FILE"
+        } | awk '/^[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*=/ {
+            key=$0; sub(/=.*/, "", key); gsub(/[[:space:]]/, "", key);
+            if (seen[key]++) next
+        } { print }' > "$n64_options"
+        CORE_OPTIONS_FILE="$n64_options"
+    fi
+    write_runtime_config
+    command -v retroarch >/dev/null 2>&1 || {
+        echo "lilsmoke-retroarch: retroarch binary missing" >&2
+        exit 11
+    }
+
+    echo "=== LilSmokeOS RetroArch run $(date) ===" > "$LOG_FILE"
+    {
+        echo "system=$system"
+        echo "core=$core"
+        echo "rom=$rom_path"
+        echo "auto_resume=$auto_resume"
+    } >> "$LOG_FILE"
+
+    cd "$(dirname "$rom_path")" 2>/dev/null || cd /storage
+    loading_progress 70 'Starting emulator'
+    exec retroarch --verbose \
+        -L "$core" \
+        --config "$RUN_CONFIG" \
+        "$rom_path" >> "$LOG_FILE" 2>&1
+}
+
+loading_progress() {
+    [ -n "${LILSMOKE_LOADING_PROGRESS:-}" ] || return 0
+    temporary=$LILSMOKE_LOADING_PROGRESS.$$
+    (umask 077; printf '%s\t%s\n' "$1" "$2" > "$temporary" &&
+        mv -f "$temporary" "$LILSMOKE_LOADING_PROGRESS") || rm -f "$temporary"
+    return 0
+}
+
+case "$MODE" in
+    menu)
+        run_retroarch_menu
+        ;;
+    run)
+        run_retroarch_game "${1:-}" "${2:-}" "${3:-}"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac

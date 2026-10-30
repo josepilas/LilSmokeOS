@@ -1,0 +1,10 @@
+#!/bin/sh
+# S10zram - apply the optional low-memory swap policy.
+
+HELPER=/usr/lib/lilsmoke/lilsmoke-zram
+
+case "${1:-}" in
+    start) [ -x "$HELPER" ] && "$HELPER" start ;;
+    stop)  [ -x "$HELPER" ] && "$HELPER" stop ;;
+esac
+exit 0

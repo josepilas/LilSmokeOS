@@ -1,0 +1,9 @@
+diff --git a/src/platform/sdl/main.c b/src/platform/sdl/main.c
+--- a/src/platform/sdl/main.c
++++ b/src/platform/sdl/main.c
+@@ -1,1 +1,2 @@
+ #include "native-menu.h"
++#include "native-trace.h"
+@@ -105,1 +106,2 @@
++	lilos_install_trace();
+ 	renderer.core = mCoreFind(args.fname);

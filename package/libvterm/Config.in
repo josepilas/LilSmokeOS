@@ -1,0 +1,5 @@
+config BR2_PACKAGE_LIBVTERM
+    bool "libvterm"
+    help
+      Toolkit-independent VT220/xterm terminal emulator library.
+      https://www.leonerd.org.uk/code/libvterm/

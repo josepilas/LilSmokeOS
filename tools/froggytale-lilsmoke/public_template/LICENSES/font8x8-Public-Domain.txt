@@ -1,0 +1,13 @@
+The following declaration is preserved in include/native/font8x8_basic.h:
+
+8x8 monochrome bitmap fonts for rendering
+Author: Daniel Hepper <daniel@hepper.net>
+License: Public Domain
+
+Based on:
+  8x8 monochrome bitmap fonts for rendering
+  Author: Marcel Sondaar, International Business Machines
+  License: Public Domain
+
+This source font is used for the authored preparation UI, not the game's
+proprietary font or atlas. No new MIT/MPL license is asserted over it.

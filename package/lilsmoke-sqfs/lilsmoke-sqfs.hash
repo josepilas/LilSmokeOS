@@ -1,0 +1,5 @@
+# Upstream v1.2.0 license files, verified against the pinned reference commit.
+# Buildroot creates its source archive from the pinned git commit, not a release tar.
+sha256  b5be5dbbc1e5ffdc45d3c64d00cca263b58bf8b227e8a1704b5bda7d87e968b1  lilsmoke-sqfs-f2a3ad56e40c9711b23371238f9fa07dd24245f1-br1.tar.gz
+sha256  e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118  licenses/LGPLv3.txt
+sha256  3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986  licenses/GPLv3.txt

@@ -1,0 +1,13 @@
+config BR2_PACKAGE_LILSMOKE_MEDIA
+    bool "LilSmoke music, video and photo players"
+    default y if BR2_PACKAGE_LILSMOKE_UI
+    depends on BR2_INSTALL_LIBSTDCPP && BR2_TOOLCHAIN_HAS_THREADS
+    depends on !BR2_STATIC_LIBS
+    select BR2_PACKAGE_LILSMOKE_FFMPEG
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_SDL2_IMAGE
+    select BR2_PACKAGE_SDL2_TTF
+    help
+      Controller-friendly local-file playback from LilSmoke Explorer.
+      Bounded software decoding, playlists, seek, shuffle, repeat,
+      photo zoom/rotation and the native M8 PCM output adapter.

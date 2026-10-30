@@ -1,0 +1,40 @@
+LIBRETRO_COMM_DIR = $(SOURCE_DIR)/deps/libretro-common
+
+INCFLAGS := -I$(SOURCE_DIR) \
+				-I$(LIBRETRO_COMM_DIR)/include
+
+SOURCES_CXX :=
+SOURCES_C   := \
+	$(SOURCE_DIR)/libretro.c \
+	$(SOURCE_DIR)/intv.c \
+	$(SOURCE_DIR)/memory.c \
+	$(SOURCE_DIR)/cp1610.c \
+	$(SOURCE_DIR)/cart.c \
+	$(SOURCE_DIR)/controller.c \
+	$(SOURCE_DIR)/osd.c \
+	$(SOURCE_DIR)/ivoice.c \
+	$(SOURCE_DIR)/psg.c \
+	$(SOURCE_DIR)/stic.c \
+	$(SOURCE_DIR)/stb_image_impl.c
+
+ifeq ($(STATIC_LINKING),1)
+else
+SOURCES_C += $(LIBRETRO_COMM_DIR)/file/file_path.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+				 $(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
+				 $(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
+				 $(LIBRETRO_COMM_DIR)/string/stdstring.c \
+				 $(LIBRETRO_COMM_DIR)/time/rtime.c
+
+endif
+
+SOURCES_CXX := 
+
+INCLUDES := -I$(LIBRETRO_COMM_DIR)/include
+
+ifneq (,$(findstring msvc200,$(platform)))
+INCLUDES += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
+endif

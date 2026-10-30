@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "state": "paused-by-user-awaiting-parent",
+  "reason": "WSL IPC 0x8007274c under concurrent compiler/memory pressure",
+  "writesConfinedTo": [
+    "package/lilsmoke-od-consoles",
+    "tools/emulators/od-consoles",
+    "/root/lilsmoke-emulator-expansion-20261008/od-console-*"
+  ],
+  "stageRoot": "/root/lilsmoke-emulator-expansion-20261008/od-console-stage",
+  "currentContractBuilt": {
+    "regba": {
+      "bytes": 734844,
+      "sha256": "3a964ee947a3c298c79f9e5233b5834cdee6d0042a507e3bd8592f64d0fa952b"
+    },
+    "fceu320": {
+      "bytes": 1252872,
+      "sha256": "6518b797d19e0e49518a15f7ecd7d51cd452c9b8464b5ad322a0bfb93370d13d"
+    },
+    "atari800": {
+      "bytes": 561120,
+      "sha256": "61d506d9e770a76b2ec1e2201f40aca31295ab22f1cd615c403d153b516dc3d7"
+    },
+    "gnuboy": {
+      "bytes": 226312,
+      "sha256": "4ad5acbd21db075e8edc8159a64a899bea7498413b91ebbef805994e4ac0c623"
+    },
+    "prosystem": {
+      "bytes": 314076,
+      "sha256": "2d5579607469ea50ccc465d0a260a264948581a9f54916f02e81bcad6e4b57e7"
+    },
+    "oswan": {
+      "bytes": 230396,
+      "sha256": "2e37868fa156ae4baf2433f0fe827625db77a2a000967d5599bfeee5fbb2eb6b"
+    }
+  },
+  "currentBinaryDirectory": "storage/emulators/opendingux",
+  "legacyBuilt": {
+    "temper": {
+      "bytes": 882820,
+      "stagePath": "usr/lib/lilsmoke/od-emulators/temper",
+      "note": "Preserved pre-contract binary. Current-contract rebuild unverified."
+    }
+  },
+  "qa": {
+    "functionalMenusVerified": false,
+    "lastFailure": "SDK SDL video driver dummy not available; tests never reached menus.",
+    "isolatedRuntime": "od-console-qa-runtime; build may still be running",
+    "hardwareAudioVerified": false,
+    "hardwarePerformanceVerified": false
+  },
+  "activeOrQueuedCommandsAtPause": [
+    {
+      "session": 76077,
+      "command": "build.py temper picodrive stella atari800 --jobs 1",
+      "status": "Unknown completion; inspect logs after recovery."
+    },
+    {
+      "session": 46166,
+      "command": "build.py handy race --jobs 1",
+      "status": "Unknown completion; inspect logs after recovery."
+    },
+    {
+      "session": 57057,
+      "command": "build-qa-sdl.py",
+      "status": "Unknown completion; test-only headless SDL2 build."
+    }
+  ],
+  "lastOtherEngineFailures": {
+    "picodrive": "Missing copied libchdr submodule source; fixed build.py to copy each pinned submodule, added non-LTO O2 Makefile.picodrive. Rebuild unverified.",
+    "stella": "MENU_LOAD_ROM remained commented because patch idempotence check matched a substring. Fixed source_fixes check. Rebuild unverified.",
+    "handy": "Unused SDL_ttf dependency in GCWZERO-only BIOS warning. Removed GCWZERO for actual HC16xx software target and removed unused include. Rebuild unverified; hardcoded config path still needs repair.",
+    "race": "Global wait variable conflicts with POSIX wait declaration. Added exact native-variable renames. Rebuild unverified.",
+    "pokemini": "Compilation failed; tail-log request interrupted by IPC recovery. Read od-console-logs/pokemini.log before editing.",
+    "fba": "Persisted source pinned 00e69426cbac78c29848aed5e789784c74625145; no recipe/build yet."
+  },
+  "resumeRules": [
+    "Do not resume until explicit parent/user message.",
+    "Inspect persisted logs/staging and active processes; do not restart or erase source trees.",
+    "Use only one console compilation job at a time.",
+    "Temper cpu.o has an explicit -O1 rule. Previous own O2 cc1 PID2598 was safely matched and stopped before user pause.",
+    "No host/other-agent processes killed. Parent owns any distro recovery/termination.",
+    "Finish source-specific writable config/save relocation and asset whitelist staging.",
+    "Verify native no-ROM menus, canonical ROM-directory entry, native ZIP/7z selection through resolver, clean SDL_QUIT, and actual MIPS ABI.",
+    "Do not register compile-only artifacts as functionally validated.",
+    "Preserve PocketSNES/PCSX and N64 exclusion; do not touch parent-owned UI/registry/scripts/card/target."
+  ],
+  "files": [
+    "LAUNCH-CONTRACT.json",
+    "sources.json",
+    "source-fixes.json",
+    "build.py",
+    "qa.py",
+    "qa-sdl12.c",
+    "build-qa-sdl.py",
+    "Makefile.*",
+    "Config.in",
+    "lilsmoke-od-consoles.mk"
+  ],
+  "unfinishedRisks": [
+    "Asset staging is not yet implemented. Required assets must not be assumed present.",
+    "Source-fixes need continued native runtime QA; several engine state files still follow the ROM/cwd.",
+    "Resolver header needs unit tests and an absolute deadline for the full child lifetime before deployment.",
+    "Buildroot package files created but not wired into parent external configuration or run."
+  ]
+}

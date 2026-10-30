@@ -1,0 +1,20 @@
+config BR2_PACKAGE_LILSMOKE_TERMINAL
+    bool "LilSmoke Shell Terminal"
+    depends on BR2_INSTALL_LIBSTDCPP
+    depends on BR2_USE_WCHAR
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    depends on BR2_USE_MMU
+    select BR2_PACKAGE_LIBVTERM
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_SDL2_DIRECTFB
+    select BR2_PACKAGE_DIRECTFB
+    select BR2_PACKAGE_DIRECTFB_LINUXINPUT
+    select BR2_PACKAGE_SDL2_TTF
+    select BR2_PACKAGE_DEJAVU
+    select BR2_PACKAGE_DEJAVU_MONO
+    select BR2_PACKAGE_NCURSES
+    default y if BR2_PACKAGE_LILSMOKE_UI
+    help
+      A real interactive /bin/sh in a PTY, with libvterm parsing and a
+      software SDL2 framebuffer display. No X11 or GPU is needed.
+      Requires UNIX98 PTYs and a mounted /dev/pts on the running kernel.

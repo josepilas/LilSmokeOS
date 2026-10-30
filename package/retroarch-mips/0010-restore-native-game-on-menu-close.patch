@@ -1,0 +1,30 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] sdl2: restore menu snapshot even when duplicates skip frame()
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -733,6 +733,12 @@
+    sdl2_video_t *vid       = (sdl2_video_t*)data;
+    vid->flags             |= SDL2_FLAG_SHOULD_RESIZE;
++#ifdef HAVE_MENU
++   if (m8_presentation.in_menu &&
++       !(menu_state_get_ptr()->flags & MENU_ST_FLAG_ALIVE))
++      m8_native_frame(NULL, 0, 0, 0, vid->video.rgb32,
++            video_driver_get_aspect_ratio(), 0, vid->rotation);
++#endif
+ }
+ 
+ static void sdl2_poke_set_texture_frame(void *data,
+       const void *frame, bool rgb32,
+--- a/menu/menu_driver.c
++++ b/menu/menu_driver.c
+@@ -6523,6 +6523,9 @@
+             &runloop_st->key_event,
+             &runloop_st->frontend_key_event,
+             false);
++      if (!quit && video_st->current_video &&
++          !strcmp(video_st->current_video->ident, "sdl2"))
++         video_driver_apply_state_changes();
+    }
+ 
+    /* Prevent stray input */

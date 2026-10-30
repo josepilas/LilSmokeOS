@@ -1,0 +1,34 @@
+TARGET = pocketsnes/pocketsnes.dge
+M8_PACKAGE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+M8_BOARD_DIR := $(abspath $(M8_PACKAGE_DIR)/../../board/segam-m8-v6-stock)
+SOURCE = src/snes9x menu sal/linux sal
+OBJECTS = $(foreach dir,$(SOURCE),$(patsubst %.cpp,%.o,$(wildcard $(dir)/*.cpp)) $(patsubst %.c,%.o,$(wildcard $(dir)/*.c)))
+OBJECTS += sal/linux/m8_pocketsnes.o sal/linux/m8_pocketsnes_evdev.o
+OBJECTS += sal/linux/m8_pocketsnes_audio.o sal/linux/m8_audio_backend.o
+COMMON = $(TARGET_CFLAGS) -O3 -fno-pie -fno-strict-aliasing -fomit-frame-pointer \
+    -ffunction-sections -fdata-sections -DRC_OPTIMIZED -DGCW_ZERO -D__LINUX__ \
+    -D__DINGUX__ -DFOREVER_16_BIT -Isrc -Isal/linux/include -Isal/include \
+    -Isrc/include -Imenu -Isrc/linux -Isrc/snes9x $(SDL_CFLAGS) \
+    -DLILSMOKE_M8 -mtune=74kc -I$(M8_PACKAGE_DIR) -I$(M8_BOARD_DIR) \
+    -I$(M8_PACKAGE_DIR)/../lilsmoke-od-consoles
+CFLAGS = $(COMMON) -std=gnu99
+CXXFLAGS = $(COMMON) -std=gnu++11 -fno-exceptions -fno-rtti -fpermissive -Werror=return-type
+LDFLAGS = $(TARGET_CFLAGS) $(TARGET_LDFLAGS) -no-pie -Wl,--gc-sections -lpthread -lz -lpng $(SDL_LIBS) -ldl
+all: $(TARGET)
+$(TARGET): $(OBJECTS)
+	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
+sal/linux/m8_pocketsnes.o: $(M8_PACKAGE_DIR)m8_pocketsnes.c $(M8_PACKAGE_DIR)m8_pocketsnes.h $(M8_PACKAGE_DIR)m8_pocketsnes_logic.h
+	$(CC) $(CFLAGS) -c $< -o $@
+sal/linux/m8_pocketsnes_evdev.o: $(M8_PACKAGE_DIR)m8_pocketsnes_evdev.c $(M8_PACKAGE_DIR)m8_pocketsnes.h $(M8_PACKAGE_DIR)gamepad-state.h $(M8_PACKAGE_DIR)../lilsmoke-ui/src/src/gamepad-state.h
+	$(CC) $(CFLAGS) -c $< -o $@
+sal/linux/m8_pocketsnes_audio.o: $(M8_PACKAGE_DIR)m8_pocketsnes_audio.c $(M8_PACKAGE_DIR)m8_pocketsnes_audio.h $(M8_BOARD_DIR)/m8-audio.h
+	$(CC) $(CFLAGS) -std=gnu11 -c $< -o $@
+sal/linux/m8_audio_backend.o: $(M8_BOARD_DIR)/m8-audio.c $(M8_BOARD_DIR)/m8-audio.h
+	$(CC) $(CFLAGS) -std=gnu11 -c $< -o $@
+menu/main.o sal/linux/sal.o: $(M8_PACKAGE_DIR)m8_pocketsnes.h $(M8_PACKAGE_DIR)m8_pocketsnes_logic.h
+menu/main.o: $(M8_PACKAGE_DIR)/../lilsmoke-od-consoles/od-content.h
+menu/main.o sal/linux/sal_sound.o: $(M8_PACKAGE_DIR)m8_pocketsnes_audio.h
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@

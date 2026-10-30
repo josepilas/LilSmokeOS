@@ -1,0 +1,16 @@
+config BR2_PACKAGE_LILSMOKE_SYSPCK
+    bool "LilSmoke System Packages (.syspck)"
+    depends on BR2_USE_MMU
+    depends on BR2_USE_WCHAR
+    depends on BR2_INSTALL_LIBSTDCPP
+    depends on !BR2_STATIC_LIBS
+    select BR2_PACKAGE_LILSMOKE_SCRIPTS
+    select BR2_PACKAGE_LIBARCHIVE
+    select BR2_PACKAGE_XZ
+    select BR2_PACKAGE_DTC
+    select BR2_PACKAGE_LIBSODIUM
+    default y if BR2_PACKAGE_LILSMOKE_OS
+    help
+      Signed, bounded 7z hardware/profile packages. Native C++17;
+      no Python runtime, scripts inside packages or live DTB writes.
+      Hardware activation requires a separately verified boot adapter.

@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# S89bootok — mark this slot as successfully booted
+#
+# This runs AFTER S90lilsmoke-ui has successfully started LilSmokeUI.
+# It resets the boot counter to 0, signaling to the bootloader that
+# this slot is healthy.
+#
+# Layout:
+#   /persist/bootcounter          — current count (reset to 0 here)
+#   /persist/active_slot          — "A" or "B" (set by S05bootcounter)
+#   /persist/slot_A_status        — "good" | "bad" (set here)
+#   /persist/slot_B_status        — "good" | "bad"
+#
+# The bootloader (U-Boot in J8) reads slot_*_status to decide which slot
+# to boot. If both are good, it picks the most recently updated one.
+
+PERSIST_DIR="/persist"
+COUNTER_FILE="$PERSIST_DIR/bootcounter"
+SLOT_FILE="$PERSIST_DIR/active_slot"
+
+case "$1" in
+    start)
+        # Wait a few seconds to make sure LilSmokeUI didn't immediately crash
+        # If we reset the counter too fast, a buggy UI would never trigger rollback.
+        # In practice, we set this as S89 and LilSmokeUI starts at S90, so we
+        # set "good" with a 5-second delay.
+        (
+            sleep 5
+            if [ -f "$SLOT_FILE" ]; then
+                SLOT=$(cat "$SLOT_FILE")
+                echo "[lilsmoke] S89: marking slot $SLOT as good"
+                echo "good" > "$PERSIST_DIR/slot_${SLOT}_status"
+                echo "0" > "$COUNTER_FILE"
+            fi
+        ) &
+        ;;
+    stop)
+        ;;
+esac
+exit 0

@@ -1,0 +1,36 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] Register bounded native LilSmoke evdev joypad on Linux
+
+--- a/Makefile.common
++++ b/Makefile.common
+@@ -181,6 +181,8 @@
+    OBJ += input/drivers/linuxraw_input.o \
+           input/common/linux_common.o \
+           input/drivers_joypad/linuxraw_joypad.o
++   OBJ += input/drivers_joypad/m8_lilsmoke_input.o
++   DEF_FLAGS += -DHAVE_LILSMOKE_EVDEV
+    HAVE_UNIX = 1
+ endif
+ 
+--- a/input/input_driver.c
++++ b/input/input_driver.c
+@@ -250,6 +250,9 @@
+ #endif
+ #if defined(__linux) && !defined(ANDROID)
+    &linuxraw_joypad,
++#endif
++#ifdef HAVE_LILSMOKE_EVDEV
++   &lilsmoke_joypad,
+ #endif
+ #ifdef HAVE_PARPORT
+    &parport_joypad,
+--- a/input/input_driver.h
++++ b/input/input_driver.h
+@@ -1093,6 +1093,7 @@
+ 
+ extern input_device_driver_t dinput_joypad;
+ extern input_device_driver_t linuxraw_joypad;
++extern input_device_driver_t lilsmoke_joypad;
+ extern input_device_driver_t parport_joypad;
+ extern input_device_driver_t udev_joypad;
+ extern input_device_driver_t xinput_joypad;

@@ -1,0 +1,9 @@
+config BR2_PACKAGE_LILSMOKE_SDL12
+    bool "SDL 1.2 compatibility over SDL2"
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    depends on !BR2_STATIC_LIBS
+    depends on !BR2_PACKAGE_SDL
+    select BR2_PACKAGE_SDL2
+    help
+      Rebuilt SDL 1.2 API for compatible source ports; the video stack remains
+      SDL2/DirectFB software rendering. Not binary libc compatibility.

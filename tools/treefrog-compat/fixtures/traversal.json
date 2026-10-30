@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "id": "sample-native",
+  "name": "Unsafe Path",
+  "launch": {"type": "native", "binary": "bin/../../outside"},
+  "required_file_sets": []
+}

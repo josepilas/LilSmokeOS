@@ -1,0 +1,61 @@
+# LilSmokeOS — VirtualBox x86_64 keyboard-to-gamepad map
+#
+# Format: <device> <code> <action>
+#   device  = "evdev" | "js"
+#   code    = evdev keycode (decimal) OR js button index
+#   action  = "up" "down" "left" "right" "a" "b" "x" "y"
+#             "l1" "r1" "l2" "r2" "select" "start" "home"
+#             "vol_up" "vol_down" "power" "menu"
+#
+# This map is for the VirtualBox x86_64 target. VBox forwards the host
+# keyboard to the guest as a PS/2 AT keyboard, so we map the standard
+# PS/2 evdev codes here.
+#
+# See docs/vbox-guide.md §6 for the rationale.
+
+# D-pad — arrow keys
+evdev 103 up       # KEY_UP
+evdev 108 down     # KEY_DOWN
+evdev 105 left     # KEY_LEFT
+evdev 106 right    # KEY_RIGHT
+
+# Face buttons — Z X A S (matches Super Nintendo physical layout:
+# B=Z, A=X, Y=A, X=S — same as EmulationStation's default)
+evdev 44  b        # KEY_Z
+evdev 53  a        # KEY_X
+evdev 30  y        # KEY_A
+evdev 31  x        # KEY_S
+
+# Shoulder buttons — Q W (L1/R1) and 1 3 (L2/R2)
+evdev 16  l1       # KEY_Q
+evdev 17  r1       # KEY_W
+evdev 2   l2       # KEY_1
+evdev 4   r2       # KEY_3
+
+# Start / Select — Enter + Right Shift
+evdev 28  start    # KEY_ENTER
+evdev 54  select   # KEY_RIGHTSHIFT
+
+# Home / Menu — Escape
+evdev 1   home     # KEY_ESC
+evdev 125 menu     # KEY_LEFTMETA (the "Windows" key — opens the menu)
+
+# Volume — + / - on the top row
+evdev 78  vol_down # KEY_MINUS
+evdev 87  vol_up   # KEY_EQUAL (the +/= key — Shift+= is needed on US layout)
+
+# Power — F12 (just a placeholder; VBox doesn't have a power button)
+evdev 88  power    # KEY_F12
+
+# Standard Linux gamepad buttons. ABS_HAT0X/Y is decoded by LilSmokeUI.
+evdev 304 a
+evdev 305 b
+evdev 308 x
+evdev 307 y
+evdev 310 l1
+evdev 311 r1
+evdev 312 l2
+evdev 313 r2
+evdev 314 select
+evdev 315 start
+evdev 316 home

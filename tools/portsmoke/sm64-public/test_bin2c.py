@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+"""Read-only QA of supplied executables; writes generated fixtures to /tmp only.
+
+python3 -B test_bin2c.py --host /tmp/bin2c/bin2c-host \
+    --mips /tmp/bin2c/bin2c-mips [--benchmark] [--busybox /usr/bin/busybox]
+    [--dynamic /tmp/bin2c/sm64-bin2c --sysroot /SDK/staging]
+    [--mips-busybox /SDK/target/bin/busybox --sysroot /SDK/staging]
+
+MIPS runs sequentially under qemu-mipsel -cpu 74Kf (static binary, no sysroot).
+No ROM, build tree, SD, asset or package is read, patched or copied. Optional
+benchmark compares decimal/hex conversion with BusyBox's exact old formatter;
+timings are observations, not a flaky CI speed threshold.
+"""
+import argparse
+import os
+from pathlib import Path
+import random
+import shutil
+import struct
+import subprocess
+import tempfile
+import time
+import unittest
+
+
+CONFIG = None
+FORMAT = '1/1 "0x%X,"'
+
+
+class Bin2cTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if CONFIG is None:
+            raise unittest.SkipTest('Run test_bin2c.py with --host and --mips executables')
+        cls.runners = [('host', [str(CONFIG.host.resolve())]),
+                       ('mips', [CONFIG.qemu, '-cpu', '74Kf', str(CONFIG.mips.resolve())])]
+        header = CONFIG.mips.read_bytes()[:20]
+        if header[:6] != b'\x7fELF\x01\x01' or int.from_bytes(header[18:20], 'little') != 8:
+            raise AssertionError('Expected a little-endian ELF32 MIPS executable')
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='bin2c generated ')
+        self.root = Path(self.temp.name)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def invoke(self, runner, args, **kwargs):
+        return subprocess.run(runner + args, stderr=subprocess.PIPE, timeout=30, **kwargs)
+
+    def test_independent_byte_oracle_across_buffer_boundaries(self):
+        rng = random.Random(64106)
+        for size in (0, 1, 2, 15, 16, 255, 256, 257, 16383, 16384, 16385, 32769, 262145):
+            data = bytes(range(256)) if size == 256 else rng.randbytes(size)
+            source = self.root / 'input with spaces.bin'
+            source.write_bytes(data)
+            for name, runner in self.runners:
+                for hex_mode in (False, True):
+                    with self.subTest(size=size, runner=name, hex=hex_mode):
+                        args = (['--hex'] if hex_mode else []) + [str(source)]
+                        result = self.invoke(runner, args, stdout=subprocess.PIPE)
+                        expected = ''.join(('0x%X,' if hex_mode else '%d,') % b for b in data).encode() + b'\n'
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        self.assertEqual(result.stderr, b'')
+                        self.assertEqual(result.stdout, expected)
+                        tokens = result.stdout[:-1].split(b',')[:-1]
+                        self.assertEqual(bytes(int(t, 16 if hex_mode else 10) for t in tokens), data)
+
+    def test_busybox_exact_hex_reference(self):
+        if not CONFIG.busybox:
+            self.skipTest('BusyBox not available')
+        source = self.root / 'all bytes repeated.bin'
+        source.write_bytes(bytes(range(256)) * 73)
+        reference = subprocess.run([CONFIG.busybox, 'hexdump', '-v', '-e', FORMAT, str(source)],
+                                   capture_output=True, check=True, timeout=30).stdout + b'\n'
+        for name, runner in self.runners:
+            with self.subTest(runner=name):
+                actual = self.invoke(runner, ['--hex', str(source)], stdout=subprocess.PIPE)
+                self.assertEqual(actual.returncode, 0, actual.stderr)
+                self.assertEqual(actual.stdout, reference)
+
+    def test_dynamic_musl_runtime_helper(self):
+        if not CONFIG.dynamic:
+            self.skipTest('Pass --dynamic and --sysroot to check the installable helper')
+        # Independently inspect ELF32 PT_INTERP, not a filename/string search.
+        with CONFIG.dynamic.open('rb') as binary:
+            header = binary.read(52)
+            self.assertEqual(header[:6], b'\x7fELF\x01\x01')
+            self.assertEqual(struct.unpack_from('<H', header, 18)[0], 8)
+            offset = struct.unpack_from('<I', header, 28)[0]
+            entry_size, count = struct.unpack_from('<HH', header, 42)
+            self.assertEqual(entry_size, 32)
+            self.assertLessEqual(count, 128)
+            interpreters = []
+            for i in range(count):
+                binary.seek(offset + i * entry_size)
+                fields = struct.unpack('<8I', binary.read(entry_size))
+                if fields[0] == 3:
+                    self.assertLessEqual(fields[4], 256)
+                    binary.seek(fields[1])
+                    interpreters.append(binary.read(fields[4]))
+            self.assertEqual(interpreters, [b'/lib/ld-musl-mipsel.so.1\0'])
+        source = self.root / 'dynamic generated bytes.bin'
+        data = bytes(range(256)) * 65
+        source.write_bytes(data)
+        runner = [CONFIG.qemu, '-cpu', '74Kf', '-L', str(CONFIG.sysroot), str(CONFIG.dynamic.resolve())]
+        for hex_mode in (False, True):
+            result = self.invoke(runner, (['--hex'] if hex_mode else []) + [str(source)], stdout=subprocess.PIPE)
+            expected = ''.join(('0x%X,' if hex_mode else '%d,') % b for b in data).encode() + b'\n'
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, expected)
+
+    def test_usage_missing_unreadable_and_directory_input(self):
+        for name, runner in self.runners:
+            for args, code in (([], 2), (['a', 'b'], 2), (['--hex'], 2), (['--nope'], 2),
+                               ([str(self.root / 'missing')], 1), ([str(self.root)], 1)):
+                with self.subTest(runner=name, args=args):
+                    result = self.invoke(runner, args, stdout=subprocess.PIPE)
+                    self.assertEqual(result.returncode, code, result.stderr)
+                    self.assertTrue(result.stderr.startswith(b'Usage:' if code == 2 else b'bin2c:'))
+                    self.assertEqual(result.stdout, b'')
+
+    def test_unreadable_generated_input(self):
+        source = self.root / 'unreadable.bin'
+        source.write_bytes(b'generated')
+        self.root.chmod(0o755)
+        source.chmod(0)
+        credentials = dict(user=65534, group=65534, extra_groups=[]) if os.geteuid() == 0 else {}
+        try:
+            for name, runner in self.runners:
+                with self.subTest(runner=name):
+                    try:
+                        result = self.invoke(runner, [str(source)], stdout=subprocess.PIPE, **credentials)
+                    except PermissionError:
+                        self.skipTest('Supplied executable is inaccessible to the unprivileged test user')
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    self.assertIn(b'cannot open', result.stderr)
+        finally:
+            source.chmod(0o600)
+
+    def test_end_of_options_and_dash_is_a_literal_filename(self):
+        for filename in ('--hex', '-'):
+            (self.root / filename).write_bytes(b'\x00\x0a\xff')
+            for name, runner in self.runners:
+                with self.subTest(runner=name, filename=filename):
+                    result = self.invoke(runner, ['--', filename], cwd=self.root, stdout=subprocess.PIPE)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout, b'0,10,255,\n')
+
+    @unittest.skipUnless(Path('/dev/full').exists(), '/dev/full required')
+    def test_write_and_final_flush_errors(self):
+        source = self.root / 'input'
+        for size in (0, 1, 65537):
+            source.write_bytes(b'\xff' * size)
+            for name, runner in self.runners:
+                with self.subTest(runner=name, size=size), open('/dev/full', 'wb') as full:
+                    result = self.invoke(runner, [str(source)], stdout=full)
+                    self.assertEqual(result.returncode, 1)
+                    self.assertIn(b'stdout', result.stderr)
+
+    def test_broken_pipe_reports_write_error(self):
+        source = self.root / 'input'
+        source.write_bytes(b'\x7f' * 65537)
+        for name, runner in self.runners:
+            read_fd, write_fd = os.pipe()
+            os.close(read_fd)
+            try:
+                result = self.invoke(runner, [str(source)], stdout=write_fd)
+            finally:
+                os.close(write_fd)
+            self.assertEqual(result.returncode, 1, (name, result.stderr))
+            self.assertIn(b'stdout', result.stderr)
+
+    def test_c_initializer_semantics_with_independent_compiler(self):
+        if not shutil.which('cc'):
+            self.skipTest('Host cc required')
+        source = self.root / 'input'
+        data = bytes(range(256))
+        source.write_bytes(data)
+        for name, runner in self.runners:
+            for hex_mode in (False, True):
+                include = self.root / 'values.inc.c'
+                with include.open('wb') as output:
+                    result = self.invoke(runner, (['--hex'] if hex_mode else []) + [str(source)], stdout=output)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                program = self.root / 'verify.c'
+                program.write_text('#include <stdio.h>\nstatic const unsigned char bytes[] = {\n'
+                                   '#include "values.inc.c"\n};\nint main(void) {\n'
+                                   'return fwrite(bytes, 1, sizeof(bytes), stdout) != sizeof(bytes);\n}\n')
+                binary = self.root / 'verify'
+                subprocess.run(['cc', '-std=c99', '-Wall', '-Wextra', '-Werror', '-pedantic',
+                                str(program), '-o', str(binary)], check=True, capture_output=True, timeout=30)
+                self.assertEqual(subprocess.run([str(binary)], check=True, capture_output=True, timeout=30).stdout, data)
+
+
+def benchmark():
+    with tempfile.TemporaryDirectory(prefix='bin2c benchmark ') as folder:
+        source = Path(folder) / 'generated.bin'
+        block = bytes(range(256)) * 256
+        with source.open('wb') as output:
+            for _ in range(128):
+                output.write(block)
+        commands = [(name + (' hex' if hex_mode else ' decimal'), runner +
+                     (['--hex'] if hex_mode else []) + [str(source)])
+                    for name, runner in Bin2cTests.runners for hex_mode in (False, True)]
+        if CONFIG.busybox:
+            commands.append(('host BusyBox hexdump', [CONFIG.busybox, 'hexdump', '-v', '-e', FORMAT, str(source)]))
+        if CONFIG.mips_busybox:
+            commands.append(('mips BusyBox hexdump', [CONFIG.qemu, '-cpu', '74Kf', '-L', str(CONFIG.sysroot),
+                                                    str(CONFIG.mips_busybox), 'hexdump', '-v', '-e',
+                                                    FORMAT, str(source)]))
+        for name, command in commands:
+            times = []
+            for _ in range(3):
+                start = time.perf_counter()
+                subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True, timeout=120)
+                times.append(time.perf_counter() - start)
+            elapsed = sorted(times)[1]
+            print('%s: %.4fs, %.1f MiB/s (8 MiB generated, median of 3, output=/dev/null)' %
+                  (name, elapsed, 8 / elapsed), flush=True)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--host', type=Path, required=True)
+    parser.add_argument('--mips', type=Path, required=True)
+    parser.add_argument('--dynamic', type=Path)
+    parser.add_argument('--qemu', default='qemu-mipsel')
+    parser.add_argument('--busybox', default=shutil.which('busybox'))
+    parser.add_argument('--mips-busybox', type=Path)
+    parser.add_argument('--sysroot', type=Path)
+    parser.add_argument('--benchmark', action='store_true')
+    CONFIG = parser.parse_args()
+    if (CONFIG.mips_busybox or CONFIG.dynamic) and not CONFIG.sysroot:
+        parser.error('--mips-busybox/--dynamic requires --sysroot')
+    result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Bin2cTests))
+    if result.wasSuccessful() and CONFIG.benchmark:
+        benchmark()
+    raise SystemExit(not result.wasSuccessful())

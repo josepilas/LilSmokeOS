@@ -1,0 +1,55 @@
+#!/bin/sh
+# Ensure the PortSmoke layout exists after /storage has been mounted.
+
+seed_file() {
+    source_file=$1
+    target_file=$2
+    [ ! -e "$target_file" ] && [ ! -L "$target_file" ] || return 0
+    staging=$(mktemp "${target_file%/*}/.seed.XXXXXX") || return 1
+    if ! cp "$source_file" "$staging"; then
+        rm -f "$staging"
+        return 1
+    fi
+    if [ -x "$source_file" ]; then
+        chmod 0755 "$staging" || { [ -x "$staging" ] || { rm -f "$staging"; return 1; }; }
+    else
+        chmod 0644 "$staging" 2>/dev/null || true
+    fi
+    if ! mv "$staging" "$target_file"; then rm -f "$staging"; return 1; fi
+}
+
+case "${1:-}" in
+    start)
+        mkdir -p /storage/portsmoke/engines \
+            /storage/portsmoke/ports \
+            /storage/portsmoke/saves \
+            /mnt/portsmoke
+        # Seed optional packages only after LILROMS is mounted. Never overwrite
+        # user-installed ports/engines or hide files behind a storage mount.
+        if [ -d /usr/share/portsmoke/engines ] || [ -d /usr/share/portsmoke/ports ]; then
+            awk '$2 == "/storage" { found = 1 } END { exit !found }' /proc/mounts || {
+                echo 'PortSmoke: storage is not mounted; optional ports were not copied.' >&2
+                exit 1
+            }
+        fi
+        for target in /storage/portsmoke /storage/portsmoke/ports /storage/portsmoke/engines; do
+            [ ! -L "$target" ] || exit 1
+        done
+        for source in /usr/share/portsmoke/engines/*.peng; do
+            [ -f "$source" ] || continue
+            target=/storage/portsmoke/engines/${source##*/}
+            seed_file "$source" "$target" || exit 1
+        done
+        for source in /usr/share/portsmoke/ports/*; do
+            [ -d "$source" ] || continue
+            target=/storage/portsmoke/ports/${source##*/}
+            [ ! -L "$target" ] || exit 1
+            mkdir -p "$target" || exit 1
+            for file in "$source"/*; do
+                [ -f "$file" ] && [ ! -L "$file" ] || continue
+                seed_file "$file" "$target/${file##*/}" || exit 1
+            done
+        done
+        ;;
+esac
+exit 0

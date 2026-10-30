@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "status": "research-only-not-an-activation-allowlist",
+  "family": "HCSEMI/HC16xx/CubeGM MIPS candidates only",
+  "image_layout": "LILOS FAT32 + LILROMS exFAT, layout version 2",
+  "required_before_hardware_approval": [
+    "PCB silkscreen and SoC marking photographs",
+    "Original DTB SHA256 and full decompilation",
+    "CPU/FPU/DSP/endianness/ABI inventory from running hardware",
+    "Physical RAM versus Linux MemTotal and AVP/display reserved-memory map",
+    "SPI loader, DDR initialization and SD filesystem/partition contract",
+    "HDMI hotplug/mode/color format and matching video driver",
+    "HDMI audio API and matching ALSA or explicitly ported backend",
+    "USB controller port role, receiver VID/PID and controller mapping",
+    "Kernel/BSP/AVP bindings and redistribution rights",
+    "Cold boot, recovery, rollback and power-loss tests on this exact PCB"
+  ],
+  "devices": [
+    {
+      "candidate_id": "m8-v3-2023-09-25-a3100",
+      "marketing_label": "M8 v3.0 / 2023-09-25",
+      "reported_soc": "HCSEMI A3100",
+      "identity_source": "user-supplied candidate; exact revision not independently confirmed",
+      "board_identity": "UNVERIFIED",
+      "approved_dtb_sha256": null,
+      "hardware_validated": false,
+      "boot_adapter": "unverified"
+    },
+    {
+      "candidate_id": "m8-v6-2023-09-25-a3100-a3101",
+      "marketing_label": "M8 v6.0 / 2023-09-25",
+      "reported_soc": "HCSEMI A3100/A3101; variant-specific verification required",
+      "identity_source": "user candidate plus first-hand community V1/V2 compatibility reports",
+      "board_identity": "UNVERIFIED",
+      "approved_dtb_sha256": null,
+      "hardware_validated": false,
+      "boot_adapter": "unverified"
+    },
+    {
+      "candidate_id": "m8-v7-2024-02-10-a3101",
+      "marketing_label": "M8 v7.0 / 2024-02-10, HCSEMI board",
+      "reported_soc": "HCSEMI A3101; not every product sold as M8 v7",
+      "identity_source": "user candidate plus owner-reported chip marking and firmware label",
+      "board_identity": "UNVERIFIED",
+      "approved_dtb_sha256": null,
+      "hardware_validated": false,
+      "boot_adapter": "unverified"
+    }
+  ],
+  "excluded": ["ARM/Rockchip/HiSilicon/Amlogic lookalikes", "devices identified by marketing name alone"],
+  "sources": [
+    "https://4pda.to/forum/index.php?showtopic=1065342&st=1040",
+    "https://www.reddit.com/r/SBCGaming/comments/1vsgmol/custom_firmware_for_segam_m8_hcsemi_board/",
+    "https://github.com/SiarheiVolkau/linux-hichip/blob/hc16xx-7.2/arch/mips/boot/dts/hichip/hc16xx.dtsi",
+    "https://github.com/Witali/r36sx_disasm/blob/main/FIRMWARE_FINDINGS.md"
+  ]
+}

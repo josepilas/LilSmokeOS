@@ -1,0 +1,27 @@
+config BR2_PACKAGE_LILSMOKE_OD_ENGINES
+	bool "LilSmoke native classic SDL engines"
+	depends on BR2_mipsel
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_LILSMOKE_OD_SDL
+	select BR2_PACKAGE_SDL2_IMAGE
+	select BR2_PACKAGE_SDL2_MIXER
+	select BR2_PACKAGE_LIBPNG
+	select BR2_PACKAGE_JPEG
+	select BR2_PACKAGE_FREETYPE
+	select BR2_PACKAGE_PIXMAN
+	select BR2_PACKAGE_FMT
+	help
+	  Pinned NXEngine-Evo, PrBoom-Plus, EasyRPG Player and curated
+	  two-dimensional ScummVM, standalone mGBA and legacy 32-bit OpenBOR.
+	  No game content, OpenGL, GLES or Vulkan.
+	  Native entries open app-owned menus without a ROM argument.
+
+config BR2_PACKAGE_LILSMOKE_OD_MAME4ALL
+	bool "MAME4ALL (noncommercial personal build)"
+	depends on BR2_PACKAGE_LILSMOKE_OD_ENGINES
+	default n
+	help
+	  Original GCW0 MAME4ALL for matching 0.37b5 ROM sets. Upstream
+	  components have noncommercial restrictions; not enabled in
+	  the general image by default. No ROMs or samples are bundled.

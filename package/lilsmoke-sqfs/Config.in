@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LILSMOKE_SQFS
+	bool "lilsmoke bounded libsquashfs"
+	select BR2_PACKAGE_ZLIB
+	select BR2_PACKAGE_XZ
+	help
+	  Squashfs-tools-ng 1.2.0 streaming library only, with allocation
+	  and XZ decoder limits for the single-CPU 128 MiB M8.

@@ -1,0 +1,285 @@
+#!/bin/sh
+# Exclusive ownership: the PC and console must never mount this disk together.
+set -eu
+CONFIG="${LILSMOKE_CONFIG:-/persist/config/lilsmoke.conf}"
+DEFAULT_CONFIG="${LILSMOKE_DEFAULT_CONFIG:-/etc/lilsmoke/lilsmoke.conf.default}"
+CONFIGFS_ROOT="${LILSMOKE_CONFIGFS_ROOT:-/sys/kernel/config}"
+UDC_CLASS="${LILSMOKE_UDC_CLASS:-/sys/class/udc}"
+NET_CLASS="${LILSMOKE_NET_CLASS:-/sys/class/net}"
+GADGET="$CONFIGFS_ROOT/usb_gadget/lilsmoke"
+RUN_DIR="${LILSMOKE_USB_RUN_DIR:-/run/lilsmoke-usb}"
+STORAGE_ROOT="${LILSMOKE_STORAGE_ROOT:-/storage}"
+DRIVE_MOUNT="$STORAGE_ROOT"
+STORAGE_CMD="${LILSMOKE_STORAGE_CMD:-/usr/lib/lilsmoke/lilsmoke-storage}"
+STORAGE_RUN="${LILSMOKE_STORAGE_RUN:-/run/lilsmoke-storage}"
+DRIVE_DEVICE=""
+MOUNT_CMD="${LILSMOKE_MOUNT_CMD:-mount}"
+MOUNTPOINT_CMD="${LILSMOKE_MOUNTPOINT_CMD:-mountpoint}"
+IP_CMD="${LILSMOKE_IP_CMD:-ip}"
+UDHCPD_CMD="${LILSMOKE_UDHCPD_CMD:-udhcpd}"
+DHCP_PID="$RUN_DIR/udhcpd.pid"
+DHCP_CONF="$RUN_DIR/udhcpd.conf"
+SERIAL_FILE="${LILSMOKE_USB_SERIAL_FILE:-/persist/usb/serial}"
+transaction=0
+# Config files are data, never shell programs executed as root.
+setting() {
+    { [ ! -f "$DEFAULT_CONFIG" ] || cat "$DEFAULT_CONFIG"
+      [ ! -f "$CONFIG" ] || cat "$CONFIG"; } |
+    awk -v key="$1" -v fallback="$2" '
+        BEGIN { value=fallback }
+        /^[[:space:]]*#/ { next }
+        {
+            eq=index($0,"="); if (!eq) next
+            k=substr($0,1,eq-1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
+            if (k!=key) next
+            value=substr($0,eq+1); quote=""; escaped=0
+            for (i=1;i<=length(value);i++) {
+                c=substr(value,i,1)
+                if (escaped) { escaped=0; continue }
+                if (c=="\\" && quote=="\"") { escaped=1; continue }
+                if (c==quote) { quote=""; continue }
+                if (quote=="" && (c=="\"" || c==sprintf("%c",39))) { quote=c; continue }
+                if (quote=="" && c=="#" && (i==1 || substr(value,i-1,1) ~ /[[:space:]]/)) {
+                    value=substr(value,1,i-1); break
+                }
+            }
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+            first=substr(value,1,1); last=substr(value,length(value),1)
+            if (length(value)>=2 && first==last && (first=="\"" || first==sprintf("%c",39)))
+                value=substr(value,2,length(value)-2)
+        }
+        END { print value }
+    '
+}
+USB_MODE=$(setting USB_MODE off)
+USB_NETWORK_ADDRESS=$(setting USB_NETWORK_ADDRESS 192.168.7.1)
+USB_NETWORK_DRIVER=$(setting USB_NETWORK_DRIVER rndis)
+log() { echo "[lilsmoke-usb] $*"; }
+fail() { log "$*" >&2; return 1; }
+status() {
+    mkdir -p "$RUN_DIR"
+    printf 'state=%s\nmode=%s\naddress=%s\ndrive_mount=%s\ndetail=%s\n' \
+        "$1" "$USB_MODE" "$USB_NETWORK_ADDRESS" "$DRIVE_MOUNT" "${2:-}" > "$RUN_DIR/status.new"
+    mv "$RUN_DIR/status.new" "$RUN_DIR/status"
+}
+attr() {
+    [ -e "$2" ] || { fail "missing kernel attribute: $2"; return 1; }
+    # A zero-byte write does not invoke a ConfigFS store callback.
+    printf '%s\n' "$1" > "$2"
+}
+mounted() { "$MOUNTPOINT_CMD" -q "$1" >/dev/null 2>&1; }
+attached() {
+    [ -e "$GADGET/functions/mass_storage.0/lun.0/file" ] &&
+        [ -n "$(cat "$GADGET/functions/mass_storage.0/lun.0/file")" ]
+}
+ensure_drive() {
+    "$STORAGE_CMD" identify || { fail "No validated LILROMS partition (9p/RAM cannot be USB-exported)"; return 1; }
+    DRIVE_DEVICE=$(cat "$STORAGE_RUN/roms-device")
+    [ -b "$DRIVE_DEVICE" ] && [ ! -L "$DRIVE_DEVICE" ] || { fail "Invalid LILROMS block device"; return 1; }
+    case "${DRIVE_DEVICE##*/}" in *p2|*[a-z]2) ;; *) fail "Only partition 2 may be exported"; return 1 ;; esac
+}
+mount_local() {
+    attached && { fail "refusing local mount: LILROMS is exported"; return 1; }
+    rm -f "$STORAGE_RUN/exporting"
+    mounted "$DRIVE_MOUNT" && return 0
+    "$STORAGE_CMD" mount-roms
+}
+stop_network() {
+    if [ -f "$DHCP_PID" ]; then
+        pid=$(cat "$DHCP_PID")
+        case "$pid" in
+            ''|*[!0-9]*) ;;
+            *) if [ -r "/proc/$pid/cmdline" ] &&
+                    tr '\000' '\n' < "/proc/$pid/cmdline" | grep -Fqx "$DHCP_CONF"; then
+                   kill "$pid" 2>/dev/null || true
+               fi ;;
+        esac
+        rm -f "$DHCP_PID"
+    fi
+    if [ -f "$RUN_DIR/interface" ]; then
+        interface=$(cat "$RUN_DIR/interface")
+        case "$interface" in lsusb0)
+            "$IP_CMD" addr flush dev "$interface" 2>/dev/null || true
+            "$IP_CMD" link set "$interface" down 2>/dev/null || true ;;
+        esac
+        rm -f "$RUN_DIR/interface"
+    fi
+}
+teardown() {
+    stop_network
+    [ -d "$GADGET" ] || return 0
+    # Fail closed: no remount unless BOTH unbind and backing-file detach succeed.
+    if [ -e "$GADGET/UDC" ]; then
+        attr "" "$GADGET/UDC" || return 1
+        [ -z "$(cat "$GADGET/UDC")" ] || return 1
+    fi
+    if [ -e "$GADGET/functions/mass_storage.0/lun.0/file" ]; then
+        attr "" "$GADGET/functions/mass_storage.0/lun.0/file" || return 1
+        attached && return 1
+    fi
+    for function in rndis.usb0 ecm.usb0 mass_storage.0; do
+        rm -f "$GADGET/configs/c.1/$function" || return 1
+    done
+    rm -f "$GADGET/os_desc/c.1" || return 1
+    for directory in functions/rndis.usb0 functions/ecm.usb0 functions/mass_storage.0 \
+        configs/c.1/strings/0x409 configs/c.1 strings/0x409; do
+        [ ! -d "$GADGET/$directory" ] || rmdir "$GADGET/$directory" || return 1
+    done
+    rmdir "$GADGET"
+}
+finish() {
+    exit_status=$?
+    trap - 0 HUP INT TERM
+    if [ "$exit_status" -ne 0 ] && [ "$transaction" = 1 ]; then
+        if teardown; then
+            mount_local || true
+            status error "USB operation failed; gadget detached"
+        else
+            status error "USB detach failed; LILDRIVE remains unavailable locally"
+        fi
+    fi
+    rmdir "$RUN_DIR/lock" 2>/dev/null || true
+    exit "$exit_status"
+}
+start_network() {
+    function="$GADGET/functions/$USB_NETWORK_DRIVER.usb0"
+    mkdir "$function"
+    attr lsusb0 "$function/ifname"
+    mac=$(printf '%s' "$serial" | cut -c1-8 | sed 's/../&:/g')
+    attr "02:${mac}01" "$function/dev_addr"
+    attr "02:${mac}02" "$function/host_addr"
+    if [ "$USB_NETWORK_DRIVER" = rndis ]; then
+        attr RNDIS "$function/os_desc/interface.rndis/compatible_id"
+        attr 5162001 "$function/os_desc/interface.rndis/sub_compatible_id"
+        attr 1 "$GADGET/os_desc/use"
+        attr 0xcd "$GADGET/os_desc/b_vendor_code"
+        attr MSFT100 "$GADGET/os_desc/qw_sign"
+        ln -s "$GADGET/configs/c.1" "$GADGET/os_desc/c.1"
+    fi
+    ln -s "$function" "$GADGET/configs/c.1/$USB_NETWORK_DRIVER.usb0"
+}
+configure_network() {
+    [ -e "$NET_CLASS/lsusb0" ] || { fail "USB network interface not created"; return 1; }
+    printf '%s\n' lsusb0 > "$RUN_DIR/interface"
+    "$IP_CMD" link set lsusb0 up
+    "$IP_CMD" addr add "$USB_NETWORK_ADDRESS/24" dev lsusb0
+    subnet=${USB_NETWORK_ADDRESS%.*}
+    peer=2
+    [ "${USB_NETWORK_ADDRESS##*.}" != 2 ] || peer=3
+    # Do not replace the PC's internet route or DNS.
+    printf '%s\n' "start $subnet.$peer" "end $subnet.$peer" "interface lsusb0" \
+        "option subnet 255.255.255.0" "option lease 3600" \
+        "lease_file $RUN_DIR/udhcpd.leases" "pidfile $DHCP_PID" > "$DHCP_CONF"
+    : > "$RUN_DIR/udhcpd.leases"
+    "$UDHCPD_CMD" -S "$DHCP_CONF"
+}
+start_gadget() {
+    udc=""
+    for controller in "$UDC_CLASS"/*; do
+        [ -e "$controller" ] || continue
+        udc=${controller##*/}
+        break
+    done
+    if [ -z "$udc" ]; then status unsupported "No USB device controller"; return 2; fi
+    modprobe libcomposite 2>/dev/null || true
+    if [ ! -d "$CONFIGFS_ROOT/usb_gadget" ]; then
+        mkdir -p "$CONFIGFS_ROOT"
+        "$MOUNT_CMD" -t configfs none "$CONFIGFS_ROOT" || true
+    fi
+    [ -d "$CONFIGFS_ROOT/usb_gadget" ] || {
+        status unsupported "Kernel has no ConfigFS USB gadget support"; return 2;
+    }
+    transaction=1
+    teardown
+    if [ "$USB_MODE" = network ]; then mount_local; fi
+    mkdir "$GADGET"
+    mkdir -p "$GADGET/strings/0x409" "$GADGET/configs/c.1/strings/0x409"
+    # Development IDs: allocate product IDs before distributing hardware.
+    attr 0x1d6b "$GADGET/idVendor"
+    attr 0x0104 "$GADGET/idProduct"
+    attr 0x0200 "$GADGET/bcdUSB"
+    attr 0x0100 "$GADGET/bcdDevice"
+    attr 0xEF "$GADGET/bDeviceClass"
+    attr 0x02 "$GADGET/bDeviceSubClass"
+    attr 0x01 "$GADGET/bDeviceProtocol"
+    [ ! -L "$SERIAL_FILE" ] || { fail "USB serial must not be a symlink"; exit 1; }
+    if [ ! -s "$SERIAL_FILE" ]; then
+        mkdir -p "$(dirname "$SERIAL_FILE")"
+        serial=$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')
+        [ "${#serial}" -eq 24 ] || { fail "USB identity generation failed"; exit 1; }
+        (umask 077; printf '%s\n' "$serial" > "$SERIAL_FILE")
+    fi
+    serial=$(cat "$SERIAL_FILE")
+    case "$serial" in ''|*[!0-9a-f]*) fail "Invalid persisted USB identity"; exit 1 ;; esac
+    [ "${#serial}" -eq 24 ] || { fail "Invalid USB identity length"; exit 1; }
+    attr "$serial" "$GADGET/strings/0x409/serialnumber"
+    attr LilSmokeOS "$GADGET/strings/0x409/manufacturer"
+    attr LILDRIVE "$GADGET/strings/0x409/product"
+    attr LilSmokeOS "$GADGET/configs/c.1/strings/0x409/configuration"
+    attr 250 "$GADGET/configs/c.1/MaxPower"
+    case "$USB_MODE" in network|network+drive) start_network ;; esac
+    case "$USB_MODE" in drive|network+drive)
+        ensure_drive
+        mkdir -p "$STORAGE_RUN"
+        : > "$STORAGE_RUN/exporting"
+        "$STORAGE_CMD" unmount-roms
+        mounted "$DRIVE_MOUNT" && { fail "LILDRIVE still locally mounted"; exit 1; }
+        mkdir "$GADGET/functions/mass_storage.0"
+        attr 1 "$GADGET/functions/mass_storage.0/lun.0/removable"
+        attr 0 "$GADGET/functions/mass_storage.0/lun.0/ro"
+        attr "$DRIVE_DEVICE" "$GADGET/functions/mass_storage.0/lun.0/file"
+        ln -s "$GADGET/functions/mass_storage.0" "$GADGET/configs/c.1/mass_storage.0" ;;
+    esac
+    attr "$udc" "$GADGET/UDC"
+    case "$USB_MODE" in network|network+drive) configure_network ;; esac
+    status active "UDC=$udc"
+    transaction=0
+}
+command="${1:-apply}"
+if [ "$command" = status ]; then
+    if [ -f "$RUN_DIR/status" ]; then cat "$RUN_DIR/status"; else echo state=inactive; fi
+    exit 0
+fi
+case "$command" in apply|start|stop|eject|restart|prepare-drive) ;; *) exit 64 ;; esac
+mkdir -p "$RUN_DIR"
+tries=0
+until mkdir "$RUN_DIR/lock" 2>/dev/null; do
+    tries=$((tries + 1))
+    [ "$tries" -lt 10 ] || { fail "USB operation already in progress"; exit 75; }
+    sleep 1
+done
+trap finish 0
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
+# An earlier Settings action may have held the lock; apply the latest values.
+USB_MODE=$(setting USB_MODE off)
+USB_NETWORK_ADDRESS=$(setting USB_NETWORK_ADDRESS 192.168.7.1)
+USB_NETWORK_DRIVER=$(setting USB_NETWORK_DRIVER rndis)
+case "$USB_MODE" in off|network|drive|network+drive) ;; *) fail "Invalid USB mode"; exit 1 ;; esac
+case "$USB_NETWORK_DRIVER" in rndis|ecm) ;; *) fail "Invalid USB network driver"; exit 1 ;; esac
+printf '%s\n' "$USB_NETWORK_ADDRESS" | awk -F. '
+    NF!=4 {exit 1}
+    {for(i=1;i<=4;i++) if ($i !~ /^[0-9]+$/ || length($i)>3 || $i>255) exit 1}
+    $1==0 || $1==127 || $1>=224 || $4==0 || $4==255 {exit 1}
+' || { fail "Invalid USB /24 address"; exit 1; }
+case "$command" in
+    prepare-drive)
+        attached && { fail "Switch USB sharing off before preparing LILDRIVE"; exit 1; }
+        ensure_drive
+        mount_local ;;
+    stop|eject)
+        transaction=1
+        teardown
+        if [ "$command" = eject ]; then mount_local; fi
+        status inactive "USB sharing stopped"
+        transaction=0 ;;
+    *)
+        if [ "$USB_MODE" = off ]; then
+            transaction=1
+            teardown
+            mount_local
+            status inactive "USB sharing off"
+            transaction=0
+        else start_gadget
+        fi ;;
+esac

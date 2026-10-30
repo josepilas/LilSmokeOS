@@ -1,0 +1,13 @@
+name: alephone
+config-opts:
+  - --with-boost-libdir=/app/lib
+  - --with-sdl_image
+  - --with-curl
+  - --with-zzip
+  - --with-png
+  - --with-miniupnpc
+sources:
+  - type: dir
+    path: ../..
+# TODO is there any point including icons/man/mime when it's not a standalone engine build?
+cleanup: [/lib/debug, /share/icons, /share/man, /share/mime]

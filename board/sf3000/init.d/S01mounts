@@ -1,0 +1,24 @@
+#!/bin/sh
+# Two partitions: LILOS -> /lilos; LILROMS -> /storage.
+case "$1" in
+    start)
+        mount -t proc none /proc 2>/dev/null || true
+        mount -t sysfs none /sys 2>/dev/null || true
+        mount -t devtmpfs none /dev 2>/dev/null || true
+        mkdir -p /tmp /run /var/log /lilos /persist /storage /overlay /mnt/sd
+        mount -t tmpfs -o size=8M tmpfs /tmp 2>/dev/null || true
+        mount -t tmpfs -o size=4M tmpfs /run 2>/dev/null || true
+
+        /usr/lib/lilsmoke/lilsmoke-storage boot || {
+            echo "[lilsmoke] Storage unavailable; inspect /run/lilsmoke-storage/status" >&2
+            exit 1
+        }
+        ;;
+    stop)
+        umount /storage 2>/dev/null || true
+        umount /persist 2>/dev/null || true
+        umount /lilos 2>/dev/null || true
+        umount /run /tmp 2>/dev/null || true
+        ;;
+esac
+exit 0

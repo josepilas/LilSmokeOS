@@ -1,0 +1,11 @@
+LilSmoke Applications SDK 0.1.0-dev
+Copyright (c) 2026 José Pilas.
+Original SDK code, examples, header and documentation: MPL-2.0.
+
+This SDK implements/documents existing application package and environment
+protocols. No LilSmokeOS runtime source, existing keyboard header, emulator,
+library binary, game data, artwork, firmware, private keys, or toolchain is
+redistributed here. Their licenses are not changed by this SDK.
+
+The Mozilla Public License text in LICENSE is the unmodified standard license.
+Keep third-party license/source/relinking notices when bundling your own runtime.

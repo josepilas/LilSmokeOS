@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/Synaps33/FroggyTale",
+  "revision": "5699418f671dc8bb07dc2e4adc60169b616ab906",
+  "parent": "https://github.com/ButterscotchRunner/Butterscotch",
+  "license": "AGPL-3.0-only",
+  "note": "Only runner, software renderer, selected portable backends, vendors and source tools. No tests, game WADs, atlases or release assets."
+}

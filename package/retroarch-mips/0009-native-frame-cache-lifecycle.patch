@@ -1,0 +1,13 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] sdl2: release bounded native game snapshot at video teardown
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -642,6 +642,7 @@
+    if (!vid)
+       return;
+ 
++   m8_native_cache_release();
+    if (vid->renderer)
+       SDL_DestroyRenderer(vid->renderer);
+ 

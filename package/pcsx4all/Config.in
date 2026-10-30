@@ -1,0 +1,25 @@
+config BR2_PACKAGE_PCSX4ALL
+    bool "pcsx4all (native software PS1 emulator)"
+    depends on BR2_mipsel && BR2_MIPS_OABI32
+    depends on BR2_USE_MMU && BR2_INSTALL_LIBSTDCPP
+    depends on BR2_USE_WCHAR
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    default n
+    select BR2_PACKAGE_ZLIB
+    select BR2_PACKAGE_LIBPNG
+    select BR2_PACKAGE_ALSA_LIB
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_SDL2_DIRECTFB
+    select BR2_PACKAGE_SDL2_TTF
+    select BR2_PACKAGE_LILSMOKE_APPS
+    help
+      Rebuilds the reconstructed PCSX4ALL source for this toolchain, with
+      MIPS-to-MIPS dynarec, UNAI software rendering, SDL2/DirectFB display,
+      native evdev input/remapping and ALSA sound. No vendor driver.so is
+      loaded into the musl process. Actual-console speed remains unverified.
+
+      Uses a user BIOS at /persist/bios/scph1001.bin when present, otherwise
+      the core's HLE BIOS. HLE compatibility is game-dependent.
+      Saves and states persist below /persist/{saves,states}/pcsx4all.
+      Installed as the bundled PCSX4ALL LilSmoke Application, declaring
+      open_core=psx, with its own native menu. Not an OpenDingux tab entry.

@@ -1,0 +1,327 @@
+
+/*
+ * REminiscence - Flashback interpreter
+ * Copyright (C) 2005-2015 Gregory Montoir (cyx@users.sourceforge.net)
+ */
+
+#include <retro_miscellaneous.h>
+
+#include <streams/file_stream.h>
+
+#include "file.h"
+#include "fs.h"
+
+/* Forward declarations */
+extern "C" {
+
+RFILE* rfopen(const char *path, const char *mode);
+int64_t rfread(void* buffer,
+   size_t elem_size, size_t elem_count, RFILE* stream);
+int64_t rfseek(RFILE* stream, int64_t offset, int origin);
+int64_t rftell(RFILE* stream);
+int rfclose(RFILE* stream);
+int64_t rfwrite(void const* buffer,
+   size_t elem_size, size_t elem_count, RFILE* stream);
+
+}
+
+struct StdioFile : File_impl {
+	RFILE *_fp;
+
+	StdioFile() : _fp(0) {}
+
+	bool open(const char *path, const char *mode)
+   {
+		_ioErr = false;
+		_fp    = rfopen(path, mode);
+		return (_fp != 0);
+	}
+
+	void close()
+   {
+		if (_fp)
+      {
+			rfclose(_fp);
+			_fp = 0;
+		}
+	}
+
+	uint32_t size()
+   {
+		uint32_t sz = 0;
+		if (_fp)
+      {
+			int pos = rftell(_fp);
+			rfseek(_fp, 0, SEEK_END);
+			sz = rftell(_fp);
+			rfseek(_fp, pos, SEEK_SET);
+		}
+		return sz;
+	}
+
+   void seek(int32_t off)
+   {
+      if (_fp)
+         rfseek(_fp, off, SEEK_SET);
+   }
+
+	uint32_t read(void *ptr, uint32_t len)
+   {
+		if (_fp)
+      {
+			uint32_t r = rfread(ptr, 1, len, _fp);
+			if (r != len)
+				_ioErr = true;
+			return r;
+		}
+		return 0;
+	}
+
+	uint32_t write(const void *ptr, uint32_t len)
+   {
+      if (_fp)
+      {
+         uint32_t r = rfwrite(ptr, 1, len, _fp);
+         if (r != len)
+            _ioErr = true;
+         return r;
+      }
+      return 0;
+   }
+};
+
+File::File()
+	: _impl(0) {
+}
+
+File::~File() {
+	if (_impl) {
+		_impl->close();
+		delete _impl;
+	}
+}
+
+bool File::open(const char *filename, const char *mode, FileSystem *fs) {
+	cleanup();
+	assert(mode[0] != 'z');
+	_impl = new StdioFile;
+	char *path = fs->findPath(filename);
+	if (path) {
+		bool ret = _impl->open(path, mode);
+		free(path);
+		return ret;
+	}
+	return false;
+}
+
+bool File::open(const char *filename, const char *mode, const char *directory)
+{
+   char path[PATH_MAX_LENGTH];
+
+	cleanup();
+	if (!_impl)
+		_impl = new StdioFile;
+	snprintf(path, sizeof(path), "%s/%s", directory, filename);
+	return _impl->open(path, mode);
+}
+
+bool File::open(File_impl *impl) {
+	cleanup();
+	_impl = impl;
+	return true;
+}
+
+void File::cleanup() {
+	if (_impl) {
+		_impl->close();
+		delete _impl;
+		_impl = NULL;
+	}
+}
+
+
+void File::close() {
+	if (_impl)
+		_impl->close();
+}
+
+bool File::ioErr() const
+{
+	return _impl->_ioErr;
+}
+
+uint32_t File::size() {
+	return _impl->size();
+}
+
+void File::seek(int32_t off) {
+	_impl->seek(off);
+}
+
+uint32_t File::read(void *ptr, uint32_t len) {
+	return _impl->read(ptr, len);
+}
+
+uint8_t File::readByte() {
+	uint8_t b;
+	read(&b, 1);
+	return b;
+}
+
+uint16_t File::readUint16LE() {
+	uint8_t lo = readByte();
+	uint8_t hi = readByte();
+	return (hi << 8) | lo;
+}
+
+uint32_t File::readUint32LE() {
+	uint16_t lo = readUint16LE();
+	uint16_t hi = readUint16LE();
+	return (hi << 16) | lo;
+}
+
+uint16_t File::readUint16BE() {
+	uint8_t hi = readByte();
+	uint8_t lo = readByte();
+	return (hi << 8) | lo;
+}
+
+uint32_t File::readUint32BE() {
+	uint16_t hi = readUint16BE();
+	uint16_t lo = readUint16BE();
+	return (hi << 16) | lo;
+}
+
+uint32_t File::write(const void *ptr, uint32_t len) {
+	return _impl->write(ptr, len);
+}
+
+void File::writeByte(uint8_t b) {
+	write(&b, 1);
+}
+
+void File::writeUint16BE(uint16_t n) {
+	writeByte(n >> 8);
+	writeByte(n & 0xFF);
+}
+
+void File::writeUint32BE(uint32_t n) {
+	writeUint16BE(n >> 16);
+	writeUint16BE(n & 0xFFFF);
+}
+
+MemFile::MemFile(uint8_t *mem, uint32_t size)
+	: _canResize(false), _mem(mem), _pos(0), _size(size) {
+
+}
+
+MemFile::MemFile() : _canResize(true), _mem(NULL), _pos(0), _size(0) {}
+
+bool MemFile::open(const char *path, const char *mode) {
+	return true;
+}
+
+void MemFile::seek(int32_t off)
+{
+	assert(off >= 0);
+	_pos = static_cast<uint32_t>(off);
+	if (_pos > _size)
+		_pos = _size;
+}
+
+uint32_t MemFile::read(void *ptr, uint32_t len)
+{
+   uint32_t to_read, new_pos;
+	if (_ioErr)
+		return 0;
+
+	to_read = len;
+	new_pos = _pos + len;
+
+	if (new_pos > _size)
+   {
+		to_read = _size - _pos;
+		_ioErr  = true;
+	}
+
+	memcpy(ptr, reinterpret_cast<const void *>(_mem[_pos]), to_read);
+	_pos += to_read;
+
+	return to_read;
+}
+
+uint32_t MemFile::write(const void *ptr, uint32_t len)
+{
+   uint32_t new_pos, to_write;
+   if (_ioErr)
+      return 0;
+   new_pos  = _pos + len;
+   to_write = len;
+
+   if (new_pos > _size)
+   {
+      if (!_canResize)
+      {
+         to_write = _size - _pos;
+         _ioErr   = true;
+      }
+      else
+      {
+         _mem  = static_cast<uint8_t *>(realloc(_mem, new_pos));
+         _size = new_pos;
+      }
+   }
+
+   memcpy(reinterpret_cast<void *>(_mem + _pos), ptr, to_write);
+   _pos += to_write;
+
+   return to_write;
+}
+
+ReadOnlyMemFile::ReadOnlyMemFile(const uint8_t *mem, uint32_t size)
+	: _mem(mem), _pos(0), _size(size)
+{
+}
+
+bool ReadOnlyMemFile::open(const char *path, const char *mode)
+{
+	return true;
+}
+
+void ReadOnlyMemFile::seek(int32_t off)
+{
+   assert(off >= 0);
+   _pos = static_cast<uint32_t>(off);
+   if (_pos > _size)
+      _pos = _size;
+}
+
+uint32_t ReadOnlyMemFile::read(void *ptr, uint32_t len)
+{
+   uint32_t to_read, new_pos;
+
+   if (_ioErr)
+      return 0;
+
+   to_read = len;
+   new_pos = _pos + len;
+
+   if (new_pos > _size)
+   {
+      to_read = _size - _pos;
+      _ioErr  = true;
+   }
+
+   memcpy(ptr, reinterpret_cast<const void *>(_mem + _pos), to_read);
+   _pos += to_read;
+
+   return to_read;
+}
+
+uint32_t ReadOnlyMemFile::write(const void *ptr, uint32_t len)
+{
+	if (_ioErr)
+		return 0;
+	_ioErr = true;
+	return 0;
+}

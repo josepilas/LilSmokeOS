@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# S02mdev - leave hotplug ownership to Buildroot's S10mdev daemon.
+#
+# Running both kernel helpers and the daemon duplicates events and can create
+# a large early-boot process burst on low-memory devices. S10 does coldplug.
+
+case "$1" in
+    start)
+        echo "[lilsmoke] S02: hotplug delegated to S10mdev"
+        if [ -w /proc/sys/kernel/hotplug ]; then
+            printf '\n' > /proc/sys/kernel/hotplug
+        fi
+        ;;
+    stop)
+        if [ -w /proc/sys/kernel/hotplug ]; then
+            printf '\n' > /proc/sys/kernel/hotplug
+        fi
+        ;;
+esac
+exit 0

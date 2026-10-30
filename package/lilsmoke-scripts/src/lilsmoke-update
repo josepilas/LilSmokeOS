@@ -1,0 +1,235 @@
+#!/bin/sh
+#
+# lilsmoke-update — A/B partition OTA updater
+#
+# Usage:
+#   lilsmoke-update check                  # check if a new version exists
+#   lilsmoke-update download              # download the update bundle
+#   lilsmoke-update install               # install to inactive slot
+#   lilsmoke-update activate              # mark inactive slot as next-boot
+#   lilsmoke-update reboot                # reboot into new slot
+#   lilsmoke-update status                # show current state
+#
+# OTA bundle format (see docs/ota.md):
+#   lilsmoke-update-<version>.tar.gz
+#     ├── manifest.json    (version, sha256, slot target)
+#     └── lilsmoke.itb     (FIT image: kernel + dtb + initramfs)
+#
+# Flow:
+#   1. check: GET https://updates.lilsmoke.org/manifest.json
+#      Compare version with /etc/lilsmoke-version.txt
+#   2. download: fetch the .tar.gz to /persist/updates/
+#      Verify SHA256 against manifest
+#   3. install: extract lilsmoke.itb to the inactive slot's partition
+#      (/dev/mmcblk0p2 for slot A, /dev/mmcblk0p3 for slot B)
+#      DO NOT mark as active yet — that happens after a successful boot
+#   4. activate: tell bootloader to try the new slot next boot
+#      Write /persist/next_slot = inactive slot
+#   5. reboot: sync + reboot
+#   6. On next boot:
+#      - S05bootcounter increments counter on the new slot
+#      - If LilSmokeUI starts successfully, S89bootok marks slot as good
+#      - If 3 failed boots, bootloader falls back to old slot
+
+set -u
+
+PERSIST="/persist"
+UPDATES_DIR="$PERSIST/updates"
+MANIFEST_FILE="$PERSIST/manifest.json"
+SLOT_FILE="$PERSIST/active_slot"
+NEXT_SLOT_FILE="$PERSIST/next_slot"
+COUNTER_FILE="$PERSIST/bootcounter"
+VERSION_FILE="/etc/lilsmoke-version.txt"
+
+# Default update server (user can override in lilsmoke.conf)
+UPDATE_URL="${LILSMOKE_UPDATE_URL:-https://updates.lilsmoke.org}"
+
+# Partition map (real HW — see docs/partitions.md)
+# A: /dev/mmcblk0p2  (FIT boot slot A, ext4)
+# B: /dev/mmcblk0p3  (FIT boot slot B, ext4)
+
+mkdir -p "$UPDATES_DIR"
+
+# --- Helpers ---
+
+get_current_slot() {
+    cat "$SLOT_FILE" 2>/dev/null || echo "A"
+}
+
+get_inactive_slot() {
+    if [ "$(get_current_slot)" = "A" ]; then
+        echo "B"
+    else
+        echo "A"
+    fi
+}
+
+get_slot_partition() {
+    slot="$1"
+    if [ "$slot" = "A" ]; then
+        echo "$SLOT_A_PART"
+    else
+        echo "$SLOT_B_PART"
+    fi
+}
+
+get_current_version() {
+    if [ -f "$VERSION_FILE" ]; then
+        head -1 "$VERSION_FILE" | sed 's/^LilSmokeOS //'
+    else
+        echo "0.0.0-unknown"
+    fi
+}
+
+# --- Commands ---
+
+cmd_status() {
+    CUR=$(get_current_slot)
+    INACTIVE=$(get_inactive_slot)
+    VER=$(get_current_version)
+    NEXT=""
+    [ -f "$NEXT_SLOT_FILE" ] && NEXT=$(cat "$NEXT_SLOT_FILE")
+    
+    echo "LilSmokeOS OTA status"
+    echo "======================"
+    echo "Current version:  $VER"
+    echo "Active slot:      $CUR"
+    echo "Inactive slot:    $INACTIVE"
+    echo "Next boot slot:   ${NEXT:-<default: $CUR>}"
+    
+    if [ -f "$COUNTER_FILE" ]; then
+        echo "Boot counter:     $(cat $COUNTER_FILE)"
+    fi
+    
+    echo ""
+    echo "Slot status:"
+    for s in A B; do
+        status_file="$PERSIST/slot_${s}_status"
+        if [ -f "$status_file" ]; then
+            echo "  Slot $s: $(cat $status_file)"
+        else
+            echo "  Slot $s: unknown"
+        fi
+    done
+    
+    echo ""
+    echo "Downloaded bundles:"
+    if [ -d "$UPDATES_DIR" ]; then
+        ls -lh "$UPDATES_DIR"/*.tar.gz 2>/dev/null | awk '{print "  " $5 " " $9}'
+    fi
+}
+
+cmd_check() {
+    if ! command -v wget >/dev/null 2>&1; then
+        echo "lilsmoke-update: wget not installed" >&2
+        return 1
+    fi
+    echo "Checking for updates at $UPDATE_URL/manifest.json ..."
+    if ! wget -q -O "$MANIFEST_FILE.new" "$UPDATE_URL/manifest.json" 2>&1; then
+        echo "lilsmoke-update: could not fetch manifest" >&2
+        rm -f "$MANIFEST_FILE.new"
+        return 1
+    fi
+    mv "$MANIFEST_FILE.new" "$MANIFEST_FILE"
+    
+    # Parse JSON without jq (we ship BusyBox, not jq)
+    # manifest.json: {"version":"0.2.0","sha256":"...","size":12345678}
+    NEW_VER=$(grep -oE '"version"[[:space:]]*:[[:space:]]*"[^"]+"' "$MANIFEST_FILE" | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+    CUR_VER=$(get_current_version)
+    
+    if [ -z "$NEW_VER" ]; then
+        echo "lilsmoke-update: could not parse version from manifest"
+        return 1
+    fi
+    
+    echo "Current version: $CUR_VER"
+    echo "Latest version:  $NEW_VER"
+    
+    if [ "$NEW_VER" = "$CUR_VER" ]; then
+        echo "Already up to date."
+        return 0
+    fi
+    echo "Update available! Run: lilsmoke-update download"
+}
+
+cmd_download() {
+    if [ ! -f "$MANIFEST_FILE" ]; then
+        echo "lilsmoke-update: no manifest, run 'lilsmoke-update check' first" >&2
+        return 1
+    fi
+    
+    NEW_VER=$(grep -oE '"version"[[:space:]]*:[[:space:]]*"[^"]+"' "$MANIFEST_FILE" | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+    BUNDLE_NAME="lilsmoke-update-${NEW_VER}.tar.gz"
+    BUNDLE_PATH="$UPDATES_DIR/$BUNDLE_NAME"
+    
+    if [ -f "$BUNDLE_PATH" ]; then
+        echo "Bundle already downloaded: $BUNDLE_PATH"
+        return 0
+    fi
+    
+    echo "Downloading $BUNDLE_NAME..."
+    if ! wget -q -O "$BUNDLE_PATH" "$UPDATE_URL/$BUNDLE_NAME" 2>&1; then
+        echo "lilsmoke-update: download failed" >&2
+        rm -f "$BUNDLE_PATH"
+        return 1
+    fi
+    
+    # Verify SHA256
+    EXPECTED_SHA=$(grep -oE '"sha256"[[:space:]]*:[[:space:]]*"[^"]+"' "$MANIFEST_FILE" | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+    ACTUAL_SHA=$(sha256sum "$BUNDLE_PATH" | cut -d' ' -f1)
+    
+    if [ -n "$EXPECTED_SHA" ] && [ "$EXPECTED_SHA" != "$ACTUAL_SHA" ]; then
+        echo "lilsmoke-update: SHA256 mismatch!" >&2
+        echo "  expected: $EXPECTED_SHA" >&2
+        echo "  actual:   $ACTUAL_SHA" >&2
+        rm -f "$BUNDLE_PATH"
+        return 1
+    fi
+    
+    echo "OK — $BUNDLE_PATH ($(stat -c%s "$BUNDLE_PATH") bytes)"
+}
+
+cmd_install() {
+    echo "OTA installation disabled: a validated two-partition boot/rollback adapter is required." >&2
+    return 1
+}
+
+cmd_activate() {
+    echo "Boot-slot activation disabled until the production boot adapter is validated." >&2
+    return 1
+}
+
+cmd_reboot() {
+    echo "Syncing disks..."
+    sync
+    sleep 1
+    echo "Rebooting..."
+    reboot
+}
+
+# --- Main ---
+
+cmd="${1:-status}"
+
+case "$cmd" in
+    status)    cmd_status ;;
+    check)     cmd_check ;;
+    download)  cmd_download ;;
+    install)   cmd_install ;;
+    activate)  cmd_activate ;;
+    reboot)    cmd_reboot ;;
+    *)
+        echo "usage: lilsmoke-update [status|check|download|install|activate|reboot]" >&2
+        echo "" >&2
+        echo "OTA workflow:" >&2
+        echo "  1. lilsmoke-update check      # see if a new version exists" >&2
+        echo "  2. lilsmoke-update download   # fetch the update bundle" >&2
+        echo "  3. lilsmoke-update install    # write to inactive slot" >&2
+        echo "  4. lilsmoke-update activate   # mark for next boot" >&2
+        echo "  5. lilsmoke-update reboot     # reboot into new slot" >&2
+        echo "" >&2
+        echo "If the new slot fails to boot 3 times, the bootloader falls back" >&2
+        echo "to the previous slot automatically." >&2
+        exit 1
+        ;;
+esac

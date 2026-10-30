@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "id": "sample-core",
+  "name": "Sample Core",
+  "launch": {"type": "libretro", "binary": "core.so", "content": "data/game.dat", "args": []},
+  "required_file_sets": [["data/game.dat"]]
+}

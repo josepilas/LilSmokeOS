@@ -1,43 +1,39 @@
-# Publishing Pre-Alpha-0.0.1
+# Publishing Alpha-0.0.1
 
-Display name and Git tag: `Pre-Alpha-0.0.1`.
+Display name and Git tag: `Alpha-0.0.1`.
 Repository: https://github.com/josepilas/LilSmokeOS .
-Proposed image name: `LilSmokeOS-Pre-Alpha-0.0.1.img`. Renaming a development
-image does not make it redistributable or universal.
+Original authored Alpha source is MPL-2.0; upstream terms remain unchanged.
+Historical Pre-Alpha documentation and permissions remain available.
 
-## Required Gates
+## Source Gates
 
-1. Set the real GitHub repository and corresponding-source location. Never
-   publish placeholder URLs, personal paths, USB serials or owner logs.
-2. Stage only reviewed authored/approved third-party source and notices.
-   Ignore rules do not protect against force-add or direct release uploads.
-3. Build pinned source/configuration. Run Buildroot `legal-info`, review every
-   warning and provide matching required source/build scripts, including BSP
-   modifications and modified emulator code. Collection alone is not clearance.
-4. Resolve stock boot/kernel/AVP/library redistribution. Until then, do not
-   upload the stock-derived `.img` or hide vendor files inside another archive.
-   Supply only cleared source/tools and a documented local import process.
-5. Exclude ROMs, BIOS/game-data collections, private SM64 binaries, Nintendo
-   assets, stock exports and private captures. Review artwork/theme rights.
-6. Complete board-specific acceptance: cold boot, partition labels/filesystems,
-   first-boot growth, controllers, audio, saves, apps, emulators and safe shutdown.
-   A VM is not a physical performance measurement or another-board certification.
-7. Run the release audit. Failure produces a report, not an uploadable bundle.
-   Freeze hashes, source commit, config, licenses and board fingerprint together.
-8. Create a GitHub prerelease draft, review assets/notes, then publish only after
-   the gates pass. Documentation preparation does not upload private artifacts.
+1. Run `tools/release/stage_alpha_source.py` and its tests. Review the complete
+   inventory, exclusions, public-copy edits and redacted secret audit.
+2. Include the C++ UI, shell/services, Buildroot tree, SDK/API and authored
+   tools, not just docs. Exclude named custom N64 experiments, private data,
+   outputs/caches and unreviewed assets.
+3. Preserve upstream notices, corresponding-source obligations, legacy grants,
+   creator credit, public logo/banner and issue templates.
+4. Inspect the snapshot/archive for private paths, credentials, controller/disk
+   identities, ROMs, stock exports and game-derived art.
+5. Freeze hashes after concurrent source authors finish. Include the separate
+   image builder and updated MBR-aware VM QA once frozen.
+6. Publication is a separate owner-controlled action. Preserve Git history;
+   do not force-push or upload from the development workspace.
 
-## Current Blockers
+## Independent Image Gates
 
-- Vendor stock-derived boot stack: redistribution/source clearance pending.
-- Public SM64: asset-free native relocation/loading is not complete and the
-  current graphics license prohibits binary redistribution. Local packages
-  stay private. An emulator is not mislabeled as a native public port.
-- Upstream game-source and artwork provenance must also be reviewed; replacing
-  a renderer or removing ROM bytes alone is not a blanket redistribution grant.
-- Complete third-party/source/artwork audit and reproducible legal-info bundle.
-- GitHub repository/source offer and public-artifact hardware acceptance.
+Buildroot `legal-info`, exact per-component source/build/relinking materials,
+stock boot/kernel/AVP/driver clearance and art/font provenance remain separate
+requirements. Source publication is not binary redistribution clearance.
+No ROM, BIOS collection, private game build or stock export may be attached.
 
-MPL-2.0 for authored files does not remove these requirements. See
-[policy](../LICENSE_POLICY.md), [notices](../THIRD_PARTY_NOTICES.md) and
-[pre-alpha docs](pre-alpha-0.0.1/README.md).
+The Alpha image uses separately verified runtime binaries plus release metadata;
+source staging does not rebuild them or establish bit-identical provenance.
+Record actual geometry, inventories/hashes and source/configuration pins.
+Do not reuse the old Pre-Alpha checksum as an Alpha checksum.
+Physical Alpha cold boot, expansion, input/audio, games/saves and safe shutdown
+must be tested or clearly marked unverified. QEMU is not M8 certification.
+
+See [source limits](alpha-0.0.1-source.md), [policy](../LICENSE_POLICY.md)
+and [third-party notices](../THIRD_PARTY_NOTICES.md).

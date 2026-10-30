@@ -1,0 +1,29 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] SDL2: use guarded native M8 game presenter, retain TV menu
+
+--- a/gfx/drivers/sdl2_gfx.c
++++ b/gfx/drivers/sdl2_gfx.c
+@@ -18,6 +18,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include "m8_sdl2_window.h"
++#include "m8_native_frame.h"
+ 
+ #include <retro_inline.h>
+ #include <gfx/scaler/scaler.h>
+@@ -511,6 +512,15 @@
+ #ifdef HAVE_MENU
+    bool menu_is_alive = (video_info->menu_st_flags & MENU_ST_FLAG_ALIVE) ? true : false;
+ #endif
++
++   if (m8_native_frame(frame, width, height, pitch, vid->video.rgb32,
++                       video_driver_get_aspect_ratio(),
++#ifdef HAVE_MENU
++                       menu_is_alive,
++#else
++                       0,
++#endif
++                       vid->rotation)) return true;
+ 
+    if (vid->flags & SDL2_FLAG_SHOULD_RESIZE)
+       sdl_refresh_viewport(vid);

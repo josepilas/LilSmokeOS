@@ -1,0 +1,36 @@
+From 3fd74d6f913917fe9c62743ef5652333cd4a6a7b Mon Sep 17 00:00:00 2001
+From: LilSmokeOS <build@lilsmoke.local>
+Date: Thu, 25 Sep 2026 15:00:00 -0300
+Subject: [PATCH] MIPS: do not auto-generate DSP instructions in kernel C
+
+LilSmokeOS tunes target userspace for the 74K DSP ASE.  Buildroot's compiler
+wrapper also supplies those target flags while building Linux, which lets GCC
+emit DSP instructions such as lwx in generic kernel code.  The kernel does not
+enable the DSP status bit while executing those paths, so the first such
+instruction raises a reserved-instruction exception during early boot.
+
+Keep explicit architecture assembly available, but make ordinary kernel C use
+the baseline MIPS32r2 ISA.  Emulator cores retain their package-specific DSP
+flags.
+---
+ arch/mips/Makefile | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/mips/Makefile b/arch/mips/Makefile
+index e036fc955c6b..235128e9616a 100644
+--- a/arch/mips/Makefile
++++ b/arch/mips/Makefile
+@@ -97,6 +97,10 @@ endif
+ #
+ cflags-y			+= -G 0 -mno-abicalls -fno-pic -pipe
+ cflags-y			+= -msoft-float
++# Target userspace may enable the DSP ASE globally.  Do not let the compiler
++# synthesize DSP instructions in generic kernel C, where Status.MX is clear.
++cflags-y			+= -mno-dspr2 -mno-dsp
++
+ LDFLAGS_vmlinux			+= -G 0 -static -n -nostdlib
+ KBUILD_AFLAGS_MODULE		+= -mlong-calls
+ KBUILD_CFLAGS_MODULE		+= -mlong-calls
+-- 
+2.43.0
+

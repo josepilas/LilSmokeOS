@@ -1,0 +1,10 @@
+{
+  "name": "lilsmoke-port-converter",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MPL-2.0",
+  "author": "Jos\u00e9 Pilas",
+  "engines": { "node": ">=20" },
+  "devDependencies": { "playwright": "1.62.1" },
+  "scripts": { "test:browser": "node tests/browser.mjs" }
+}

@@ -1,0 +1,34 @@
+From: LilSmokeOS <dev@lilsmoke.local>
+Subject: [PATCH] direct: pop the cleanup handler when joined during startup
+
+direct_thread_main can return immediately after initialization if its creator
+has already started joining it. That return bypasses pthread_cleanup_pop and
+leaves musl's cancellation-cleanup chain pointing into the returned stack frame.
+Use the common cleanup path for this case as well as a normal thread return.
+
+Signed-off-by: LilSmokeOS <dev@lilsmoke.local>
+---
+ lib/direct/os/linux/glibc/thread.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/direct/os/linux/glibc/thread.c b/lib/direct/os/linux/glibc/thread.c
+--- a/lib/direct/os/linux/glibc/thread.c
++++ b/lib/direct/os/linux/glibc/thread.c
+@@ -471,7 +471,8 @@ direct_thread_main( void *arg )
+ 
+      if (thread->joining) {
+           D_DEBUG_AT( Direct_Thread, "  -> Being joined before entering main routine!\n" );
+-          return NULL;
++          ret = NULL;
++          goto cleanup;
+      }
+ 
+      D_MAGIC_ASSERT( thread, DirectThread );
+@@ -488,6 +489,7 @@ direct_thread_main( void *arg )
+ 
+      D_MAGIC_ASSERT( thread, DirectThread );
+ 
++cleanup:
+      pthread_cleanup_pop( 1 );
+ 
+      return ret;

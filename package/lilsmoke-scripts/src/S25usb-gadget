@@ -1,0 +1,31 @@
+#!/bin/sh
+# BusyBox init wrapper for the capability-gated USB OTG service.
+
+HELPER=/usr/lib/lilsmoke/lilsmoke-usb
+
+case "$1" in
+    start)
+        [ -x "$HELPER" ] || exit 0
+        "$HELPER" apply || {
+            rc=$?
+            # No UDC is normal on QEMU, host-only ports, and unsupported boards.
+            [ "$rc" -eq 2 ] || exit "$rc"
+        }
+        ;;
+    stop)
+        [ ! -x "$HELPER" ] || "$HELPER" stop || true
+        ;;
+    restart)
+        "$0" stop
+        "$0" start
+        ;;
+    status)
+        [ -x "$HELPER" ] && "$HELPER" status
+        ;;
+    *)
+        echo "usage: $0 {start|stop|restart|status}" >&2
+        exit 64
+        ;;
+esac
+exit 0
+

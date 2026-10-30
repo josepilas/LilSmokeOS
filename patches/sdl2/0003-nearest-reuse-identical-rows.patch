@@ -1,0 +1,96 @@
+From: LilSmokeOS developers
+Subject: [PATCH] video: reuse identical nearest-neighbor rows on enlargement
+
+Copy only active destination pixels, preserving padding and borders. Disable
+reuse for overlapping source/destination spans and for downscaling. No
+allocation, color-depth reduction or change to sampling coordinates.
+
+--- a/src/video/SDL_stretch.c
++++ b/src/video/SDL_stretch.c
+@@ -826,6 +826,8 @@ int SDL_LowerSoftStretchLinear(SDL_Surface *s, const SDL_Rect *srcrect,
+ 
+ #define SDL_SCALE_NEAREST__START       \
+     int i;                             \
++    int previous_srcy = -1;           \
++    Uint8 *previous_row = NULL;       \
+     Uint32 posy, incy;                 \
+     Uint32 posx, incx;                 \
+     int dst_gap;                       \
+@@ -838,13 +840,20 @@ int SDL_LowerSoftStretchLinear(SDL_Surface *s, const SDL_Rect *srcrect,
+ 
+ #define SDL_SCALE_NEAREST__HEIGHT                                         \
+     srcy = (posy >> 16);                                                  \
+-    src_h0 = (const Uint32 *)((const Uint8 *)src_ptr + srcy * src_pitch); \
+     posy += incy;                                                         \
++    if (copy_rows && srcy == previous_srcy) {                             \
++        SDL_memcpy(dst, previous_row, bpp * dst_w);                       \
++        dst = (Uint32 *)((Uint8 *)dst + dst_pitch);                       \
++        continue;                                                        \
++    }                                                                    \
++    previous_srcy = srcy;                                                 \
++    previous_row = (Uint8 *)dst;                                         \
++    src_h0 = (const Uint32 *)((const Uint8 *)src_ptr + srcy * src_pitch);   \
+     posx = incx / 2;                                                      \
+     n = dst_w;
+ 
+ static int scale_mat_nearest_1(const Uint32 *src_ptr, int src_w, int src_h, int src_pitch,
+-                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch)
++                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch, SDL_bool copy_rows)
+ {
+     Uint32 bpp = 1;
+     SDL_SCALE_NEAREST__START
+@@ -864,7 +873,7 @@ static int scale_mat_nearest_1(const Uint32 *src_ptr, int src_w, int src_h, int
+ }
+ 
+ static int scale_mat_nearest_2(const Uint32 *src_ptr, int src_w, int src_h, int src_pitch,
+-                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch)
++                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch, SDL_bool copy_rows)
+ {
+     Uint32 bpp = 2;
+     SDL_SCALE_NEAREST__START
+@@ -884,7 +893,7 @@ static int scale_mat_nearest_2(const Uint32 *src_ptr, int src_w, int src_h, int
+ }
+ 
+ static int scale_mat_nearest_3(const Uint32 *src_ptr, int src_w, int src_h, int src_pitch,
+-                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch)
++                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch, SDL_bool copy_rows)
+ {
+     Uint32 bpp = 3;
+     SDL_SCALE_NEAREST__START
+@@ -906,7 +915,7 @@ static int scale_mat_nearest_3(const Uint32 *src_ptr, int src_w, int src_h, int
+ }
+ 
+ static int scale_mat_nearest_4(const Uint32 *src_ptr, int src_w, int src_h, int src_pitch,
+-                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch)
++                               Uint32 *dst, int dst_w, int dst_h, int dst_pitch, SDL_bool copy_rows)
+ {
+     Uint32 bpp = 4;
+     SDL_SCALE_NEAREST__START
+@@ -939,15 +948,24 @@ int SDL_LowerSoftStretchNearest(SDL_Surface *s, const SDL_Rect *srcrect,
+ 
+     Uint32 *src = (Uint32 *)((Uint8 *)s->pixels + srcrect->x * bpp + srcrect->y * src_pitch);
+     Uint32 *dst = (Uint32 *)((Uint8 *)d->pixels + dstrect->x * bpp + dstrect->y * dst_pitch);
++    size_t src_span = (size_t)(src_h - 1) * src_pitch + (size_t)src_w * bpp;
++    size_t dst_span = (size_t)(dst_h - 1) * dst_pitch + (size_t)dst_w * bpp;
++    uintptr_t src_address = (uintptr_t)src;
++    uintptr_t dst_address = (uintptr_t)dst;
++    /* LilSmoke: repeated nearest-neighbor rows are identical. Only reuse
++     * them for enlargement when source/destination ranges cannot alias. */
++    SDL_bool copy_rows = (dst_h > src_h &&
++        (src_address < dst_address ? dst_address - src_address >= src_span :
++                                     src_address - dst_address >= dst_span)) ? SDL_TRUE : SDL_FALSE;
+ 
+     if (bpp == 4) {
+-        return scale_mat_nearest_4(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch);
++        return scale_mat_nearest_4(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch, copy_rows);
+     } else if (bpp == 3) {
+-        return scale_mat_nearest_3(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch);
++        return scale_mat_nearest_3(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch, copy_rows);
+     } else if (bpp == 2) {
+-        return scale_mat_nearest_2(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch);
++        return scale_mat_nearest_2(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch, copy_rows);
+     } else {
+-        return scale_mat_nearest_1(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch);
++        return scale_mat_nearest_1(src, src_w, src_h, src_pitch, dst, dst_w, dst_h, dst_pitch, copy_rows);
+     }
+ }

@@ -1,0 +1,99 @@
+#!/bin/sh
+# Read-only hardware inventory for HC16xx bring-up and compatibility reports.
+
+set -u
+umask 077
+
+OUTPUT="${1:--}"
+
+section() {
+    printf '\n== %s ==\n' "$1"
+}
+
+show_file() {
+    label="$1"
+    path="$2"
+    [ -r "$path" ] || return 0
+    printf '%s: ' "$label"
+    tr '\000' ' ' < "$path"
+    printf '\n'
+}
+
+show_glob_files() {
+    pattern="$1"
+    for path in $pattern; do
+        [ -r "$path" ] || continue
+        printf '%s=' "$path"
+        tr '\000' ' ' < "$path"
+        printf '\n'
+    done
+}
+
+probe() {
+    printf 'LilSmokeOS hardware probe\n'
+    printf 'generated_utc=%s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo unknown)"
+
+    section "Kernel"
+    uname -a 2>/dev/null || true
+    show_file model /proc/device-tree/model
+    show_file compatible /proc/device-tree/compatible
+    show_file cmdline /proc/cmdline
+
+    section "CPU"
+    cat /proc/cpuinfo 2>/dev/null || true
+    show_glob_files '/sys/devices/system/cpu/cpu*/cpufreq/scaling_*_freq'
+    show_glob_files '/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor'
+    show_glob_files '/sys/devices/system/cpu/cpu*/cpufreq/scaling_available_frequencies'
+
+    section "Memory"
+    grep -E '^(MemTotal|MemFree|MemAvailable|SwapTotal|SwapFree|CmaTotal|CmaFree):' \
+        /proc/meminfo 2>/dev/null || true
+    cat /proc/swaps 2>/dev/null || true
+
+    section "Framebuffer"
+    ls -l /dev/fb* 2>/dev/null || true
+    show_glob_files '/sys/class/graphics/fb*/name'
+    show_glob_files '/sys/class/graphics/fb*/virtual_size'
+    show_glob_files '/sys/class/graphics/fb*/bits_per_pixel'
+    if command -v fbset >/dev/null 2>&1; then
+        fbset -i 2>/dev/null || true
+    fi
+
+    section "Input"
+    cat /proc/bus/input/devices 2>/dev/null || true
+    ls -l /dev/input/event* 2>/dev/null || true
+
+    section "Audio"
+    cat /proc/asound/cards 2>/dev/null || true
+    cat /proc/asound/pcm 2>/dev/null || true
+    ls -l /dev/snd /dev/dsp 2>/dev/null || true
+
+    section "Storage"
+    cat /proc/partitions 2>/dev/null || true
+    cat /proc/mounts 2>/dev/null || true
+
+    section "Thermal and power"
+    show_glob_files '/sys/class/thermal/thermal_zone*/type'
+    show_glob_files '/sys/class/thermal/thermal_zone*/temp'
+    show_glob_files '/sys/class/power_supply/*/type'
+    show_glob_files '/sys/class/power_supply/*/capacity'
+    show_glob_files '/sys/class/backlight/*/brightness'
+    show_glob_files '/sys/class/backlight/*/max_brightness'
+
+    section "Relevant kernel log"
+    dmesg 2>/dev/null | grep -Ei \
+        'cpu|mips|memory|hichip|hc16|framebuffer|fb0|display|audio|alsa|input|mmc|thermal|usb' \
+        || true
+}
+
+if [ "$OUTPUT" = "-" ]; then
+    probe
+else
+    output_dir="$(dirname "$OUTPUT")"
+    mkdir -p "$output_dir" || {
+        echo "lilsmoke-hardware-probe: cannot create $output_dir" >&2
+        exit 1
+    }
+    probe > "$OUTPUT" || exit $?
+    echo "$OUTPUT"
+fi

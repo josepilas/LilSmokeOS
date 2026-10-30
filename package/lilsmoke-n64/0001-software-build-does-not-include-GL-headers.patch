@@ -1,0 +1,16 @@
+From: LilSmokeOS developers
+Subject: [PATCH] libretro: keep the no-GL stub independent of GL types
+
+The stub only needs the state enum. glsm.h includes GL/gl.h even in a
+software-only build. No graphics implementation is added by this change.
+
+--- a/libretro/libretro.c
++++ b/libretro/libretro.c
+@@ -74,6 +74,6 @@
+  * rglgen pulls in on iOS are ES ones that do not carry them. glsm.h alone is
+  * enough here - the stub needs the enum and nothing else. */
+-#include <glsm/glsm.h>
++#include <glsm/glsm_state_ctl.h>
+ bool glsm_ctl(enum glsm_state_ctl state, void *data) { return false; }
+ #endif
+ 

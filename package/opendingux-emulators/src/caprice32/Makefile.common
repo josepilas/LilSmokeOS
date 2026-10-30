@@ -1,0 +1,61 @@
+DEPS = $(CORE_DIR)/utils \
+	/libretro/db/entries.h
+
+LIBRETRO_COMM_DIR := $(CORE_DIR)/libretro-common
+
+INCFLAGS := \
+	-I$(CORE_DIR) \
+	-I$(CORE_DIR)/cap32 \
+	-I$(CORE_DIR)/libretro  \
+	-I$(CORE_DIR)/libretro/microui \
+	-I$(LIBRETRO_COMM_DIR)/include
+
+SOURCES_C := \
+	$(CORE_DIR)/libretro/libretro-core.c \
+	$(CORE_DIR)/cap32/cap32.c \
+	$(CORE_DIR)/cap32/slots.c \
+	$(CORE_DIR)/cap32/crtc.c \
+	$(CORE_DIR)/cap32/fdc.c \
+	$(CORE_DIR)/cap32/psg.c \
+	$(CORE_DIR)/cap32/tape.c \
+	$(CORE_DIR)/cap32/cart.c \
+	$(CORE_DIR)/cap32/asic.c \
+	$(CORE_DIR)/cap32/z80.c \
+	$(CORE_DIR)/cap32/kbdauto.c \
+	$(CORE_DIR)/cap32/lightgun/gunstick.c \
+	$(CORE_DIR)/cap32/lightgun/phaser.c \
+	$(CORE_DIR)/libretro/microui/microui.c \
+	$(CORE_DIR)/libretro/db/database.c \
+	$(CORE_DIR)/libretro/dsk/loader.c \
+	$(CORE_DIR)/libretro/dsk/format.c \
+	$(CORE_DIR)/libretro/dsk/amsdos_catalog.c \
+	$(CORE_DIR)/libretro/gfx/software.c \
+	$(CORE_DIR)/libretro/gfx/video.c \
+	$(CORE_DIR)/libretro/gfx/video8bpp.c \
+	$(CORE_DIR)/libretro/gfx/video16bpp.c \
+	$(CORE_DIR)/libretro/gfx/video24bpp.c \
+	$(CORE_DIR)/libretro/assets/ui_keyboard_bg_crop.c \
+	$(CORE_DIR)/libretro/assets/ui_keyboard_bg.c \
+	$(CORE_DIR)/libretro/assets/ui_keyboard_en.c \
+	$(CORE_DIR)/libretro/assets/ui_keyboard_es.c \
+	$(CORE_DIR)/libretro/assets/ui_keyboard_fr.c \
+	$(CORE_DIR)/libretro/assets/font.c \
+	$(CORE_DIR)/libretro/retro_strings.c \
+	$(CORE_DIR)/libretro/retro_utils.c \
+	$(CORE_DIR)/libretro/retro_disk_control.c \
+	$(CORE_DIR)/libretro/retro_events.c \
+	$(CORE_DIR)/libretro/retro_snd.c \
+	$(CORE_DIR)/libretro/retro_render.c \
+	$(CORE_DIR)/libretro/retro_ui.c \
+	$(CORE_DIR)/libretro/retro_gun.c \
+	$(CORE_DIR)/libretro/retro_keyboard.c
+
+ifneq ($(STATIC_LINKING), 1)
+SOURCES_C += \
+	$(LIBRETRO_COMM_DIR)/file/file_path.c \
+	$(LIBRETRO_COMM_DIR)/string/stdstring.c \
+	$(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+	$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
+	$(LIBRETRO_COMM_DIR)/time/rtime.c \
+	$(LIBRETRO_COMM_DIR)/memmap/memalign.c
+endif

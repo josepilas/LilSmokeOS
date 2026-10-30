@@ -1,0 +1,10 @@
+include makefile.odx
+.DEFAULT_GOAL := all
+override CC := $(OD_CC)
+override CPP := $(OD_CXX) -std=gnu++98 -fpermissive
+override LD := $(OD_CXX)
+override CFLAGS := $(OD_FLAGS) -Isrc -Isrc/odx -Isrc/zlib -I$(OD_SYSROOT)/usr/include/SDL -D_GCW0_ -D_GNU_SOURCE -fcommon -fno-strict-aliasing
+override LDFLAGS := -L$(OD_SYSROOT)/usr/lib -Wl,-rpath-link,$(OD_SYSROOT)/usr/lib
+override LIBS := -lSDL -pthread -lm
+$(OBJ)/cpu/fame/famec.o: override CFLAGS += -O1 -fno-expensive-optimizations
+$(OSOBJS) $(FEOBJS): $(OD_PACKAGE)/Makefile.mame4all

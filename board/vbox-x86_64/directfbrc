@@ -1,0 +1,44 @@
+# LilSmokeOS — DirectFB config for VirtualBox x86_64
+#
+# VirtualBox provides a VESA framebuffer at /dev/fb0 (640x480x32 by
+# default when the kernel was booted with vga=785). DirectFB talks to
+# it directly — no GPU acceleration is available, but the x86_64 host
+# is fast enough that software blits at 640x480 are well within frame
+# budget.
+#
+# Unlike the MIPS targets, we *do* enable MMX and SSE on x86_64 —
+# DirectFB has hand-written SIMD blitters that give a meaningful
+# speedup for alpha blending and color-space conversion.
+
+# System options
+no-hardware              # No GPU acceleration available in VBox
+no-sighandler            # We don't want DirectFB to trap signals
+quiet                    # Less verbose log
+vt                       # Own raw keyboard mode on the current terminal
+no-vt-switch             # Do not allocate/switch to another terminal
+no-vt-switching           # Game key chords must not switch Linux consoles
+
+# Driver selection
+fbdev=/dev/fb0           # Framebuffer device (VESA fbdev)
+mode=640x480
+depth=32                 # BGRA (matches VESA mode 788 / DirectFB default)
+pixelformat=ARGB
+
+# Buffering
+backbuffer               # Use a backbuffer (so we don't tear on flip)
+vsync-after              # Sync to vblank
+
+# SDL2/DirectFB receives evdev events, not translated console bytes.
+disable-module=keyboard
+linux-input-force
+
+# Font path
+font-dir=/usr/share/fonts/dejavu
+
+# Max surface cache (cover art pre-rendering)
+surface-cache-size=8388608
+
+# SIMD acceleration — x86_64 only. MIPS targets leave these off.
+mmx=on
+sse=on
+mmx2=on

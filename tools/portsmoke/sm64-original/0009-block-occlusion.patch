@@ -1,0 +1,1293 @@
+--- a/src/pc/gfx/gfx_soft.c
++++ b/src/pc/gfx/gfx_soft.c
+@@ -851,6 +851,17 @@
+ 
+ /* A block endpoint is the next block's exact start. Retain the converted
+  * values instead of repeating perspective division and conversion. */
++/* Reject only when every sample fails the existing <= depth test. The
++ * depth increment, integer truncation and equality rule are unchanged. A
++ * visible block exits on its first passing sample; no auxiliary Z hierarchy,
++ * allocation, draw reordering or approximate depth bound is needed. */
++static inline bool opt_span_visible(const uint16_t *zb, int count, int zz, int dz) {
++    if (!z_test) return true;
++    for (int k = 0; k < count; ++k, zz += dz)
++        if ((uint16_t)zz <= zb[k]) return true;
++    return false;
++}
++
+ /* --- opaque textured (tex_rgb): v3 path, unchanged --- */
+ static void opt_scan_tex_rgb(opt_pix_t *dst, uint16_t *zb, int n,
+         float *p, const Vector2 *dp, const struct Texture * const tex) {
+@@ -892,39 +903,44 @@
+         const int db = opt_span_div(bb1 - bb, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                uint32_t tc;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    const int fx = (uu >> 8) & 0xFF, fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    const uint32_t c00 = tpix[yb * tex->w + xb];
+-                    const uint32_t c10 = tpix[yb * tex->w + xn];
+-                    const uint32_t c01 = tpix[yn * tex->w + xb];
+-                    const uint32_t c11 = tpix[yn * tex->w + xn];
+-                    uint32_t out = 0xFF000000u;
+-                    for (uint32_t ch = 0; ch < 3; ++ch) {
+-                        const uint32_t sh = ch * 8;
+-                        const int t = (int)((c00 >> sh) & 0xFF) * (256 - fx) + (int)((c10 >> sh) & 0xFF) * fx;
+-                        const int b = (int)((c01 >> sh) & 0xFF) * (256 - fx) + (int)((c11 >> sh) & 0xFF) * fx;
+-                        out |= ((uint32_t)((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8)) << sh);
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    uint32_t tc;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        const int fx = (uu >> 8) & 0xFF, fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        const uint32_t c00 = tpix[yb * tex->w + xb];
++                        const uint32_t c10 = tpix[yb * tex->w + xn];
++                        const uint32_t c01 = tpix[yn * tex->w + xb];
++                        const uint32_t c11 = tpix[yn * tex->w + xn];
++                        uint32_t out = 0xFF000000u;
++                        for (uint32_t ch = 0; ch < 3; ++ch) {
++                            const uint32_t sh = ch * 8;
++                            const int t = (int)((c00 >> sh) & 0xFF) * (256 - fx) + (int)((c10 >> sh) & 0xFF) * fx;
++                            const int b = (int)((c01 >> sh) & 0xFF) * (256 - fx) + (int)((c11 >> sh) & 0xFF) * fx;
++                            out |= ((uint32_t)((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8)) << sh);
++                        }
++                        tc = out;
++                    } else {
++                        tc = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+                     }
+-                    tc = out;
+-                } else {
+-                    tc = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                    const int tr = (tc & 0xFF) * rr;
++                    const int tg = ((tc >> 8) & 0xFF) * gg;
++                    const int tb = ((tc >> 16) & 0xFF) * bb;
++                    opt_put(dst, (tr + 127) >> 8, (tg + 127) >> 8, (tb + 127) >> 8);
++                    if (z_write) *zb = (uint16_t)zz;
+                 }
+-                const int tr = (tc & 0xFF) * rr;
+-                const int tg = ((tc >> 8) & 0xFF) * gg;
+-                const int tb = ((tc >> 16) & 0xFF) * bb;
+-                opt_put(dst, (tr + 127) >> 8, (tg + 127) >> 8, (tb + 127) >> 8);
+-                if (z_write) *zb = (uint16_t)zz;
++                ++dst; ++zb;
++                uu += du; vv += dv;
++                rr += dr; gg += dg; bb += db;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv;
+-            rr += dr; gg += dg; bb += db;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 9; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -989,88 +1005,93 @@
+         const int da = opt_span_div(aa1 - aa, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                /* OPTIMIZATION (v11): alpha-first early-out for blend/edge
+-                 * shaders (masks, overlays cover the whole screen but are
+-                 * mostly transparent). Compute the alpha channel first
+-                 * (1-channel bilinear), reject transparent pixels, and only
+-                 * pay the 3-channel bilinear + modulate + dst blend for
+-                 * pixels that are actually written. Same visible result:
+-                 * blend with sa==0 writes dst back unchanged, edge below
+-                 * threshold writes nothing (original draw_pixel_* behavior).
+-                 */
+-                uint32_t c00, c10, c01, c11;
+-                int fx, fy;
+-                int ta;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    c00 = tpix[yb * tex->w + xb];
+-                    c10 = tpix[yb * tex->w + xn];
+-                    c01 = tpix[yn * tex->w + xb];
+-                    c11 = tpix[yn * tex->w + xn];
+-                    const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
+-                    const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
+-                    ta = (((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8)) * aa + 127) >> 8;
+-                } else {
+-                    fx = 0; fy = 0;
+-                    c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+-                    c10 = c01 = c11 = c00;
+-                    ta = ((int)((c00 >> 24) & 0xFF) * aa + 127) >> 8;
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    /* OPTIMIZATION (v11): alpha-first early-out for blend/edge
++                     * shaders (masks, overlays cover the whole screen but are
++                     * mostly transparent). Compute the alpha channel first
++                     * (1-channel bilinear), reject transparent pixels, and only
++                     * pay the 3-channel bilinear + modulate + dst blend for
++                     * pixels that are actually written. Same visible result:
++                     * blend with sa==0 writes dst back unchanged, edge below
++                     * threshold writes nothing (original draw_pixel_* behavior).
++                     */
++                    uint32_t c00, c10, c01, c11;
++                    int fx, fy;
++                    int ta;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        c00 = tpix[yb * tex->w + xb];
++                        c10 = tpix[yb * tex->w + xn];
++                        c01 = tpix[yn * tex->w + xb];
++                        c11 = tpix[yn * tex->w + xn];
++                        const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
++                        const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
++                        ta = (((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8)) * aa + 127) >> 8;
++                    } else {
++                        fx = 0; fy = 0;
++                        c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                        c10 = c01 = c11 = c00;
++                        ta = ((int)((c00 >> 24) & 0xFF) * aa + 127) >> 8;
++                    }
++                    if (do_edge && ta <= 0x80) {
++                        // below the edge threshold: nothing written at all
++                    } else if (!do_blend) {
++                        // opaque write (draw_pixel / draw_pixel_zwrite)
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        opt_put(dst, (tr * rr + 127) >> 8, (tg * gg + 127) >> 8, (tb * bb + 127) >> 8);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (ta == 0) {
++                        // blend with 0 alpha: the color write is a no-op,
++                        // keep only the z write of draw_pixel_blend_zwrite
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else {
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        const int sr = (tr * rr + 127) >> 8;
++                        const int sg = (tg * gg + 127) >> 8;
++                        const int sb = (tb * bb + 127) >> 8;
++                        if (ta >= 255) {
++                            opt_put(dst, sr, sg, sb);
++                        } else {
++                            int dr_, dg_, db_;
++                            opt_get(dst, &dr_, &dg_, &db_);
++                            const int ia = 255 - ta;
++                            const int orr = (sr * ta + dr_ * ia + 127) >> 8;
++                            const int og = (sg * ta + dg_ * ia + 127) >> 8;
++                            const int ob = (sb * ta + db_ * ia + 127) >> 8;
++                            opt_put(dst, orr, og, ob);
++                        }
++                        if (z_write) *zb = (uint16_t)zz;
++                    }
+                 }
+-                if (do_edge && ta <= 0x80) {
+-                    // below the edge threshold: nothing written at all
+-                } else if (!do_blend) {
+-                    // opaque write (draw_pixel / draw_pixel_zwrite)
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    opt_put(dst, (tr * rr + 127) >> 8, (tg * gg + 127) >> 8, (tb * bb + 127) >> 8);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (ta == 0) {
+-                    // blend with 0 alpha: the color write is a no-op,
+-                    // keep only the z write of draw_pixel_blend_zwrite
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else {
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    const int sr = (tr * rr + 127) >> 8;
+-                    const int sg = (tg * gg + 127) >> 8;
+-                    const int sb = (tb * bb + 127) >> 8;
+-                    if (ta >= 255) {
+-                        opt_put(dst, sr, sg, sb);
+-                    } else {
+-                        int dr_, dg_, db_;
+-                        opt_get(dst, &dr_, &dg_, &db_);
+-                        const int ia = 255 - ta;
+-                        const int orr = (sr * ta + dr_ * ia + 127) >> 8;
+-                        const int og = (sg * ta + dg_ * ia + 127) >> 8;
+-                        const int ob = (sb * ta + db_ * ia + 127) >> 8;
+-                        opt_put(dst, orr, og, ob);
+-                    }
+-                    if (z_write) *zb = (uint16_t)zz;
+-                }
++                ++dst; ++zb;
++                uu += du; vv += dv;
++                rr += dr; gg += dg; bb += db; aa += da;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv;
+-            rr += dr; gg += dg; bb += db; aa += da;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 10; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -1120,29 +1141,34 @@
+         const int da = opt_span_div(aa1 - aa, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                if (!do_blend) {
+-                    opt_put(dst, rr, gg, bb);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (!do_edge || aa > 0x80) {
+-                    if (aa >= 255) {
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    if (!do_blend) {
+                         opt_put(dst, rr, gg, bb);
+-                    } else if (aa > 0) {
+-                        int dr_, dg_, db_;
+-                        opt_get(dst, &dr_, &dg_, &db_);
+-                        const int ia = 255 - aa;
+-                        const int orr = (rr * aa + dr_ * ia + 127) >> 8;
+-                        const int og = (gg * aa + dg_ * ia + 127) >> 8;
+-                        const int ob = (bb * aa + db_ * ia + 127) >> 8;
+-                        opt_put(dst, orr, og, ob);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (!do_edge || aa > 0x80) {
++                        if (aa >= 255) {
++                            opt_put(dst, rr, gg, bb);
++                        } else if (aa > 0) {
++                            int dr_, dg_, db_;
++                            opt_get(dst, &dr_, &dg_, &db_);
++                            const int ia = 255 - aa;
++                            const int orr = (rr * aa + dr_ * ia + 127) >> 8;
++                            const int og = (gg * aa + dg_ * ia + 127) >> 8;
++                            const int ob = (bb * aa + db_ * ia + 127) >> 8;
++                            opt_put(dst, orr, og, ob);
++                        }
++                        if (z_write) *zb = (uint16_t)zz;
+                     }
+-                    if (z_write) *zb = (uint16_t)zz;
+                 }
++                ++dst; ++zb;
++                rr += dr; gg += dg; bb += db; aa += da;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            rr += dr; gg += dg; bb += db; aa += da;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 8; ++i) p[i] = q[i];
+         rr = rr1;
+@@ -1182,14 +1208,19 @@
+         const int db = opt_span_div(bb1 - bb, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                opt_put(dst, rr, gg, bb);
+-                if (z_write) *zb = (uint16_t)zz;
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    opt_put(dst, rr, gg, bb);
++                    if (z_write) *zb = (uint16_t)zz;
++                }
++                ++dst; ++zb;
++                rr += dr; gg += dg; bb += db;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            rr += dr; gg += dg; bb += db;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 7; ++i) p[i] = q[i];
+         rr = rr1;
+@@ -1245,25 +1276,30 @@
+         const int db = opt_span_div(bb1 - bb, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
+-                const int ia = 255 - ff;
+-                // FIX(v9.5): the fog blend was INVERTED (ff*c + ia*fog):
+-                // at fog=0 pixels got pure fog_color and at fog=255 pure
+-                // color -> every tex_fog surface (fences, iron bars...)
+-                // was uniformly gray regardless of distance. Correct
+-                // direction, matching rgba_blend(fog_color, c, fog):
+-                // out = fog*fog_color + (255-fog)*color.
+-                opt_put(dst,
+-                    (ia * rr + ff * fcr + 127) >> 8,
+-                    (ia * gg + ff * fcg + 127) >> 8,
+-                    (ia * bb + ff * fcb + 127) >> 8);
+-                if (z_write) *zb = (uint16_t)zz;
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
++                    const int ia = 255 - ff;
++                    // FIX(v9.5): the fog blend was INVERTED (ff*c + ia*fog):
++                    // at fog=0 pixels got pure fog_color and at fog=255 pure
++                    // color -> every tex_fog surface (fences, iron bars...)
++                    // was uniformly gray regardless of distance. Correct
++                    // direction, matching rgba_blend(fog_color, c, fog):
++                    // out = fog*fog_color + (255-fog)*color.
++                    opt_put(dst,
++                        (ia * rr + ff * fcr + 127) >> 8,
++                        (ia * gg + ff * fcg + 127) >> 8,
++                        (ia * bb + ff * fcb + 127) >> 8);
++                    if (z_write) *zb = (uint16_t)zz;
++                }
++                ++dst; ++zb;
++                ff += df; rr += dr; gg += dg; bb += db;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            ff += df; rr += dr; gg += dg; bb += db;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 8; ++i) p[i] = q[i];
+         ff = ff1;
+@@ -1317,82 +1353,87 @@
+         const int df = opt_span_div(ff1 - ff, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                /* OPTIMIZATION (v11): alpha-first early-out (see
+-                 * opt_scan_tex_rgba): texture-edge shaders (masks, sky edge
+-                 * quads) are mostly transparent. Compute the alpha channel
+-                 * first (1-channel bilinear), reject transparent pixels, and
+-                 * only pay the 3-channel bilinear + fog blend for pixels that
+-                 * are actually written. Source alpha = texel alpha (fog only
+-                 * affects RGB, see v9.2). */
+-                uint32_t c00, c10, c01, c11;
+-                int fx, fy;
+-                int ta;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    c00 = tpix[yb * tex->w + xb];
+-                    c10 = tpix[yb * tex->w + xn];
+-                    c01 = tpix[yn * tex->w + xb];
+-                    c11 = tpix[yn * tex->w + xn];
+-                    const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
+-                    const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
+-                    ta = ((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8;
+-                } else {
+-                    fx = 0; fy = 0;
+-                    c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+-                    c10 = c01 = c11 = c00;
+-                    ta = (int)((c00 >> 24) & 0xFF);
+-                }
+-                if (do_edge && ta <= 0x80) {
+-                    // below the edge threshold: nothing written at all
+-                } else {
+-                    if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
+-                    const int ia = 255 - ff;
+-                    // fogged RGB (fog applies to color only, never alpha)
+-                    // FIX(v9.5): fog blend direction (was inverted, see
+-                    // opt_scan_fog_rgb): out = fog*fog_color + (255-fog)*texel
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    const int fr = (ia * tr + ff * fcr + 127) >> 8;
+-                    const int fg = (ia * tg + ff * fcg + 127) >> 8;
+-                    const int fb = (ia * tb + ff * fcb + 127) >> 8;
+-                    if (!do_blend) {
+-                        opt_put(dst, fr, fg, fb);
+-                        if (z_write) *zb = (uint16_t)zz;
+-                    } else if (ta == 0) {
+-                        // blend with 0 alpha: the color write is a no-op,
+-                        // keep only the z write (draw_pixel_blend_zwrite)
+-                        if (z_write) *zb = (uint16_t)zz;
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    /* OPTIMIZATION (v11): alpha-first early-out (see
++                     * opt_scan_tex_rgba): texture-edge shaders (masks, sky edge
++                     * quads) are mostly transparent. Compute the alpha channel
++                     * first (1-channel bilinear), reject transparent pixels, and
++                     * only pay the 3-channel bilinear + fog blend for pixels that
++                     * are actually written. Source alpha = texel alpha (fog only
++                     * affects RGB, see v9.2). */
++                    uint32_t c00, c10, c01, c11;
++                    int fx, fy;
++                    int ta;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        c00 = tpix[yb * tex->w + xb];
++                        c10 = tpix[yb * tex->w + xn];
++                        c01 = tpix[yn * tex->w + xb];
++                        c11 = tpix[yn * tex->w + xn];
++                        const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
++                        const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
++                        ta = ((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8;
+                     } else {
+-                        if (ta >= 255) {
++                        fx = 0; fy = 0;
++                        c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                        c10 = c01 = c11 = c00;
++                        ta = (int)((c00 >> 24) & 0xFF);
++                    }
++                    if (do_edge && ta <= 0x80) {
++                        // below the edge threshold: nothing written at all
++                    } else {
++                        if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
++                        const int ia = 255 - ff;
++                        // fogged RGB (fog applies to color only, never alpha)
++                        // FIX(v9.5): fog blend direction (was inverted, see
++                        // opt_scan_fog_rgb): out = fog*fog_color + (255-fog)*texel
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        const int fr = (ia * tr + ff * fcr + 127) >> 8;
++                        const int fg = (ia * tg + ff * fcg + 127) >> 8;
++                        const int fb = (ia * tb + ff * fcb + 127) >> 8;
++                        if (!do_blend) {
+                             opt_put(dst, fr, fg, fb);
++                            if (z_write) *zb = (uint16_t)zz;
++                        } else if (ta == 0) {
++                            // blend with 0 alpha: the color write is a no-op,
++                            // keep only the z write (draw_pixel_blend_zwrite)
++                            if (z_write) *zb = (uint16_t)zz;
+                         } else {
+-                            int dr_, dg_, db_;
+-                            opt_get(dst, &dr_, &dg_, &db_);
+-                            const int iat = 255 - ta;
+-                            opt_put(dst,
+-                                (fr * ta + dr_ * iat + 127) >> 8,
+-                                (fg * ta + dg_ * iat + 127) >> 8,
+-                                (fb * ta + db_ * iat + 127) >> 8);
++                            if (ta >= 255) {
++                                opt_put(dst, fr, fg, fb);
++                            } else {
++                                int dr_, dg_, db_;
++                                opt_get(dst, &dr_, &dg_, &db_);
++                                const int iat = 255 - ta;
++                                opt_put(dst,
++                                    (fr * ta + dr_ * iat + 127) >> 8,
++                                    (fg * ta + dg_ * iat + 127) >> 8,
++                                    (fb * ta + db_ * iat + 127) >> 8);
++                            }
++                            if (z_write) *zb = (uint16_t)zz;
+                         }
+-                        if (z_write) *zb = (uint16_t)zz;
+                     }
+                 }
++                ++dst; ++zb;
++                uu += du; vv += dv; ff += df;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv; ff += df;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 7; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -1448,46 +1489,51 @@
+         const int db = opt_span_div(bb1 - bb, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                uint32_t tc;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    const int fx = (uu >> 8) & 0xFF, fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    const uint32_t c00 = tpix[yb * tex->w + xb];
+-                    const uint32_t c10 = tpix[yb * tex->w + xn];
+-                    const uint32_t c01 = tpix[yn * tex->w + xb];
+-                    const uint32_t c11 = tpix[yn * tex->w + xn];
+-                    uint32_t out = 0xFF000000u;
+-                    for (uint32_t ch = 0; ch < 3; ++ch) {
+-                        const uint32_t sh = ch * 8;
+-                        const int t = (int)((c00 >> sh) & 0xFF) * (256 - fx) + (int)((c10 >> sh) & 0xFF) * fx;
+-                        const int b = (int)((c01 >> sh) & 0xFF) * (256 - fx) + (int)((c11 >> sh) & 0xFF) * fx;
+-                        out |= ((uint32_t)((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8)) << sh);
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    uint32_t tc;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        const int fx = (uu >> 8) & 0xFF, fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        const uint32_t c00 = tpix[yb * tex->w + xb];
++                        const uint32_t c10 = tpix[yb * tex->w + xn];
++                        const uint32_t c01 = tpix[yn * tex->w + xb];
++                        const uint32_t c11 = tpix[yn * tex->w + xn];
++                        uint32_t out = 0xFF000000u;
++                        for (uint32_t ch = 0; ch < 3; ++ch) {
++                            const uint32_t sh = ch * 8;
++                            const int t = (int)((c00 >> sh) & 0xFF) * (256 - fx) + (int)((c10 >> sh) & 0xFF) * fx;
++                            const int b = (int)((c01 >> sh) & 0xFF) * (256 - fx) + (int)((c11 >> sh) & 0xFF) * fx;
++                            out |= ((uint32_t)((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8)) << sh);
++                        }
++                        tc = out;
++                    } else {
++                        tc = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+                     }
+-                    tc = out;
+-                } else {
+-                    tc = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                    if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
++                    const int ia = 255 - ff;
++                    const int tr = ((tc & 0xFF) * rr + 127) >> 8;
++                    const int tg = (((tc >> 8) & 0xFF) * gg + 127) >> 8;
++                    const int tb = (((tc >> 16) & 0xFF) * bb + 127) >> 8;
++                    // FIX(v9.5): fog blend direction (was inverted, see
++                    // opt_scan_fog_rgb): out = fog*fog_color + (255-fog)*color
++                    opt_put(dst,
++                        (ia * tr + ff * fcr + 127) >> 8,
++                        (ia * tg + ff * fcg + 127) >> 8,
++                        (ia * tb + ff * fcb + 127) >> 8);
++                    if (z_write) *zb = (uint16_t)zz;
+                 }
+-                if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
+-                const int ia = 255 - ff;
+-                const int tr = ((tc & 0xFF) * rr + 127) >> 8;
+-                const int tg = (((tc >> 8) & 0xFF) * gg + 127) >> 8;
+-                const int tb = (((tc >> 16) & 0xFF) * bb + 127) >> 8;
+-                // FIX(v9.5): fog blend direction (was inverted, see
+-                // opt_scan_fog_rgb): out = fog*fog_color + (255-fog)*color
+-                opt_put(dst,
+-                    (ia * tr + ff * fcr + 127) >> 8,
+-                    (ia * tg + ff * fcg + 127) >> 8,
+-                    (ia * tb + ff * fcb + 127) >> 8);
+-                if (z_write) *zb = (uint16_t)zz;
++                ++dst; ++zb;
++                uu += du; vv += dv; ff += df;
++                rr += dr; gg += dg; bb += db;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv; ff += df;
+-            rr += dr; gg += dg; bb += db;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 10; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -1543,75 +1589,80 @@
+         const int dv = opt_span_div(vv1 - vv, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                /* OPTIMIZATION (v11): alpha-first early-out (see opt_scan_tex_rgba):
+-                 * texture-edge fullscreen quads (masks) are mostly transparent. */
+-                uint32_t c00, c10, c01, c11;
+-                int fx, fy;
+-                int ta;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    c00 = tpix[yb * tex->w + xb];
+-                    c10 = tpix[yb * tex->w + xn];
+-                    c01 = tpix[yn * tex->w + xb];
+-                    c11 = tpix[yn * tex->w + xn];
+-                    const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
+-                    const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
+-                    ta = (((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8);
+-                } else {
+-                    fx = 0; fy = 0;
+-                    c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+-                    c10 = c01 = c11 = c00;
+-                    ta = (int)((c00 >> 24) & 0xFF);
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    /* OPTIMIZATION (v11): alpha-first early-out (see opt_scan_tex_rgba):
++                     * texture-edge fullscreen quads (masks) are mostly transparent. */
++                    uint32_t c00, c10, c01, c11;
++                    int fx, fy;
++                    int ta;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        c00 = tpix[yb * tex->w + xb];
++                        c10 = tpix[yb * tex->w + xn];
++                        c01 = tpix[yn * tex->w + xb];
++                        c11 = tpix[yn * tex->w + xn];
++                        const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
++                        const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
++                        ta = (((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8);
++                    } else {
++                        fx = 0; fy = 0;
++                        c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                        c10 = c01 = c11 = c00;
++                        ta = (int)((c00 >> 24) & 0xFF);
++                    }
++                    if (do_edge && ta <= 0x80) {
++                        // below the edge threshold: nothing written at all
++                    } else if (!do_blend) {
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        opt_put(dst, tr, tg, tb);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (ta == 0) {
++                        // blend with 0 alpha: no-op color write, keep z write
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else {
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        if (ta >= 255) {
++                            opt_put(dst, tr, tg, tb);
++                        } else {
++                            int dr_, dg_, db_;
++                            opt_get(dst, &dr_, &dg_, &db_);
++                            const int ia = 255 - ta;
++                            opt_put(dst,
++                                (tr * ta + dr_ * ia + 127) >> 8,
++                                (tg * ta + dg_ * ia + 127) >> 8,
++                                (tb * ta + db_ * ia + 127) >> 8);
++                        }
++                        if (z_write) *zb = (uint16_t)zz;
++                    }
+                 }
+-                if (do_edge && ta <= 0x80) {
+-                    // below the edge threshold: nothing written at all
+-                } else if (!do_blend) {
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    opt_put(dst, tr, tg, tb);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (ta == 0) {
+-                    // blend with 0 alpha: no-op color write, keep z write
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else {
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    if (ta >= 255) {
+-                        opt_put(dst, tr, tg, tb);
+-                    } else {
+-                        int dr_, dg_, db_;
+-                        opt_get(dst, &dr_, &dg_, &db_);
+-                        const int ia = 255 - ta;
+-                        opt_put(dst,
+-                            (tr * ta + dr_ * ia + 127) >> 8,
+-                            (tg * ta + dg_ * ia + 127) >> 8,
+-                            (tb * ta + db_ * ia + 127) >> 8);
+-                    }
+-                    if (z_write) *zb = (uint16_t)zz;
+-                }
++                ++dst; ++zb;
++                uu += du; vv += dv;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 6; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -1669,78 +1720,83 @@
+         const int db = opt_span_div(bb1 - bb, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                /* OPTIMIZATION (v11): alpha-first early-out, see opt_scan_tex */
+-                uint32_t c00, c10, c01, c11;
+-                int fx, fy;
+-                int ta;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    c00 = tpix[yb * tex->w + xb];
+-                    c10 = tpix[yb * tex->w + xn];
+-                    c01 = tpix[yn * tex->w + xb];
+-                    c11 = tpix[yn * tex->w + xn];
+-                    const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
+-                    const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
+-                    ta = ((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8;
+-                } else {
+-                    fx = 0; fy = 0;
+-                    c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+-                    c10 = c01 = c11 = c00;
+-                    ta = (int)((c00 >> 24) & 0xFF);
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    /* OPTIMIZATION (v11): alpha-first early-out, see opt_scan_tex */
++                    uint32_t c00, c10, c01, c11;
++                    int fx, fy;
++                    int ta;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        c00 = tpix[yb * tex->w + xb];
++                        c10 = tpix[yb * tex->w + xn];
++                        c01 = tpix[yn * tex->w + xb];
++                        c11 = tpix[yn * tex->w + xn];
++                        const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
++                        const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
++                        ta = ((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8;
++                    } else {
++                        fx = 0; fy = 0;
++                        c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                        c10 = c01 = c11 = c00;
++                        ta = (int)((c00 >> 24) & 0xFF);
++                    }
++                    if (do_edge && ta <= 0x80) {
++                        // below the edge threshold: nothing written at all
++                    } else if (!do_blend) {
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        opt_put(dst, (tr * rr + 127) >> 8, (tg * gg + 127) >> 8, (tb * bb + 127) >> 8);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (ta == 0) {
++                        // blend with 0 alpha: no-op color write, keep z write
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else {
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        const int sr = (tr * rr + 127) >> 8;
++                        const int sg = (tg * gg + 127) >> 8;
++                        const int sb = (tb * bb + 127) >> 8;
++                        if (ta >= 255) {
++                            opt_put(dst, sr, sg, sb);
++                        } else {
++                            int dr_, dg_, db_;
++                            opt_get(dst, &dr_, &dg_, &db_);
++                            const int ia = 255 - ta;
++                            opt_put(dst,
++                                (sr * ta + dr_ * ia + 127) >> 8,
++                                (sg * ta + dg_ * ia + 127) >> 8,
++                                (sb * ta + db_ * ia + 127) >> 8);
++                        }
++                        if (z_write) *zb = (uint16_t)zz;
++                    }
+                 }
+-                if (do_edge && ta <= 0x80) {
+-                    // below the edge threshold: nothing written at all
+-                } else if (!do_blend) {
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    opt_put(dst, (tr * rr + 127) >> 8, (tg * gg + 127) >> 8, (tb * bb + 127) >> 8);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (ta == 0) {
+-                    // blend with 0 alpha: no-op color write, keep z write
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else {
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    const int sr = (tr * rr + 127) >> 8;
+-                    const int sg = (tg * gg + 127) >> 8;
+-                    const int sb = (tb * bb + 127) >> 8;
+-                    if (ta >= 255) {
+-                        opt_put(dst, sr, sg, sb);
+-                    } else {
+-                        int dr_, dg_, db_;
+-                        opt_get(dst, &dr_, &dg_, &db_);
+-                        const int ia = 255 - ta;
+-                        opt_put(dst,
+-                            (sr * ta + dr_ * ia + 127) >> 8,
+-                            (sg * ta + dg_ * ia + 127) >> 8,
+-                            (sb * ta + db_ * ia + 127) >> 8);
+-                    }
+-                    if (z_write) *zb = (uint16_t)zz;
+-                }
++                ++dst; ++zb;
++                uu += du; vv += dv;
++                rr += dr; gg += dg; bb += db;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv;
+-            rr += dr; gg += dg; bb += db;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 9; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -1808,89 +1864,94 @@
+         const int da = opt_span_div(aa1 - aa, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                /* OPTIMIZATION (v11): alpha-first early-out (see
+-                 * opt_scan_tex_rgba): translucent fogged geometry is often
+-                 * mostly transparent. ta = texel alpha modulated by the
+-                 * vertex alpha; fog never touches alpha (FIX(v9.2)). */
+-                uint32_t c00, c10, c01, c11;
+-                int fx, fy;
+-                int ta;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    c00 = tpix[yb * tex->w + xb];
+-                    c10 = tpix[yb * tex->w + xn];
+-                    c01 = tpix[yn * tex->w + xb];
+-                    c11 = tpix[yn * tex->w + xn];
+-                    const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
+-                    const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
+-                    ta = ((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8) * aa + 127) >> 8;
+-                } else {
+-                    fx = 0; fy = 0;
+-                    c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
+-                    c10 = c01 = c11 = c00;
+-                    ta = ((int)((c00 >> 24) & 0xFF) * aa + 127) >> 8;
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    /* OPTIMIZATION (v11): alpha-first early-out (see
++                     * opt_scan_tex_rgba): translucent fogged geometry is often
++                     * mostly transparent. ta = texel alpha modulated by the
++                     * vertex alpha; fog never touches alpha (FIX(v9.2)). */
++                    uint32_t c00, c10, c01, c11;
++                    int fx, fy;
++                    int ta;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        fx = (uu >> 8) & 0xFF; fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        c00 = tpix[yb * tex->w + xb];
++                        c10 = tpix[yb * tex->w + xn];
++                        c01 = tpix[yn * tex->w + xb];
++                        c11 = tpix[yn * tex->w + xn];
++                        const int t = (int)((c00 >> 24) & 0xFF) * (256 - fx) + (int)((c10 >> 24) & 0xFF) * fx;
++                        const int b = (int)((c01 >> 24) & 0xFF) * (256 - fx) + (int)((c11 >> 24) & 0xFF) * fx;
++                        ta = ((((t >> 8) * (256 - fy) + (b >> 8) * fy) >> 8) * aa + 127) >> 8;
++                    } else {
++                        fx = 0; fy = 0;
++                        c00 = tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)];
++                        c10 = c01 = c11 = c00;
++                        ta = ((int)((c00 >> 24) & 0xFF) * aa + 127) >> 8;
++                    }
++                    if (do_edge && ta <= 0x80) {
++                        // below the edge threshold: nothing written at all
++                    } else if (!do_blend) {
++                        if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
++                        const int ia = 255 - ff;
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        const int fr = (ia * ((tr * rr + 127) >> 8) + ff * fcr + 127) >> 8;
++                        const int fg = (ia * ((tg * gg + 127) >> 8) + ff * fcg + 127) >> 8;
++                        const int fb = (ia * ((tb * bb + 127) >> 8) + ff * fcb + 127) >> 8;
++                        opt_put(dst, fr, fg, fb);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (ta == 0) {
++                        // blend with 0 alpha: the color write is a no-op,
++                        // keep only the z write (draw_pixel_blend_zwrite)
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else {
++                        if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
++                        const int ia = 255 - ff;
++                        const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
++                        const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
++                        const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
++                        const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
++                        const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
++                        const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
++                        const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
++                        const int fr = (ia * ((tr * rr + 127) >> 8) + ff * fcr + 127) >> 8;
++                        const int fg = (ia * ((tg * gg + 127) >> 8) + ff * fcg + 127) >> 8;
++                        const int fb = (ia * ((tb * bb + 127) >> 8) + ff * fcb + 127) >> 8;
++                        if (ta >= 255) {
++                            opt_put(dst, fr, fg, fb);
++                        } else {
++                            int dr_, dg_, db_;
++                            opt_get(dst, &dr_, &dg_, &db_);
++                            const int iat = 255 - ta;
++                            opt_put(dst,
++                                (fr * ta + dr_ * iat + 127) >> 8,
++                                (fg * ta + dg_ * iat + 127) >> 8,
++                                (fb * ta + db_ * iat + 127) >> 8);
++                        }
++                        if (z_write) *zb = (uint16_t)zz;
++                    }
+                 }
+-                if (do_edge && ta <= 0x80) {
+-                    // below the edge threshold: nothing written at all
+-                } else if (!do_blend) {
+-                    if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
+-                    const int ia = 255 - ff;
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    const int fr = (ia * ((tr * rr + 127) >> 8) + ff * fcr + 127) >> 8;
+-                    const int fg = (ia * ((tg * gg + 127) >> 8) + ff * fcg + 127) >> 8;
+-                    const int fb = (ia * ((tb * bb + 127) >> 8) + ff * fcb + 127) >> 8;
+-                    opt_put(dst, fr, fg, fb);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (ta == 0) {
+-                    // blend with 0 alpha: the color write is a no-op,
+-                    // keep only the z write (draw_pixel_blend_zwrite)
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else {
+-                    if (ff < 0) ff = 0; else if (ff > 255) ff = 255;
+-                    const int ia = 255 - ff;
+-                    const int tr_t = ((int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx) >> 8;
+-                    const int tr_b = ((int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx) >> 8;
+-                    const int tr = bil ? (tr_t * (256 - fy) + tr_b * fy) >> 8 : (int)(c00 & 0xFF);
+-                    const int tg_t = ((int)((c00 >> 8) & 0xFF) * (256 - fx) + (int)((c10 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg_b = ((int)((c01 >> 8) & 0xFF) * (256 - fx) + (int)((c11 >> 8) & 0xFF) * fx) >> 8;
+-                    const int tg = bil ? (tg_t * (256 - fy) + tg_b * fy) >> 8 : (int)((c00 >> 8) & 0xFF);
+-                    const int tb_t = ((int)((c00 >> 16) & 0xFF) * (256 - fx) + (int)((c10 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb_b = ((int)((c01 >> 16) & 0xFF) * (256 - fx) + (int)((c11 >> 16) & 0xFF) * fx) >> 8;
+-                    const int tb = bil ? (tb_t * (256 - fy) + tb_b * fy) >> 8 : (int)((c00 >> 16) & 0xFF);
+-                    const int fr = (ia * ((tr * rr + 127) >> 8) + ff * fcr + 127) >> 8;
+-                    const int fg = (ia * ((tg * gg + 127) >> 8) + ff * fcg + 127) >> 8;
+-                    const int fb = (ia * ((tb * bb + 127) >> 8) + ff * fcb + 127) >> 8;
+-                    if (ta >= 255) {
+-                        opt_put(dst, fr, fg, fb);
+-                    } else {
+-                        int dr_, dg_, db_;
+-                        opt_get(dst, &dr_, &dg_, &db_);
+-                        const int iat = 255 - ta;
+-                        opt_put(dst,
+-                            (fr * ta + dr_ * iat + 127) >> 8,
+-                            (fg * ta + dg_ * iat + 127) >> 8,
+-                            (fb * ta + db_ * iat + 127) >> 8);
+-                    }
+-                    if (z_write) *zb = (uint16_t)zz;
+-                }
++                ++dst; ++zb;
++                uu += du; vv += dv; ff += df;
++                rr += dr; gg += dg; bb += db; aa += da;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv; ff += df;
+-            rr += dr; gg += dg; bb += db; aa += da;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 11; ++i) p[i] = q[i];
+         uu = uu1;
+@@ -1956,39 +2017,44 @@
+         const int d2a = opt_span_div(a22 - a2, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            const int ta = (a1 * a2 + 127) >> 8;
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                if (do_edge && ta <= 0x80) {
+-                    // below the edge threshold: nothing written at all
+-                } else if (!do_blend) {
+-                    opt_put(dst, (r1 * r2 + 127) >> 8, (g1 * g2 + 127) >> 8, (b1 * b2 + 127) >> 8);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (ta == 0) {
+-                    // blend with 0 alpha: no-op color write, keep z write
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else {
+-                    const int sr = (r1 * r2 + 127) >> 8;
+-                    const int sg = (g1 * g2 + 127) >> 8;
+-                    const int sb = (b1 * b2 + 127) >> 8;
+-                    if (ta >= 255) {
+-                        opt_put(dst, sr, sg, sb);
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                const int ta = (a1 * a2 + 127) >> 8;
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    if (do_edge && ta <= 0x80) {
++                        // below the edge threshold: nothing written at all
++                    } else if (!do_blend) {
++                        opt_put(dst, (r1 * r2 + 127) >> 8, (g1 * g2 + 127) >> 8, (b1 * b2 + 127) >> 8);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (ta == 0) {
++                        // blend with 0 alpha: no-op color write, keep z write
++                        if (z_write) *zb = (uint16_t)zz;
+                     } else {
+-                        int dr_, dg_, db_;
+-                        opt_get(dst, &dr_, &dg_, &db_);
+-                        const int ia = 255 - ta;
+-                        opt_put(dst,
+-                            (sr * ta + dr_ * ia + 127) >> 8,
+-                            (sg * ta + dg_ * ia + 127) >> 8,
+-                            (sb * ta + db_ * ia + 127) >> 8);
++                        const int sr = (r1 * r2 + 127) >> 8;
++                        const int sg = (g1 * g2 + 127) >> 8;
++                        const int sb = (b1 * b2 + 127) >> 8;
++                        if (ta >= 255) {
++                            opt_put(dst, sr, sg, sb);
++                        } else {
++                            int dr_, dg_, db_;
++                            opt_get(dst, &dr_, &dg_, &db_);
++                            const int ia = 255 - ta;
++                            opt_put(dst,
++                                (sr * ta + dr_ * ia + 127) >> 8,
++                                (sg * ta + dg_ * ia + 127) >> 8,
++                                (sb * ta + db_ * ia + 127) >> 8);
++                        }
++                        if (z_write) *zb = (uint16_t)zz;
+                     }
+-                    if (z_write) *zb = (uint16_t)zz;
+                 }
++                ++dst; ++zb;
++                r1 += d1r; g1 += d1g; b1 += d1b; a1 += d1a;
++                r2 += d2r; g2 += d2g; b2 += d2b; a2 += d2a;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            r1 += d1r; g1 += d1g; b1 += d1b; a1 += d1a;
+-            r2 += d2r; g2 += d2g; b2 += d2b; a2 += d2a;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 12; ++i) p[i] = q[i];
+         r1 = r12;
+@@ -2062,49 +2128,54 @@
+         const int d2b = opt_span_div(b22 - b2, cnt);
+         const int dz = opt_span_div(zz1 - zz, cnt);
+ 
+-        for (int k = cnt; k; --k) {
+-            if (!z_test || (uint16_t)zz <= *zb) {
+-                // texel red channel only (see combine_tex_rgb_rgb)
+-                int t;
+-                if (bil) {
+-                    const int x0 = uu >> 16, y0 = vv >> 16;
+-                    const int fx = (uu >> 8) & 0xFF, fy = (vv >> 8) & 0xFF;
+-                    const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
+-                    const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
+-                    const uint32_t c00 = tpix[yb * tex->w + xb];
+-                    const uint32_t c10 = tpix[yb * tex->w + xn];
+-                    const uint32_t c01 = tpix[yn * tex->w + xb];
+-                    const uint32_t c11 = tpix[yn * tex->w + xn];
+-                    const int tt = (int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx;
+-                    const int tb_ = (int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx;
+-                    t = ((tt >> 8) * (256 - fy) + (tb_ >> 8) * fy) >> 8;
+-                } else {
+-                    t = (int)(tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)] & 0xFF);
++        if (opt_span_visible(zb, cnt, zz, dz)) {
++            for (int k = cnt; k; --k) {
++                if (!z_test || (uint16_t)zz <= *zb) {
++                    // texel red channel only (see combine_tex_rgb_rgb)
++                    int t;
++                    if (bil) {
++                        const int x0 = uu >> 16, y0 = vv >> 16;
++                        const int fx = (uu >> 8) & 0xFF, fy = (vv >> 8) & 0xFF;
++                        const int xb = opt_wrap(x0, tw, wm_x), yb = opt_wrap(y0, th, wm_y);
++                        const int xn = opt_wrap(x0 + 1, tw, wm_x), yn = opt_wrap(y0 + 1, th, wm_y);
++                        const uint32_t c00 = tpix[yb * tex->w + xb];
++                        const uint32_t c10 = tpix[yb * tex->w + xn];
++                        const uint32_t c01 = tpix[yn * tex->w + xb];
++                        const uint32_t c11 = tpix[yn * tex->w + xn];
++                        const int tt = (int)(c00 & 0xFF) * (256 - fx) + (int)(c10 & 0xFF) * fx;
++                        const int tb_ = (int)(c01 & 0xFF) * (256 - fx) + (int)(c11 & 0xFF) * fx;
++                        t = ((tt >> 8) * (256 - fy) + (tb_ >> 8) * fy) >> 8;
++                    } else {
++                        t = (int)(tpix[opt_wrap(vv >> 16, th, wm_y) * tex->w + opt_wrap(uu >> 16, tw, wm_x)] & 0xFF);
++                    }
++                    // rgba_lerp(cc2, cc1, t): out = cc1 * t + cc2 * (255 - t)
++                    const int ia = 255 - t;
++                    const int orr = (r1 * t + r2 * ia + 127) >> 8;
++                    const int og = (g1 * t + g2 * ia + 127) >> 8;
++                    const int ob = (b1 * t + b2 * ia + 127) >> 8;
++                    if (!do_blend) {
++                        opt_put(dst, orr, og, ob);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else if (do_edge) {
++                        // unreachable in practice (both alphas 0xFF), kept
++                        // for consistency with the other fast paths
++                        opt_put(dst, orr, og, ob);
++                        if (z_write) *zb = (uint16_t)zz;
++                    } else {
++                        // blend with ta == 0xFF: plain write
++                        opt_put(dst, orr, og, ob);
++                        if (z_write) *zb = (uint16_t)zz;
++                    }
+                 }
+-                // rgba_lerp(cc2, cc1, t): out = cc1 * t + cc2 * (255 - t)
+-                const int ia = 255 - t;
+-                const int orr = (r1 * t + r2 * ia + 127) >> 8;
+-                const int og = (g1 * t + g2 * ia + 127) >> 8;
+-                const int ob = (b1 * t + b2 * ia + 127) >> 8;
+-                if (!do_blend) {
+-                    opt_put(dst, orr, og, ob);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else if (do_edge) {
+-                    // unreachable in practice (both alphas 0xFF), kept
+-                    // for consistency with the other fast paths
+-                    opt_put(dst, orr, og, ob);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                } else {
+-                    // blend with ta == 0xFF: plain write
+-                    opt_put(dst, orr, og, ob);
+-                    if (z_write) *zb = (uint16_t)zz;
+-                }
++                ++dst; ++zb;
++                uu += du; vv += dv;
++                r1 += d1r; g1 += d1g; b1 += d1b;
++                r2 += d2r; g2 += d2g; b2 += d2b;
++                zz += dz;
+             }
+-            ++dst; ++zb;
+-            uu += du; vv += dv;
+-            r1 += d1r; g1 += d1g; b1 += d1b;
+-            r2 += d2r; g2 += d2g; b2 += d2b;
+-            zz += dz;
++        } else {
++            dst += cnt;
++            zb += cnt;
+         }
+         for (int i = 2; i < 12; ++i) p[i] = q[i];
+         uu = uu1;

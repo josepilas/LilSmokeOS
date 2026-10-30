@@ -1,0 +1,209 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] PocketSNES: native evdev, latched hotkeys and silent audio
+
+--- a/sal/linux/sal.c
++++ b/sal/linux/sal.c
+@@ -27,13 +27,27 @@
+ 
+ static u32 sal_Input(int held, u32 j)
+ {
++	SDL_Event event;
++	static int quit;
++	unsigned events = 0;
++	if (j >= 2) return 0;
++	SDL_PumpEvents();
++	while (events++ < 64 && SDL_PollEvent(&event))
++		if (event.type == SDL_QUIT) quit = 1;
++	if (quit) return M8_INPUT_EXIT;
++	if (m8_evdev_poll(j, &inputHeld[j]))
++	{
++		mInputRepeat = m8_input_filter(j, inputHeld[j], !held);
++		return mInputRepeat;
++	}
+ 	inputHeld[j] = 0;
+ 
+-	if (SDL_NumJoysticks() > 0) {
++	if ((int)j < SDL_NumJoysticks()) {
+ 		int deadzone = 10000;
+ 		if (joy[j] == NULL) joy[j] = SDL_JoystickOpen(j);
+ 
+ 		SDL_JoystickUpdate();
++		if (joy[j]) {
+ 
+ 		int joy_x = SDL_JoystickGetAxis(joy[j], 0);
+ 		int joy_y = SDL_JoystickGetAxis(joy[j], 1);
+@@ -52,9 +66,12 @@
+ 		if (SDL_JoystickGetButton(joy[j], 5)) inputHeld[j] |= SAL_INPUT_R;
+ 		if (SDL_JoystickGetButton(joy[j], 8)) inputHeld[j] |= SAL_INPUT_SELECT;
+ 		if (SDL_JoystickGetButton(joy[j], 9)) inputHeld[j] |= SAL_INPUT_START;
+-		if (SDL_JoystickGetButton(joy[j], 8) && SDL_JoystickGetButton(joy[j], 9)) inputHeld[j] |= SAL_INPUT_MENU;
+-		if (SDL_JoystickGetButton(joy[j], 8) && SDL_JoystickGetButton(joy[j], 4)) inputHeld[j] |= SAL_INPUT_QUICKLOAD;
+-		if (SDL_JoystickGetButton(joy[j], 8) && SDL_JoystickGetButton(joy[j], 5)) inputHeld[j] |= SAL_INPUT_QUICKSAVE;
++		Uint8 hat = SDL_JoystickGetHat(joy[j], 0);
++		if (hat & SDL_HAT_UP) inputHeld[j] |= SAL_INPUT_UP;
++		if (hat & SDL_HAT_DOWN) inputHeld[j] |= SAL_INPUT_DOWN;
++		if (hat & SDL_HAT_LEFT) inputHeld[j] |= SAL_INPUT_LEFT;
++		if (hat & SDL_HAT_RIGHT) inputHeld[j] |= SAL_INPUT_RIGHT;
++		}
+ 	}
+ 
+ 	if (j == 0) {
+@@ -74,19 +91,11 @@
+ 		if (keys[SDLK_DOWN])		inputHeld[j] |= SAL_INPUT_DOWN;
+ 		if (keys[SDLK_LEFT])		inputHeld[j] |= SAL_INPUT_LEFT;
+ 		if (keys[SDLK_RIGHT])		inputHeld[j] |= SAL_INPUT_RIGHT;
+-		if (keys[SDLK_END] || keys[SDLK_HOME] || (keys[SDLK_ESCAPE] && keys[SDLK_RETURN])) inputHeld[j] |= SAL_INPUT_MENU;
+-		if (keys[SDLK_ESCAPE] && keys[SDLK_TAB]) inputHeld[j] |= SAL_INPUT_QUICKLOAD;
+-		if (keys[SDLK_ESCAPE] && keys[SDLK_BACKSPACE]) inputHeld[j] |= SAL_INPUT_QUICKSAVE;
+-
+-		SDL_Event event;
+-		if (!SDL_PollEvent(&event)) {
+-			if (held) return inputHeld[j];
+-			return 0;
+-		}
+-	}
+-
+-	mInputRepeat = inputHeld[j];
+-	return inputHeld[j];
++		if (keys[SDLK_END] || keys[SDLK_HOME]) inputHeld[j] |= SAL_INPUT_MENU;
++	}
++
++	mInputRepeat = m8_input_filter(j, inputHeld[j], !held);
++	return mInputRepeat;
+ }
+ 
+ static int key_repeat_enabled = 1;
+@@ -149,8 +158,10 @@
+ s32 sal_Init(void)
+ {
+ 	setenv("SDL_NOMOUSE", "1", 1);
++	m8_evdev_init();
+ 	if( SDL_Init( SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK ) == -1 )
+ 	{
++		m8_evdev_close();
+ 		return SAL_ERROR;
+ 	}
+ 	sal_TimerInit(60);
+@@ -304,8 +315,9 @@
+ 
+ void sal_Reset(void)
+ {
+-	for(int j = 0; j < SDL_NumJoysticks(); j++)
+-		SDL_JoystickClose(joy[j]);
++	m8_evdev_close();
++	for(int j = 0; j < 2; j++)
++		if (joy[j]) { SDL_JoystickClose(joy[j]); joy[j] = NULL; }
+ 	sal_AudioClose();
+ 	SDL_Quit();
+ }
+--- a/sal/linux/sal_sound.c
++++ b/sal/linux/sal_sound.c
+@@ -15,6 +15,7 @@
+ static uint8_t Buffer[BUFFER_SAMPLES * 2 * 2];
+ static u32 SamplesPerFrame, BytesPerSample;
+ static u32 Muted; // S9xSetAudioMute(TRUE) gets undone after SNES Global Mute ends
++static int SilentAudio;
+ 
+ static void sdl_audio_callback (void *userdata, Uint8 *stream, int len)
+ {
+@@ -28,6 +29,7 @@
+ 
+ 	if (SamplesRequested > SamplesBuffered)
+ 	{
++		memset(stream, 0, len);
+ 		return;
+ 	}
+ 
+@@ -71,9 +73,16 @@
+ 	}
+ 	audiospec.samples = buffer;
+ 
++	SilentAudio = getenv("SDL_AUDIODRIVER") && !strcmp(getenv("SDL_AUDIODRIVER"), "dummy");
++	WritePos = ReadPos = 0;
++	if (SilentAudio) {
++		fprintf(stderr, "POCKETSNES_AUDIO driver=dummy mixing=0 apu=enabled\n");
++		return SAL_OK;
++	}
+ 	if (SDL_OpenAudio(&audiospec, NULL) < 0) {
+-		fprintf(stderr, "Unable to initialize audio.\n");
+-		return SAL_ERROR;
++		SilentAudio = 1;
++		fprintf(stderr, "POCKETSNES_AUDIO driver=unavailable mixing=0 error=%s\n", SDL_GetError());
++		return SAL_OK;
+ 	}
+ 
+ 	WritePos = ReadPos = 0;
+@@ -83,21 +92,22 @@
+ 
+ void sal_AudioPause(void)
+ {
+-	SDL_PauseAudio(1);
++	if (!SilentAudio) SDL_PauseAudio(1);
+ }
+ 
+ void sal_AudioResume(void)
+ {
+-	SDL_PauseAudio(0);
++	if (!SilentAudio) SDL_PauseAudio(0);
+ }
+ 
+ void sal_AudioClose(void)
+ {
+-	SDL_CloseAudio();
++	if (!SilentAudio) SDL_CloseAudio();
+ }
+ 
+ void sal_AudioGenerate(u32 samples)
+ {
++	if (SilentAudio || Muted || !BytesPerSample) return;
+ 	u32 SamplesAvailable,
+ 	    LocalReadPos = ReadPos /* isolate a bit against races with the audio thread */,
+ 	    LocalWritePos = WritePos /* keep a non-volatile copy at hand */;
+@@ -123,6 +133,7 @@
+ 
+ u32 sal_AudioGetFramesBuffered()
+ {
++	if (SilentAudio || !SamplesPerFrame) return 0;
+ 	u32 SamplesBuffered,
+ 	    LocalReadPos = ReadPos /* isolate a bit against races with the audio thread */,
+ 	    LocalWritePos = WritePos /* keep a non-volatile copy at hand */;
+--- a/sal/linux/include/sal.h
++++ b/sal/linux/include/sal.h
+@@ -46,7 +46,7 @@
+ #define SAL_INPUT_DOWN			(1<<SAL_INPUT_INDEX_DOWN)
+ #define SAL_INPUT_LEFT			(1<<SAL_INPUT_INDEX_LEFT)
+ #define SAL_INPUT_RIGHT			(1<<SAL_INPUT_INDEX_RIGHT)
+-#define SAL_INPUT_A			(1<<SAL_INPUT_INDEX_A)
++#define SAL_INPUT_A			(1U<<SAL_INPUT_INDEX_A)
+ #define SAL_INPUT_B			(1<<SAL_INPUT_INDEX_B)
+ #define SAL_INPUT_X			(1<<SAL_INPUT_INDEX_X)
+ #define SAL_INPUT_Y			(1<<SAL_INPUT_INDEX_Y)
+@@ -58,8 +58,8 @@
+ #define SAL_INPUT_VOL_DOWN		(1<<SAL_INPUT_INDEX_VOL_DOWN)
+ #define SAL_INPUT_STICK_PUSH		(1<<SAL_INPUT_INDEX_STICK_PUSH)
+ #define SAL_INPUT_MENU		(1<<SAL_INPUT_INDEX_MENU)
+-#define SAL_INPUT_QUICKLOAD		(1<<SAL_INPUT_INDEX_MENU+1)
+-#define SAL_INPUT_QUICKSAVE		(1<<SAL_INPUT_INDEX_MENU+2)
++#define SAL_INPUT_QUICKLOAD		(1U << (SAL_INPUT_INDEX_MENU + 1))
++#define SAL_INPUT_QUICKSAVE		(1U << (SAL_INPUT_INDEX_MENU + 2))
+ 
+ #define SAL_SCREEN_WIDTH			320
+ #define SAL_SCREEN_HEIGHT			240
+--- a/menu/menu.cpp
++++ b/menu/menu.cpp
+@@ -1,6 +1,7 @@
+ #include <errno.h>
+ 
+ #include "sal.h"
++#include "m8_pocketsnes.h"
+ #include "menu.h"
+ #include "snapshot.h"
+ #include "snes9x.h"
+@@ -1568,6 +1569,7 @@
+ 		sal_VideoFlip(1);
+ 
+ 		keys = sal_InputPollRepeat(0);
++		if (keys & M8_INPUT_EXIT) return EVENT_EXIT_APP;
+ 
+ 		if (keys & INP_BUTTON_MENU_SELECT) {
+ 			switch (menufocus) {

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "sample-native",
+  "name": "Sample Native",
+  "launch": {"type": "native", "binary": "bin/game"},
+  "required_file_sets": [["data/first.dat", "data/second.dat"], ["alternate.dat"]],
+  "missingdata": "Supply one complete set of original game data.\nKeep the extracted release folder intact."
+}

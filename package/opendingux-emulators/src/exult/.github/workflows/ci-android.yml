@@ -1,0 +1,111 @@
+name: ci-android
+
+on:
+  push:
+    paths:
+      - "**"
+      - "!docs/**"
+      - "docs/Makefile.am"
+      - "!ios/**"
+      - "!macosx/**"
+      - "!msvcstuff/**"
+      - "!win32/**"
+      - "!AUTHORS"
+      - "!ChangeLog"
+      - "!COPYING"
+      - "!FAQ"
+      - "!INSTALL"
+      - "!NEWS"
+      - "!**README**"
+      - "!**.ico"
+      - "!**.md"
+      - "!**.png"
+      - "!**.txt"
+      - "!.clang*"
+      - "!.gitignore"
+      - "!.gitattributes"
+      - "!.github/workflows/*"
+      - ".github/workflows/ci-android.yml"
+  pull_request:
+    paths:
+      - "**"
+      - "!docs/**"
+      - "docs/Makefile.am"
+      - "!ios/**"
+      - "!macosx/**"
+      - "!msvcstuff/**"
+      - "!win32/**"
+      - "!AUTHORS"
+      - "!ChangeLog"
+      - "!COPYING"
+      - "!FAQ"
+      - "!INSTALL"
+      - "!NEWS"
+      - "!**README**"
+      - "!**.ico"
+      - "!**.md"
+      - "!**.png"
+      - "!**.txt"
+      - "!.clang*"
+      - "!.gitignore"
+      - "!.gitattributes"
+      - "!.github/workflows/*"
+      - ".github/workflows/ci-android.yml"
+
+jobs:
+  ci-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: "temurin"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: 8.11.1
+          cache-disabled: true
+      - name: Install dependencies
+        run: |
+          if ! apt-fast -- help &> /dev/null; then
+            sudo add-apt-repository -u -y ppa:apt-fast/stable
+            sudo apt-get update
+            echo debconf apt-fast/maxdownloads string 16 | sudo debconf-set-selections
+            echo debconf apt-fast/dlflag boolean true | sudo debconf-set-selections
+            echo debconf apt-fast/aptmanager string apt-get | sudo debconf-set-selections
+            DEBIAN_FRONTEND=noninteractive sudo apt install -y apt-fast
+          else
+            sudo apt-fast update
+          fi
+          sudo apt-fast install -y autoconf-archive ninja-build
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Run autoreconf
+        run: |
+          mkdir ./../build
+          autoreconf -v -i
+      - name: Configure
+        run: |
+          cd ./../build
+          ./../exult/configure --enable-data --enable-android-apk=debug \
+            --with-android-arch=arm64-v8a \
+            --disable-exult --disable-tools --disable-timidity-midi --disable-alsa \
+            --disable-fluidsynth --disable-mt32emu --disable-all-hq-scalers \
+            --disable-nxbr --disable-zip-support
+      - name: Build
+        run: |
+          cd ./../build/files && make -j2
+          cd ./../data && make -j2
+          cd ./../android && make -j2
+  notify:
+    if: ${{ always() }}
+    needs:
+      - ci-android
+    uses: ./.github/workflows/notify.yml
+    with:
+      build_name: "The Exult Android build"
+      build_result: ${{ needs.ci-android.result }}
+    secrets:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}

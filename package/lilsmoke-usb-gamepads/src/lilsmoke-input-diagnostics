@@ -1,0 +1,43 @@
+#!/bin/sh
+set -eu
+out=${1:-/persist/logs/input-hardware.log}
+helper=/usr/lib/lilsmoke/lilsmoke-session-log
+if ! ( mkdir -p "$(dirname "$out")" && : >> "$out" ) 2>/dev/null; then
+    out=/dev/null
+    if [ -x "$helper" ]; then
+        out=$("$helper" input-hardware) || out=/dev/null
+        [ -n "$out" ] || out=/dev/null
+    fi
+fi
+# A failed fallback must not prevent the read-only hardware investigation.
+if ! ( : >> "$out" ) 2>/dev/null; then out=/dev/null; fi
+{
+    printf 'Kernel=%s Machine=%s\n' "$(uname -r)" "$(uname -m)"
+    printf '\n--- Input devices ---\n'
+    cat /proc/bus/input/devices 2>/dev/null || true
+    printf '\n--- Misc drivers ---\n'
+    cat /proc/misc 2>/dev/null || true
+    cat /proc/devices 2>/dev/null || true
+    printf '\n--- USB devices and bound drivers ---\n'
+    for device in /sys/bus/usb/devices/*; do
+        [ -r "$device/idVendor" ] || continue
+        printf 'USB=%s ' "${device##*/}"
+        for field in idVendor idProduct manufacturer product busnum devnum; do
+            [ ! -r "$device/$field" ] || printf '%s=%s ' "$field" "$(cat "$device/$field")"
+        done
+        [ ! -r "$device/dev" ] || printf 'dev=%s ' "$(cat "$device/dev")"
+        printf '\n'
+        for interface in "$device":*; do
+            [ -d "$interface" ] || continue
+            printf ' interface=%s driver=%s\n' "${interface##*/}" "$(readlink "$interface/driver" 2>/dev/null || echo none)"
+        done
+    done
+    printf '\n--- Nodes ---\n'
+    ls -l /dev/input /dev/bus/usb /dev/hidraw* /dev/uinput 2>/dev/null || true
+    printf '\n--- Modules ---\n'
+    cat /proc/modules 2>/dev/null || true
+    printf '\n--- Kernel USB/input/storage messages ---\n'
+    dmesg 2>/dev/null | grep -iE 'usb|hid|xpad|input|sony|playstation|fat-fs|mmc|read.only|remount|I/O error|buffer I/O|blk_update_request' | tail -n 100 || true
+    printf '\n--- Portable libusb ---\n'
+    LD_LIBRARY_PATH=/usr/lib/lilsmoke-usb:/usr/lib:/lib /usr/bin/lilsmoke-usb-probe 2>&1 || true
+} > "$out"

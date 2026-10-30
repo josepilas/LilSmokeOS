@@ -1,0 +1,39 @@
+#!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# This is an optional M8 display handoff, never a new game-session supervisor.
+set -u
+[ "$#" -gt 0 ] || exit 2
+helper=/os/m8-boot-logo
+gate=/os/libm8-boot-logo.so
+logo=/os/boot-logo.argb
+dir=/run/m8-loading
+state=/run/m8-boot-logo.state
+if [ "${LILSMOKE_HCFB:-}" != 1 ] || [ ! -x "$helper" ] || [ ! -r "$gate" ] || [ ! -r "$logo" ]; then
+    exec "$@"
+fi
+umask 077
+mkdir -p "$dir" || exec "$@"
+rm -f "$state" "$dir/stopped" "$dir/active"
+printf '5\tPreparing application\n' > "$dir/progress"
+: > "$dir/active"
+# Static helper: never preload the gate into the process drawing the logo.
+LD_PRELOAD= "$helper" --show "$logo" "$state" --hold "$dir" --no-minimum --owner "$$" &
+pid=$!
+# State is created only once a mode, scaler, opaque frame and pan have committed.
+i=0
+while [ ! -s "$state" ] && kill -0 "$pid" 2>/dev/null && [ "$i" -lt 40 ]; do
+    sleep 0.05
+    i=$((i + 1))
+done
+if [ ! -s "$state" ]; then
+    rm -f "$dir/active"
+    kill -TERM "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    exec "$@"
+fi
+export LILSMOKE_M8_BOOT_STATE="$state"
+export LILSMOKE_M8_LOADING_DIR="$dir"
+export LILSMOKE_M8_LOADING_GAME=1
+export LILSMOKE_LOADING_PROGRESS="$dir/progress"
+export LD_PRELOAD="$gate${LD_PRELOAD:+:$LD_PRELOAD}"
+exec "$@"

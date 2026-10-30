@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# S03hostname — set hostname + load LilSmokeOS release info
+
+case "$1" in
+    start)
+        hostname lilsmoke 2>/dev/null || true
+        echo "127.0.0.1       localhost lilsmoke" > /etc/hosts
+        echo "lilsmoke" > /etc/hostname
+        ;;
+esac
+exit 0

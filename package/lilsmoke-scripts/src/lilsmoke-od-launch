@@ -1,0 +1,168 @@
+#!/bin/sh
+# Source-native application menus and direct game launch are separate entry modes.
+set -eu
+loading_progress() {
+    [ -n "${LILSMOKE_LOADING_PROGRESS:-}" ] || return 0
+    temporary=$LILSMOKE_LOADING_PROGRESS.$$
+    (umask 077; printf '%s\t%s\n' "$1" "$2" > "$temporary" &&
+        mv -f "$temporary" "$LILSMOKE_LOADING_PROGRESS") || rm -f "$temporary"
+    return 0
+}
+[ "$#" -eq 1 ] || [ "$#" -eq 3 ] || { echo 'usage: lilsmoke-od-launch ENGINE [SYSTEM CONTENT]' >&2; exit 2; }
+[ ! -f /run/lilsmoke-storage/exporting ] || { echo 'Eject LILDRIVE first' >&2; exit 1; }
+engine=$1
+case "$engine" in
+    picodrive) systems=md,sms,gg; default_system=md ;;
+    regba|mgba) systems=gba; default_system=gba ;;
+    fceu320) systems=nes; default_system=nes ;;
+    gnuboy|gambatte) systems=gb,gbc; default_system=gb ;;
+    temper) systems=pce; default_system=pce ;;
+    handy) systems=lynx; default_system=lynx ;;
+    stella) systems=atari2600; default_system=atari2600 ;;
+    prosystem) systems=atari7800; default_system=atari7800 ;;
+    atari800) systems=atari800; default_system=atari800 ;;
+    race) systems=ngpc; default_system=ngpc ;;
+    oswan) systems=wswan; default_system=wswan ;;
+    pokemini) systems=pokemini; default_system=pokemini ;;
+    mame4all|fbasdl|fba) systems=arcade; default_system=arcade ;;
+    nxengine) systems=cavestory; default_system=cavestory ;;
+    prboom) systems=doom; default_system=doom ;;
+    easyrpg) systems=easyrpg; default_system=easyrpg ;;
+    scummvm) systems=scummvm; default_system=scummvm ;;
+    openbor) systems=openbor; default_system=openbor ;;
+    *) echo 'Unknown native engine' >&2; exit 2 ;;
+esac
+system=${2:-$default_system}
+case ",$systems," in *",$system,"*) ;; *) echo 'Engine/system mismatch' >&2; exit 2 ;; esac
+content=
+if [ "$#" -eq 3 ]; then
+    resolver=${LILSMOKE_ROM_RESOLVER:-/usr/lib/lilsmoke/lilsmoke-rom}
+    export LILSMOKE_STATE_CONTENT="${LILSMOKE_STATE_CONTENT:-$3}"
+    loading_progress 30 'Resolving ROM'
+    content=$("$resolver" "$system" "$3") || exit $?
+    [ -f "$content" ] || { echo 'Content missing' >&2; exit 4; }
+fi
+binary=${LILSMOKE_EXTRA_OD_DIR:-/storage/emulators/opendingux}/$engine
+[ -x "$binary" ] || binary=${LILSMOKE_OD_EMULATORS_DIR:-/usr/lib/lilsmoke/od-emulators}/$engine
+[ -x "$binary" ] || { echo "Native engine not installed: $engine" >&2; exit 3; }
+export HOME=${LILSMOKE_OD_HOME_ROOT:-/persist/od-engines}/$engine
+export XDG_CONFIG_HOME="$HOME" XDG_DATA_HOME="$HOME" XDG_CACHE_HOME="$HOME"
+export LILSMOKE_OD_NATIVE=1 LILSMOKE_OD_ENGINE="$engine" LILSMOKE_OD_SYSTEM="$system"
+unset LILSMOKE_OD_INPUT_EXTERNAL
+export LILSMOKE_OD_ROM_DIR=${LILSMOKE_ROM_ROOT:-/storage/roms}/$system
+export ROM_DIR="$LILSMOKE_OD_ROM_DIR" BIOS_DIR=${LILSMOKE_BIOS_DIR:-/storage/bios}
+logs=${LILSMOKE_LOG_DIR:-/persist/logs}
+mkdir -p "$HOME/saves" "$ROM_DIR"
+log_helper=${LILSMOKE_SESSION_LOG:-/usr/lib/lilsmoke/lilsmoke-session-log}
+if [ -x "$log_helper" ]; then log=$("$log_helper" "od-$engine"); else
+    mkdir -p "$logs"
+    log=$logs/od-$engine.log
+fi
+export SDL_VIDEODRIVER=directfb SDL_RENDER_DRIVER=software
+export PICOFE_GL=0 PICOFE_SW_ONLY=1
+export SDL12COMPAT_OPENGL_SCALING=0 SDL12COMPAT_SYNC_TO_VBLANK=0 SDL12COMPAT_SCALE_METHOD=nearest
+export SDL12COMPAT_ALLOW_THREADED_PUMPS=0 SDL12COMPAT_ALLOW_THREADED_DRAWS=0
+export LILSMOKE_DFB_EVDEV_KEYCODES=1
+unset DISPLAY WAYLAND_DISPLAY LD_AUDIT
+export LD_LIBRARY_PATH=/storage/emulators/lib:/usr/lib:/lib
+# Preserve only the fixed loading-gate token, not arbitrary inherited libraries.
+LD_PRELOAD=
+if [ "${LILSMOKE_M8_LOADING_GAME:-0}" = 1 ] &&
+   [ "${LILSMOKE_M8_BOOT_STATE:-}" = /run/m8-boot-logo.state ]; then
+    LD_PRELOAD=/os/libm8-boot-logo.so
+fi
+if [ -r /usr/lib/lilsmoke/libod-sdl.so ]; then LD_PRELOAD=${LD_PRELOAD:+$LD_PRELOAD:}/usr/lib/lilsmoke/libod-sdl.so; fi
+if [ "${LILSMOKE_HCFB:-0}" = 1 ] && [ -r /os/libm8-display.so ]; then
+    [ -r /usr/lib/lilsmoke/libod-sdl.so ] || { echo 'Native SDL input/audio adapter is not installed' >&2; exit 3; }
+    LD_PRELOAD=${LD_PRELOAD:+$LD_PRELOAD:}/os/libm8-display.so
+    export SDL_AUDIODRIVER=dummy LILSMOKE_M8_NATIVE_VIDEO=1 LILSMOKE_M8_AUDIO=1
+else
+    case "${LILSMOKE_AUDIO_OVERRIDE:-alsa}" in
+        alsa|dummy) export SDL_AUDIODRIVER=${LILSMOKE_AUDIO_OVERRIDE:-alsa} ;;
+        *) echo 'Unsupported SDL audio override' >&2; exit 2 ;;
+    esac
+fi
+if [ "${LILSMOKE_HCFB:-0}" = 1 ] && [ ! -r /os/libm8-display.so ]; then
+    echo 'Native framebuffer adapter is not installed' >&2; exit 3
+fi
+if [ "${LILSMOKE_M8_AUDIO:-0}" = 1 ]; then
+    reader=${LILSMOKE_CONFIG_READER:-/usr/lib/lilsmoke/lilsmoke-config-read}
+    volume=$("$reader" MASTER_VOLUME 50 2>/dev/null) || volume=50
+    case "$volume" in ''|*[!0-9]*|????*) volume=50 ;; esac
+    volume=$(printf '%s\n' "$volume" | awk '{v=$0+0; if(v>100)v=100; print int(v/2)}')
+    export LILSMOKE_M8_VOLUME="$volume"
+fi
+export LD_PRELOAD
+export DFBARGS="no-hardware,no-cursor,no-sighandler,quiet,vt,no-vt-switch,no-vt-switching,disable-module=keyboard,linux-input-force,${LILSMOKE_DFB_PIXEL_OPTIONS:-depth=32,pixelformat=ARGB}"
+# ScummVM draws its own game cursor; DirectFB must never overlay a desktop one.
+case "$engine" in scummvm) export LILSMOKE_POINTER_ENABLED=1 ;; *) export LILSMOKE_POINTER_ENABLED=0 ;; esac
+export SDL_RENDER_SCALE_QUALITY=nearest
+share=${LILSMOKE_OD_SHARE_ROOT:-/storage/emulators/share}/$engine
+case "$engine" in nxengine|prboom|scummvm|mame4all) share=${LILSMOKE_OD_ENGINE_SHARE_ROOT:-/storage/emulators/opendingux/data/share}/$engine ;; esac
+export LILSMOKE_OD_SHARE_DIR="$share"
+mkdir -p "$share"
+cd "$share"
+set --
+case "$engine" in
+    regba)
+        mkdir -p "$HOME/.gpsp"
+        # Raw battery saves are transferable; engine-specific states are not.
+        old_saves=${LILSMOKE_OD_HOME_ROOT:-/persist/od-engines}/mgba/saves
+        for saved in "$old_saves"/*.sav; do
+            [ -f "$saved" ] && [ ! -L "$saved" ] || continue
+            target=$HOME/.gpsp/${saved##*/}
+            [ -e "$target" ] || cp -p "$saved" "$target"
+        done
+        [ -z "$content" ] || set -- "$content" ;;
+    nxengine)
+        export LILSMOKE_NX_ROOT="$ROM_DIR" LILSMOKE_NX_SUPPORT="$share/data"
+        export LILSMOKE_NX_EXTRACTOR="${binary%/*}/nxextract"
+        export LILSMOKE_NX_IMPORTER=/usr/lib/lilsmoke/lilsmoke-nx-data
+        [ -z "$content" ] || { cd "$(dirname "$content")"; set -- --data "$(dirname "$content")"; } ;;
+    mgba)
+        mkdir -p "$HOME/states"
+        for saved in "$HOME/saves/"*.ss[0-9]; do
+            [ -f "$saved" ] && [ ! -L "$saved" ] || continue
+            target=$HOME/states/${saved##*/}
+            [ -e "$target" ] || cp -p "$saved" "$target"
+        done
+        set -- -C "savegamePath=$HOME/saves" -C "savestatePath=$HOME/states"
+        [ -z "$content" ] || set -- "$@" "$content" ;;
+    prboom)
+        if [ -n "$content" ]; then set -- -iwad "$content"; else cd "$ROM_DIR"; fi
+        if [ "${LILSMOKE_HCFB:-0}" = 1 ]; then set -- "$@" -width 320 -height 200; fi ;;
+    mame4all)
+        export LILSMOKE_MAME_ENGINE="${binary%/*}/mame4all-engine"
+        if [ -n "$content" ]; then
+            game_id=$(basename "$content" .zip)
+            case "$game_id" in ''|*[!A-Za-z0-9_-]*) echo 'Invalid MAME ROM-set name' >&2; exit 4 ;; esac
+            binary=$LILSMOKE_MAME_ENGINE
+            mkdir -p "$HOME/.mame4all/nvram" "$HOME/.mame4all/hi" "$HOME/.mame4all/cfg" "$HOME/.mame4all/sta" "$HOME/.mame4all/memcard"
+            set -- "$game_id" -rompath "$(dirname "$content")" -mamepath "$HOME/.mame4all"
+        fi ;;
+    openbor)
+        export LILSMOKE_BOR_PAK_DIR="$ROM_DIR" LILSMOKE_BOR_SAVE_DIR="$HOME/saves"
+        if [ -n "$content" ]; then
+            export LILSMOKE_BOR_PAK_DIR="$(dirname "$content")" LILSMOKE_BOR_CONTENT="$(basename "$content")"
+        fi
+        cd "$HOME" ;;
+    easyrpg)
+        if [ -n "$content" ]; then
+            project=$(dirname "$content")
+            project_id=$(printf '%s' "$project" | sha256sum | cut -c1-24)
+            mkdir -p "$HOME/saves/$project_id"
+            cd "$project"; set -- --project-path "$project" --save-path "$HOME/saves/$project_id";
+        else cd "$ROM_DIR"; fi ;;
+    scummvm)
+        set -- --gui-theme=scummclassic "--themepath=$share" "--extrapath=$share" "--savepath=$HOME/saves" "--config=$HOME/scummvm.ini"
+        if [ -n "$content" ]; then
+            IFS= read -r game_id < "$content" || [ -n "${game_id:-}" ]
+            game_id=$(printf '%s' "$game_id" | tr -d '\r')
+            case "$game_id" in ''|*[!A-Za-z0-9_:-]*) echo 'Invalid ScummVM game ID' >&2; exit 4 ;; esac
+            cd "$(dirname "$content")"; set -- "$@" "--path=$(dirname "$content")" "$game_id"
+        else cd "$ROM_DIR"; fi ;;
+    *) [ -z "$content" ] || set -- "$content" ;;
+esac
+printf 'OD_NATIVE_LAUNCH engine=%s system=%s menu=%s\n' "$engine" "$system" "$( [ -z "$content" ] && echo 1 || echo 0 )" >> "$log"
+loading_progress 70 'Starting emulator'
+exec "$binary" "$@" >> "$log" 2>&1

@@ -1,0 +1,25 @@
+diff --git a/prboom2/src/SDL/i_main.c b/prboom2/src/SDL/i_main.c
+--- a/prboom2/src/SDL/i_main.c
++++ b/prboom2/src/SDL/i_main.c
+@@ -590,6 +590,22 @@
++#include "native-menu.h"
+ int main(int argc, char **argv)
+ {
++  char chosen[1024];
++  char *picked_argv[4];
++  if(argc==2&&!strcmp(argv[1],"--help")) {
++    puts("PrBoom-Plus LilSmoke native: -iwad FILE; no arguments open the native IWAD menu.");
++    return 0;
++  }
++  if(argc==1) {
++    const char *root=getenv("LILSMOKE_PRBOOM_ROOT");
++    if(!root)root="/storage/roms/doom";
++    int picked=lilos_pick("PrBoom-Plus",root,0,chosen,sizeof(chosen));
++    if(picked<=0)return picked<0?1:0;
++    picked_argv[0]=argv[0];picked_argv[1]="-iwad";picked_argv[2]=chosen;picked_argv[3]=NULL;
++    argv=picked_argv;argc=3;
++  }
++
+ #ifdef SECURE_UID
+   /* First thing, revoke setuid status (if any) */
+   stored_euid = geteuid();

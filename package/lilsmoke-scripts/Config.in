@@ -1,0 +1,22 @@
+config BR2_PACKAGE_LILSMOKE_SCRIPTS
+    bool "lilsmoke-scripts"
+    depends on BR2_USE_WCHAR
+    depends on BR2_INSTALL_LIBSTDCPP
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    default y if BR2_PACKAGE_LILSMOKE_OS
+    select BR2_PACKAGE_P7ZIP
+    select BR2_PACKAGE_P7ZIP_7ZA
+    select BR2_PACKAGE_DROPBEAR
+    select BR2_PACKAGE_DOSFSTOOLS
+    select BR2_PACKAGE_DOSFSTOOLS_MKFS_FAT
+    select BR2_PACKAGE_DOSFSTOOLS_FSCK_FAT
+    select BR2_PACKAGE_EXFATPROGS
+    select BR2_PACKAGE_E2FSPROGS
+    select BR2_PACKAGE_SDL
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_JSON_C
+    help
+      LilSmokeOS runtime helper scripts (init.d, mdev hotplug,
+      OTA unpacker, WiFi/SSH configurator, and capability-gated USB
+      RNDIS/mass-storage gadget service). These are POSIX shell, no
+      Python, no Perl.

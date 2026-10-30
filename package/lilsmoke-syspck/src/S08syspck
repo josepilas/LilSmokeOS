@@ -1,0 +1,9 @@
+#!/bin/sh
+case "$1" in
+    start)
+      [ ! -f /persist/syspck/pending ] ||
+        /usr/bin/lilsmoke-syspck recover || exit 1
+      # This is post-kernel settings selection, NOT a pre-kernel DTB loader.
+      /usr/bin/lilsmoke-syspck boot-select
+      ;;
+esac

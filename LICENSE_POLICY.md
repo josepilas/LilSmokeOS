@@ -2,58 +2,57 @@
 
 Copyright (c) 2026 José Pilas and LilSmokeOS contributors.
 
-For the initial Pre-Alpha release, original LilSmokeOS material owned by José
-Pilas uses the personal-use proprietary license in `LICENSE`. The authored OS
-source repository remains private in initial versions for personal reasons. A future
-source publication is intended to use MPL-2.0; that intention is not a present
-source grant or publication date. Public SM64-LilSmoke authored adaptation
-code remains MPL-2.0, with its full license in `LICENSES/MPL-2.0.txt`.
-This policy is an ownership boundary, not blanket relicensing of dependencies.
+## Alpha-0.0.1
 
-## First-Party Scope
+The entire original authored LilSmokeOS Alpha source is public under the
+Mozilla Public License 2.0 in `LICENSE` and `LICENSES/MPL-2.0.txt`. This
+includes the C++ UI, applications, SDK/API, shell services, board adapters,
+Buildroot integration and developer tools where José Pilas holds the rights.
+Daedalus-LilSmoke and custom Mupen-LilSmoke experiments are excluded.
+Generic upstream Mupen64Plus/N64 support keeps its existing terms.
 
-The new personal-use license applies only to original files for which José
-Pilas holds the necessary rights and has designated that license. Retained
-third-party notices and permissions granted by earlier distributions prevail
-for their respective files. This does not turn every source directory or
-package into proprietary material. Public SM64 authored adapters retain MPL.
-Applications such as the Device Adapter are covered only for their authored
-code, not their bundled Python/Tcl/Tk/OpenSSL runtimes. Theme artwork, game
-icons, fonts, screenshots, vendor firmware and ROM-derived data are not assumed
-to be first-party software.
+This is an ownership boundary, not blanket relicensing of dependencies.
+Vendored source, copied routines, upstream forks and changes to upstream files
+retain their applicable licenses and notices. A `lilsmoke-` prefix does not
+establish MPL ownership. MIT input transport, zlib SDL dependencies, GPL engines
+and LGPL libraries keep their licenses. Runtimes, fonts and art are separate.
 
-Source files with a retained third-party copyright/license, vendored code,
-upstream forks, copied routines and modifications to upstream files keep the
-applicable upstream terms. A `lilsmoke-` package name alone does not make the
-downloaded library or engine MPL-licensed. `THIRD_PARTY_NOTICES.md` describes
-these boundaries; individual dependency notices prevail.
+## Earlier Releases
 
-Historical MIT notices are retained in `LICENSES/LilSmokeOS-MIT-legacy.txt`.
-This new licensing choice does not revoke permissions already granted by a
-previous MIT distribution or remove third-party copyright notices.
+`LICENSES/LilSmokeOS-PreAlpha-Personal.txt` records historical Pre-Alpha terms,
+not the Alpha license. `LICENSES/LilSmokeOS-MIT-legacy.txt` preserves earlier
+MIT notices. Earlier permissions are not revoked. Historical notes do not
+restrict the Alpha grant or promise a future private period.
 
-## Distribution
+## Source Distribution
 
-Provide MPL notices and covered source for separately MPL-covered components,
-including the public SM64 authored adaptations.
-Provide the exact third-party notices, corresponding source and build scripts
-required by each dependency. Buildroot `legal-info` is a collection aid, not
-proof that all vendor files or mixed-license integrations are redistributable.
-Do not add the MPL Exhibit B incompatibility notice: interoperability with
-eligible GPL/LGPL larger works must remain possible under MPL section 3.3.
+The public staging tool selects the actual authored external tree and
+legitimate vendored source with retained notices, not only documentation.
+Its inventory records file hashes, exclusions and public-copy edits.
+Private workstation paths use reviewed public placeholders; credentials are
+never silently stripped. Unexpected sensitive findings block staging.
+No ROMs, BIOS collections, stock exports, extracted game assets, private builds,
+controller captures or user photos are covered by this grant. The user-provided
+project logo and documented original generated art may be included; other art
+needs individual provenance.
 
-The stock-derived M8 image and private full-engine SM64 packages are not public
-release artifacts. The SM64 renderer explicitly forbids binary redistribution;
-ROM assets and stock boot/kernel/AVP/driver files require separate clearance and
-complete applicable source obligations. They are not relicensed by this file.
+This snapshot is not a bit-for-bit corresponding-source claim for an older
+stock-derived image. External SDKs, dependencies, proprietary boot/kernel/AVP/
+driver materials and omitted assets need separate acquisition and clearance.
+See [Alpha source limits](docs/alpha-0.0.1-source.md).
 
-The pre-alpha release gate must pass before upload. Local/private build success
-or ownership of a ROM dump is not itself a redistribution grant for a binary
-containing extracted game data. The owner has requested publication after
-implementation and review; this document does not replace artifact checks.
+## Binary Distribution
 
-References: [MPL text](https://www.mozilla.org/en-US/MPL/2.0/),
-[Mozilla FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/),
-[Buildroot legal-info](https://buildroot.org/downloads/manual/manual.html#legal-info).
+Provide each component's notices, covered/corresponding source, build scripts
+and relinking materials. Buildroot `legal-info` assists collection; it does not
+prove all vendor or mixed-license integrations are cleared. Do not add MPL
+Exhibit B incompatibility notices to original authored files.
 
-This project policy documents technical release requirements, not legal advice.
+The historical M8 image and private full-engine SM64 packages are not cleared
+by this source release. The investigated SM64 renderer's source-only notice
+prohibits binary redistribution; ROM ownership does not clear extracted assets.
+Existing asset-free public adaptations remain separately reviewed artifacts.
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) and
+[publication checks](docs/release-preparation.md). The license text and retained
+component notices control; this technical policy is not legal advice.

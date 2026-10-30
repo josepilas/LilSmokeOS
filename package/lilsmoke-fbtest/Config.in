@@ -1,0 +1,19 @@
+config BR2_PACKAGE_LILSMOKE_FBTEST
+    bool "lilsmoke-fbtest (framebuffer test app)"
+    default y if BR2_PACKAGE_LILSMOKE_OS
+    select BR2_PACKAGE_LIBPNG
+    select BR2_PACKAGE_ZLIB
+    help
+      Tiny (~12 KB) framebuffer test app that:
+        1. Opens /dev/fb0 and queries its geometry
+        2. Loads assets/logo/lilsmoke-logo.webp OR a built-in fallback PNG
+        3. Centers it on the framebuffer using direct mmap
+        4. Prints the box dimensions and pixel format
+        5. Waits 10 seconds, then exits
+
+      This is the J1 smoke test for the fbdev stack. No SDL2, no
+      DirectFB — just the raw Linux framebuffer API. Proves the
+      kernel fbdev driver works before we stack anything on top.
+
+      Build-time location: /usr/bin/lilsmoke-fbtest
+      Runtime usage:      run from a tty (e.g. tty1)

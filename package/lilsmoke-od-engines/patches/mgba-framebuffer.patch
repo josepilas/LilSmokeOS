@@ -1,0 +1,13 @@
+diff --git a/src/platform/sdl/sw-sdl2.c b/src/platform/sdl/sw-sdl2.c
+--- a/src/platform/sdl/sw-sdl2.c
++++ b/src/platform/sdl/sw-sdl2.c
+@@ -31,1 +31,1 @@
+-	renderer->sdlRenderer = SDL_CreateRenderer(renderer->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
++	renderer->sdlRenderer = SDL_CreateRenderer(renderer->window, -1, SDL_RENDERER_SOFTWARE);
+diff --git a/src/platform/sdl/sdl-events.c b/src/platform/sdl/sdl-events.c
+--- a/src/platform/sdl/sdl-events.c
++++ b/src/platform/sdl/sdl-events.c
+@@ -589,3 +589,4 @@
+ static void _mSDLHandleKeypress(struct mCoreThread* context, struct mSDLPlayer* sdlContext, const struct SDL_KeyboardEvent* event) {
++	if (getenv("LILSMOKE_OD_NATIVE") && event->type == SDL_KEYDOWN && event->keysym.sym == SDLK_ESCAPE) { lilos_mgba_pause(context,sdlContext->window); return; }
+ 	int key = -1;

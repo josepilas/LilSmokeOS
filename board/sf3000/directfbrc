@@ -1,0 +1,37 @@
+# LilSmokeOS — DirectFB config
+#
+# DirectFB is our 2D rendering layer (no GPU available).
+# This config tells DirectFB to use the Linux framebuffer only.
+
+# System options
+no-hardware              # No GPU acceleration available
+no-sighandler            # We don't want DirectFB to trap signals
+quiet                    # Less verbose log
+vt                       # Own raw keyboard mode on the current terminal
+no-vt-switch             # Do not allocate/switch to another terminal
+no-vt-switching           # Game key chords must not switch Linux consoles
+
+# Driver selection
+fbdev=/dev/fb0           # Framebuffer device
+mode=854x480
+depth=32                 # BGRA (matches stock device's BG format)
+pixelformat=ARGB
+
+# Buffering
+backbuffer               # Use a backbuffer (so we don't tear on flip)
+vsync-after              # Sync to vblank
+
+# SDL2/DirectFB receives evdev events, not translated console bytes.
+disable-module=keyboard
+linux-input-force
+
+# Font path
+font-dir=/usr/share/fonts/dejavu
+
+# Max surface cache (cover art pre-rendering)
+surface-cache-size=8388608
+
+# Aggressive memory mode for low-RAM devices
+mmx=off                  # No MMX on MIPS
+sse=off
+mmx2=off

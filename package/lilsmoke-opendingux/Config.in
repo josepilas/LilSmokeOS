@@ -1,0 +1,8 @@
+config BR2_PACKAGE_LILSMOKE_OPENDINGUX
+	bool "lilsmoke native OpenDingux catalog/runtime"
+	depends on BR2_mipsel
+	select BR2_PACKAGE_LILSMOKE_SQFS
+	select BR2_PACKAGE_LIBSODIUM
+	help
+	  Bounded native MIPS/musl OPK catalog and streaming extraction.
+	  No loop/FUSE, shell Exec evaluation or legacy ABI emulation.

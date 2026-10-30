@@ -1,0 +1,10 @@
+{
+  "id": "org.lilsmoke.sm64.original.local",
+  "name": "Super Mario 64 Local Test",
+  "version": "0.6.0",
+  "icon": "icon.webp",
+  "architecture": "mipsel-linux-musl",
+  "private_user_build": true,
+  "description": "Locally compiled original engine and your own dumped data; private hardware test, not a public BYO release",
+  "license": "Private local build only. Do not redistribute; see runtime/licenses."
+}

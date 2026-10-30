@@ -1,0 +1,6 @@
+diff --git a/src/platform/sdl/sdl-events.c b/src/platform/sdl/sdl-events.c
+--- a/src/platform/sdl/sdl-events.c
++++ b/src/platform/sdl/sdl-events.c
+@@ -16,1 +16,2 @@
+ #include <mgba-util/vfs.h>
++#include "mgba-pause.h"

@@ -1,0 +1,8 @@
+include Makefile
+.DEFAULT_GOAL := all
+# The MIPS JIT calls fixed-address C helpers without a shared-library t9 entry.
+override CFLAGS := $(OD_FLAGS) -fno-pie -fno-pic -mno-shared -D_GNU_SOURCE -D_REENTRANT -DGCW_ZERO -DMIPS_32R2 -DLOAD_ALL_ROM -DGIT_VERSION=lilsmoke -I$(OD_SYSROOT)/usr/include/SDL -Isource/opendingux -Isource -Isource/mips
+override ASFLAGS := $(CFLAGS) -D__ASSEMBLY__
+override LDFLAGS := -no-pie -lSDL -lpthread -lz -lm -lpng
+$(OBJS): $(OD_PACKAGE)/Makefile.regba
+$(TARGET): | $(OD_PACKAGE)/Makefile.regba

@@ -1,0 +1,20 @@
+{
+  "libretro.h": {
+    "url": "https://raw.githubusercontent.com/libretro/libretro-common/d9597c359a5ca8399a4e244f816e7e975a92a2aa/include/libretro.h",
+    "commit": "d9597c359a5ca8399a4e244f816e7e975a92a2aa",
+    "sha256": "5b6d8fe1056a39591ee6c479512eed4a6f6efd8f89f64f10cf8b4757a2aa48a0",
+    "bytes": 361176
+  },
+  "jsmn.h": {
+    "url": "https://raw.githubusercontent.com/zserge/jsmn/25647e692c7906b96ffd2b05ca54c097948e879c/jsmn.h",
+    "commit": "25647e692c7906b96ffd2b05ca54c097948e879c",
+    "sha256": "c04533e9181e1e33baceb0f55ac449b05145bb936e8c68cc77dfe0d8277514fb",
+    "bytes": 12145
+  },
+  "jsmn-LICENSE": {
+    "url": "https://raw.githubusercontent.com/zserge/jsmn/25647e692c7906b96ffd2b05ca54c097948e879c/LICENSE",
+    "commit": "25647e692c7906b96ffd2b05ca54c097948e879c",
+    "sha256": "4675b94a50d2afe811c52785463c854f1156056632cce17cc7133939eac8ed55",
+    "bytes": 1061
+  }
+}

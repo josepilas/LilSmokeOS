@@ -1,0 +1,8 @@
+"topic"	"binary_evidence"	"source_match"	"confidence"
+"Version string"	"STv4 PCSX v1.9 at 004f82bc; Running PCSX Version string at 00509494; build date Feb 14 2024 at 00509484"	"dmitrysmagin/pcsx4all src/psxcommon.h PACKAGE_VERSION ""1.9"" and src/misc.cpp PcsxHeader"	"high"
+"Config parser"	"0046db58 reads %s/pcsx4all.cfg and parses CONFIG_VERSION, PsxAuto, Spu*, CycleMultiplier, GPU options"	"dmitrysmagin/pcsx4all src/port/sdl/port.cpp config_load()"	"high"
+"MIPS dynarec memory mapping"	"00487400 uses /pcsx4all_psxmem, maps mirrored 2MB PSX RAM; 00487784 uses /pcsx4all_recram"	"dmitrysmagin/pcsx4all src/recompiler/mips/mem_mapping.cpp"	"high"
+"SPU plugin"	"00472370 initializes spu_pcsxrearmed and prints the same configuration block"	"dmitrysmagin/pcsx4all src/plugins.cpp"	"high"
+"CD image support"	"Strings for .cue, .ccd, .mds, .cbin, CISO, PSISOIMG00, PSTITLEIMG; no CHD/libchdr strings"	"dmitrysmagin/pcsx4all src/cdriso.cpp, not the later RG350 CHD branch"	"high"
+"RG350 fork exclusion"	"No AsyncCD, CHD, libchdr, disable/remove memcard strings in the binary"	"RG350_pcsx4all adds AsyncCD/libchdr and later frontend changes, so it is less likely"	"medium-high"
+"Firmware integration"	"Exported strings/functions PCSX_Load, pcsx_load_game, libemu_pcsx.so references inside rkgame; .pcsx4all folder only has config/memcards"	"Vendor embedded PCSX into rkgame and kept libemu_pcsx.so name strings as loader identifiers"	"high"

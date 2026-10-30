@@ -1,0 +1,48 @@
+--- a/libusb/os/linux_usbfs.c
++++ b/libusb/os/linux_usbfs.c
+@@ -26,1 +26,2 @@
+-#include "linux_usbfs.h"
++#include "linux_usbfs.h"
++#include "poll_hotplug.h"
+@@ -405,5 +406,11 @@
+ 	if (init_count == 0) {
+ 		/* start up hotplug event handler */
+-		r = linux_start_event_monitor();
++		r = linux_start_event_monitor();
++		ls_monitor_started = r == LIBUSB_SUCCESS;
++		if (r != LIBUSB_SUCCESS && sysfs_available) {
++			usbi_warn(ctx, "LilSmoke: hotplug socket unavailable; polling sysfs instead");
++			ls_polling = 1;
++			r = LIBUSB_SUCCESS;
++		}
+ 	}
+ 	if (r == LIBUSB_SUCCESS) {
+@@ -413,3 +420,3 @@
+-		else if (init_count == 0)
++		else if (init_count == 0 && ls_monitor_started)
+ 			linux_stop_event_monitor();
+ 	} else {
+@@ -430,5 +437,7 @@
+ 	if (!--init_count) {
+ 		/* tear down event handler */
+-		linux_stop_event_monitor();
++		if (ls_monitor_started) linux_stop_event_monitor();
++		ls_monitor_started = 0;
++		ls_polling = 0;
+ 	}
+ }
+@@ -467,7 +476,8 @@
+ 
+ static void op_hotplug_poll(void)
+ {
+-	linux_hotplug_poll();
++	if (ls_polling) ls_poll_hotplug();
++	else linux_hotplug_poll();
+ }
+ 
+ static int open_sysfs_attr(struct libusb_context *ctx,
+@@ -2763,1 +2773,3 @@
+-const struct usbi_os_backend usbi_backend = {
++#include "poll_hotplug.inc"
++
++const struct usbi_os_backend usbi_backend = {

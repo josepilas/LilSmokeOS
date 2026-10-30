@@ -1,0 +1,41 @@
+# LilSmokeOS — DirectFB config
+#
+# DirectFB is our 2D rendering layer (no GPU available).
+# This config tells DirectFB to use the Linux framebuffer only.
+
+# System options
+no-hardware              # No GPU acceleration available
+no-sighandler            # We don't want DirectFB to trap signals
+quiet                    # Less verbose log
+# Own the current VT's keyboard mode; Alt+Right is a game button, not a
+# Linux console switch. Do not allocate another VT or handle VT shortcuts.
+vt
+no-vt-switch
+no-vt-switching
+
+# Driver selection
+fbdev=/dev/fb0           # Framebuffer device
+mode=856x480
+# QEMU's emulated Cirrus CL-GD5446 accepts 24 bpp, not 32 bpp. The real
+# HC16xx board profiles retain their native 32-bit framebuffer settings.
+depth=24
+pixelformat=RGB24
+
+# Buffering
+backbuffer               # Use a backbuffer (so we don't tear on flip)
+vsync-after              # Sync to vblank
+
+# SDL2/DirectFB receives evdev events, not translated console bytes.
+disable-module=keyboard
+linux-input-force
+
+# Font path
+font-dir=/usr/share/fonts/dejavu
+
+# Max surface cache (cover art pre-rendering)
+surface-cache-size=8388608
+
+# Aggressive memory mode for low-RAM devices
+mmx=off                  # No MMX on MIPS
+sse=off
+mmx2=off

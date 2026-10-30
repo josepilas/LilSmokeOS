@@ -1,0 +1,70 @@
+#!/bin/sh
+# Persist WPA credentials without shell evaluation or plaintext PSK comments.
+set -eu
+umask 077
+CONF_DIR=/persist/config
+WIFI_CONF="$CONF_DIR/wifi.conf"
+CONFIG="$CONF_DIR/lilsmoke.conf"
+NETWORK=/usr/lib/lilsmoke/lilsmoke-network
+enabled() {
+    mkdir -p "$CONF_DIR"
+    [ -f "$CONFIG" ] || cp /etc/lilsmoke/lilsmoke.conf.default "$CONFIG"
+    if grep -q '^WIFI_ENABLED=' "$CONFIG"; then
+        sed -i "s/^WIFI_ENABLED=.*/WIFI_ENABLED=$1/" "$CONFIG"
+    else
+        printf '\nWIFI_ENABLED=%s\n' "$1" >> "$CONFIG"
+    fi
+}
+interface=""
+for path in /sys/class/net/*; do
+    [ -d "$path/wireless" ] || [ -L "$path/phy80211" ] || continue
+    interface=${path##*/}
+    break
+done
+case "${1:-status}" in
+    connect)
+        [ "$#" -ge 2 ] || { echo "usage: $0 connect <ssid> [password]"; exit 64; }
+        [ -n "$interface" ] || { echo "No supported Wi-Fi adapter"; exit 1; }
+        ssid="$2"
+        password="${3:-}"
+        [ -n "$ssid" ] && [ "${#ssid}" -le 32 ] || { echo "SSID must be 1..32 bytes"; exit 1; }
+        mkdir -p "$CONF_DIR"
+        tmp="$WIFI_CONF.new"
+        trap 'rm -f "$tmp"' 0 HUP INT TERM
+        hex=$(printf '%s' "$ssid" | od -An -tx1 -v | tr -d ' \n')
+        if [ -n "$password" ]; then
+            [ "${#password}" -ge 8 ] && [ "${#password}" -le 63 ] ||
+                { echo "WPA passphrase must be 8..63 characters"; exit 1; }
+            # Read passphrase from stdin; do not put it on a child's command line.
+            generated=$(printf '%s\n' "$password" | wpa_passphrase "$ssid")
+            psk=$(printf '%s\n' "$generated" | awk '
+                /^[[:space:]]*psk=[0-9a-f]+$/ { key=$0 }
+                END { sub(/^[[:space:]]*psk=/,"",key); print key }')
+            [ "${#psk}" -eq 64 ] || { echo "WPA key derivation failed"; exit 1; }
+            printf 'network={\n    ssid=%s\n    psk=%s\n    key_mgmt=WPA-PSK\n}\n' \
+                "$hex" "$psk" > "$tmp"
+        else
+            printf 'network={\n    ssid=%s\n    key_mgmt=NONE\n}\n' "$hex" > "$tmp"
+        fi
+        chmod 0600 "$tmp"
+        mv "$tmp" "$WIFI_CONF"
+        enabled on
+        "$NETWORK" restart
+        echo "Wi-Fi configuration applied; association/address acquisition may still be pending"
+        ;;
+    disconnect)
+        enabled off
+        "$NETWORK" restart
+        rm -f "$WIFI_CONF"
+        ;;
+    scan)
+        [ -n "$interface" ] || { echo "No supported Wi-Fi adapter"; exit 1; }
+        ip link set "$interface" up
+        iw dev "$interface" scan | grep -E 'SSID:|signal:'
+        ;;
+    status)
+        [ -n "$interface" ] || { echo "No supported Wi-Fi adapter"; exit 0; }
+        ip -4 addr show dev "$interface"
+        ;;
+    *) echo "usage: $0 {scan|connect <ssid> [password]|disconnect|status}"; exit 64 ;;
+esac

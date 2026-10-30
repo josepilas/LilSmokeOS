@@ -1,0 +1,5 @@
+Copyright (c) 2026 Jose Pilas and LilSmokeOS contributors.
+Original platform, input, options-menu and build integration: MPL-2.0.
+Upstream engine, source-only graphics, extracted game data and bundled libraries
+retain their own terms. The full local application is private-only and cannot
+be redistributed as an MPL-licensed public SM64 executable.

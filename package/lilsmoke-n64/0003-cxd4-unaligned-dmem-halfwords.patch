@@ -1,0 +1,534 @@
+From: LilSmokeOS contributors
+Subject: [PATCH] cxd4: permit unaligned DMEM vector halfword access on MIPS
+
+The odd-address LDV/SDV ABI paths use pi16 casts which fault on MIPS.
+Use GCC's alignment-1 alias type for DMEM only, retaining native endian
+semantics and preserving DRAM DMA access. SM64 reproduces SIGBUS in LDV.
+
+--- a/mupen64plus-rsp-cxd4/su.c
++++ b/mupen64plus-rsp-cxd4/su.c
+@@ -16,1 +16,4 @@
+-#include "su.h"
++#include "su.h"
++
++/* DMEM vector transfers may start at odd byte addresses. */
++typedef signed short rsp_unaligned_i16 __attribute__((aligned(1), may_alias));
+@@ -645,1 +648,1 @@
+-    VR_S(vt, e) = *(pi16)(DMEM + addr - correction);
++    VR_S(vt, e) = *(rsp_unaligned_i16 *)(DMEM + addr - correction);
+@@ -670,1 +673,1 @@
+-    VR_S(vt, e+0x0) = *(pi16)(DMEM + addr - correction);
++    VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr - correction);
+@@ -672,1 +675,1 @@
+-    VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + correction);
++    VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + correction);
+@@ -688,1 +691,1 @@
+-        VR_S(vt, e+0x0) = *(pi16)(DMEM + addr + HES(0x000));
++        VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -689,1 +692,1 @@
+-        VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + HES(0x002));
++        VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -690,1 +693,1 @@
+-        VR_S(vt, e+0x4) = *(pi16)(DMEM + addr + HES(0x004));
++        VR_S(vt, e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -691,1 +694,1 @@
+-        VR_S(vt, e+0x6) = *(pi16)(DMEM + addr + HES(0x006));
++        VR_S(vt, e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -694,1 +697,1 @@
+-        VR_S(vt, e+0x0) = *(pi16)(DMEM + addr + 0x000);
++        VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x000);
+@@ -697,1 +700,1 @@
+-        VR_S(vt, e+0x4) = *(pi16)(DMEM + addr + 0x004);
++        VR_S(vt, e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x004);
+@@ -704,1 +707,1 @@
+-        VR_S(vt, e+0x0) = *(pi16)(DMEM + addr + 0x000 - HES(0x000));
++        VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x000 - HES(0x000));
+@@ -705,1 +708,1 @@
+-        VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + 0x002 + HES(0x000));
++        VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x002 + HES(0x000));
+@@ -706,1 +709,1 @@
+-        VR_S(vt, e+0x4) = *(pi16)(DMEM + addr + 0x004 - HES(0x000));
++        VR_S(vt, e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x004 - HES(0x000));
+@@ -709,1 +712,1 @@
+-        VR_S(vt, e+0x6) = *(pi16)(DMEM + addr);
++        VR_S(vt, e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr);
+@@ -714,1 +717,1 @@
+-        VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + 0x002);
++        VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x002);
+@@ -719,1 +722,1 @@
+-        VR_S(vt, e+0x6) = *(pi16)(DMEM + addr + 0x001 - BES(0x000));
++        VR_S(vt, e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x001 - BES(0x000));
+@@ -722,1 +725,1 @@
+-        VR_S(vt, e+0x0) = *(pi16)(DMEM + addr + HES(0x000));
++        VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -723,1 +726,1 @@
+-        VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + HES(0x002));
++        VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -726,1 +729,1 @@
+-        VR_S(vt, e+0x4) = *(pi16)(DMEM + addr + HES(0x000));
++        VR_S(vt, e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -727,1 +730,1 @@
+-        VR_S(vt, e+0x6) = *(pi16)(DMEM + addr + HES(0x002));
++        VR_S(vt, e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -730,1 +733,1 @@
+-        VR_S(vt, e+0x0) = *(pi16)(DMEM + addr + 0x000);
++        VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x000);
+@@ -735,1 +738,1 @@
+-        VR_S(vt, e+0x4) = *(pi16)(DMEM + addr + 0x001);
++        VR_S(vt, e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x001);
+@@ -740,1 +743,1 @@
+-        VR_S(vt, e+0x0) = *(pi16)(DMEM + addr - HES(0x000));
++        VR_S(vt, e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr - HES(0x000));
+@@ -743,1 +746,1 @@
+-        VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + HES(0x000));
++        VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -744,1 +747,1 @@
+-        VR_S(vt, e+0x4) = *(pi16)(DMEM + addr + HES(0x002));
++        VR_S(vt, e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -745,1 +748,1 @@
+-        VR_S(vt, e+0x6) = *(pi16)(DMEM + addr + HES(0x004));
++        VR_S(vt, e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -752,1 +755,1 @@
+-        VR_S(vt, e+0x2) = *(pi16)(DMEM + addr + 0x001);
++        VR_S(vt, e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x001);
+@@ -755,1 +758,1 @@
+-        VR_S(vt, e+0x6) = *(pi16)(DMEM + addr + 0x005);
++        VR_S(vt, e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + 0x005);
+@@ -796,1 +799,1 @@
+-    *(pi16)(DMEM + addr - correction) = VR_S(vt, e+0x0);
++    *(rsp_unaligned_i16 *)(DMEM + addr - correction) = VR_S(vt, e+0x0);
+@@ -798,1 +801,1 @@
+-    *(pi16)(DMEM + addr + correction) = VR_S(vt, e+0x2);
++    *(rsp_unaligned_i16 *)(DMEM + addr + correction) = VR_S(vt, e+0x2);
+@@ -822,1 +825,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x0);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x0);
+@@ -823,1 +826,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x2);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x2);
+@@ -824,1 +827,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR_S(vt, e+0x4);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR_S(vt, e+0x4);
+@@ -825,1 +828,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR_S(vt, e+0x6);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR_S(vt, e+0x6);
+@@ -828,1 +831,1 @@
+-        *(pi16)(DMEM + addr + 0x000) = VR_S(vt, e+0x0);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x000) = VR_S(vt, e+0x0);
+@@ -831,1 +834,1 @@
+-        *(pi16)(DMEM + addr + 0x004) = VR_S(vt, e+0x4);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x004) = VR_S(vt, e+0x4);
+@@ -838,1 +841,1 @@
+-        *(pi16)(DMEM + addr + 0x000 - HES(0x000)) = VR_S(vt, e+0x0);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x000 - HES(0x000)) = VR_S(vt, e+0x0);
+@@ -839,1 +842,1 @@
+-        *(pi16)(DMEM + addr + 0x002 + HES(0x000)) = VR_S(vt, e+0x2);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x002 + HES(0x000)) = VR_S(vt, e+0x2);
+@@ -840,1 +843,1 @@
+-        *(pi16)(DMEM + addr + 0x004 - HES(0x000)) = VR_S(vt, e+0x4);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x004 - HES(0x000)) = VR_S(vt, e+0x4);
+@@ -843,1 +846,1 @@
+-        *(pi16)(DMEM + addr) = VR_S(vt, e+0x6);
++        *(rsp_unaligned_i16 *)(DMEM + addr) = VR_S(vt, e+0x6);
+@@ -848,1 +851,1 @@
+-        *(pi16)(DMEM + addr + 0x002) = VR_S(vt, e+0x2);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x002) = VR_S(vt, e+0x2);
+@@ -853,1 +856,1 @@
+-        *(pi16)(DMEM + addr + 0x001 - BES(0x000)) = VR_S(vt, 0x6);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x001 - BES(0x000)) = VR_S(vt, 0x6);
+@@ -856,1 +859,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x0);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x0);
+@@ -857,1 +860,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x2);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x2);
+@@ -859,1 +862,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x4);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x4);
+@@ -860,1 +863,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x6);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x6);
+@@ -863,1 +866,1 @@
+-        *(pi16)(DMEM + addr + 0x000) = VR_S(vt, e+0x0);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x000) = VR_S(vt, e+0x0);
+@@ -867,1 +870,1 @@
+-        *(pi16)(DMEM + addr + 0x001) = VR_S(vt, e+0x4);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x001) = VR_S(vt, e+0x4);
+@@ -872,1 +875,1 @@
+-        *(pi16)(DMEM + addr - HES(0x000)) = VR_S(vt, e+0x0);
++        *(rsp_unaligned_i16 *)(DMEM + addr - HES(0x000)) = VR_S(vt, e+0x0);
+@@ -874,1 +877,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x2);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR_S(vt, e+0x2);
+@@ -875,1 +878,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x4);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR_S(vt, e+0x4);
+@@ -876,1 +879,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR_S(vt, e+0x6);
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR_S(vt, e+0x6);
+@@ -882,1 +885,1 @@
+-        *(pi16)(DMEM + addr + 0x001) = VR_S(vt, e+0x2);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x001) = VR_S(vt, e+0x2);
+@@ -885,1 +888,1 @@
+-        *(pi16)(DMEM + addr + 0x005) = VR_S(vt, e+0x6);
++        *(rsp_unaligned_i16 *)(DMEM + addr + 0x005) = VR_S(vt, e+0x6);
+@@ -1395,1 +1398,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x000));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1396,1 +1399,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x002));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1397,1 +1400,1 @@
+-        VR_S(vt,e+0x4) = *(pi16)(DMEM + addr + HES(0x004));
++        VR_S(vt,e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1398,1 +1401,1 @@
+-        VR_S(vt,e+0x6) = *(pi16)(DMEM + addr + HES(0x006));
++        VR_S(vt,e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1399,1 +1402,1 @@
+-        VR_S(vt,e+0x8) = *(pi16)(DMEM + addr + HES(0x008));
++        VR_S(vt,e+0x8) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1400,1 +1403,1 @@
+-        VR_S(vt,e+0xA) = *(pi16)(DMEM + addr + HES(0x00A));
++        VR_S(vt,e+0xA) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1401,1 +1404,1 @@
+-        VR_S(vt,e+0xC) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0xC) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1402,1 +1405,1 @@
+-        VR_S(vt,e+0xE) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0xE) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1405,1 +1408,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x002));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1406,1 +1409,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x004));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1407,1 +1410,1 @@
+-        VR_S(vt,e+0x4) = *(pi16)(DMEM + addr + HES(0x006));
++        VR_S(vt,e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1408,1 +1411,1 @@
+-        VR_S(vt,e+0x6) = *(pi16)(DMEM + addr + HES(0x008));
++        VR_S(vt,e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1409,1 +1412,1 @@
+-        VR_S(vt,e+0x8) = *(pi16)(DMEM + addr + HES(0x00A));
++        VR_S(vt,e+0x8) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1410,1 +1413,1 @@
+-        VR_S(vt,e+0xA) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0xA) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1411,1 +1414,1 @@
+-        VR_S(vt,e+0xC) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0xC) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1414,1 +1417,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x004));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1415,1 +1418,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x006));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1416,1 +1419,1 @@
+-        VR_S(vt,e+0x4) = *(pi16)(DMEM + addr + HES(0x008));
++        VR_S(vt,e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1417,1 +1420,1 @@
+-        VR_S(vt,e+0x6) = *(pi16)(DMEM + addr + HES(0x00A));
++        VR_S(vt,e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1418,1 +1421,1 @@
+-        VR_S(vt,e+0x8) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0x8) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1419,1 +1422,1 @@
+-        VR_S(vt,e+0xA) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0xA) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1422,1 +1425,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x006));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1423,1 +1426,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x008));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1424,1 +1427,1 @@
+-        VR_S(vt,e+0x4) = *(pi16)(DMEM + addr + HES(0x00A));
++        VR_S(vt,e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1425,1 +1428,1 @@
+-        VR_S(vt,e+0x6) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1426,1 +1429,1 @@
+-        VR_S(vt,e+0x8) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0x8) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1429,1 +1432,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x008));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1430,1 +1433,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x00A));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1431,1 +1434,1 @@
+-        VR_S(vt,e+0x4) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1432,1 +1435,1 @@
+-        VR_S(vt,e+0x6) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0x6) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1435,1 +1438,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x00A));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1436,1 +1439,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1437,1 +1440,1 @@
+-        VR_S(vt,e+0x4) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0x4) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1440,1 +1443,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x00C));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1441,1 +1444,1 @@
+-        VR_S(vt,e+0x2) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0x2) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1444,1 +1447,1 @@
+-        VR_S(vt,e+0x0) = *(pi16)(DMEM + addr + HES(0x00E));
++        VR_S(vt,e+0x0) = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E));
+@@ -1468,1 +1471,1 @@
+-        VR[vt][01] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][01] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1469,1 +1472,1 @@
+-        VR[vt][02] = *(pi16)(DMEM + addr + HES(0x002));
++        VR[vt][02] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1470,1 +1473,1 @@
+-        VR[vt][03] = *(pi16)(DMEM + addr + HES(0x004));
++        VR[vt][03] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1471,1 +1474,1 @@
+-        VR[vt][04] = *(pi16)(DMEM + addr + HES(0x006));
++        VR[vt][04] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1472,1 +1475,1 @@
+-        VR[vt][05] = *(pi16)(DMEM + addr + HES(0x008));
++        VR[vt][05] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1473,1 +1476,1 @@
+-        VR[vt][06] = *(pi16)(DMEM + addr + HES(0x00A));
++        VR[vt][06] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1474,1 +1477,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x00C));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C));
+@@ -1477,1 +1480,1 @@
+-        VR[vt][02] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][02] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1478,1 +1481,1 @@
+-        VR[vt][03] = *(pi16)(DMEM + addr + HES(0x002));
++        VR[vt][03] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1479,1 +1482,1 @@
+-        VR[vt][04] = *(pi16)(DMEM + addr + HES(0x004));
++        VR[vt][04] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1480,1 +1483,1 @@
+-        VR[vt][05] = *(pi16)(DMEM + addr + HES(0x006));
++        VR[vt][05] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1481,1 +1484,1 @@
+-        VR[vt][06] = *(pi16)(DMEM + addr + HES(0x008));
++        VR[vt][06] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1482,1 +1485,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x00A));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A));
+@@ -1485,1 +1488,1 @@
+-        VR[vt][03] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][03] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1486,1 +1489,1 @@
+-        VR[vt][04] = *(pi16)(DMEM + addr + HES(0x002));
++        VR[vt][04] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1487,1 +1490,1 @@
+-        VR[vt][05] = *(pi16)(DMEM + addr + HES(0x004));
++        VR[vt][05] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1488,1 +1491,1 @@
+-        VR[vt][06] = *(pi16)(DMEM + addr + HES(0x006));
++        VR[vt][06] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1489,1 +1492,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x008));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008));
+@@ -1492,1 +1495,1 @@
+-        VR[vt][04] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][04] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1493,1 +1496,1 @@
+-        VR[vt][05] = *(pi16)(DMEM + addr + HES(0x002));
++        VR[vt][05] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1494,1 +1497,1 @@
+-        VR[vt][06] = *(pi16)(DMEM + addr + HES(0x004));
++        VR[vt][06] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1495,1 +1498,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x006));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006));
+@@ -1498,1 +1501,1 @@
+-        VR[vt][05] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][05] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1499,1 +1502,1 @@
+-        VR[vt][06] = *(pi16)(DMEM + addr + HES(0x002));
++        VR[vt][06] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1500,1 +1503,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x004));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004));
+@@ -1503,1 +1506,1 @@
+-        VR[vt][06] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][06] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1504,1 +1507,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x002));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002));
+@@ -1507,1 +1510,1 @@
+-        VR[vt][07] = *(pi16)(DMEM + addr + HES(0x000));
++        VR[vt][07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000));
+@@ -1538,1 +1541,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][00];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][00];
+@@ -1539,1 +1542,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][01];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][01];
+@@ -1540,1 +1543,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][02];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][02];
+@@ -1541,1 +1544,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][03];
+@@ -1542,1 +1545,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][04];
+@@ -1543,1 +1546,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00A)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A)) = VR[vt][05];
+@@ -1544,1 +1547,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00C)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C)) = VR[vt][06];
+@@ -1545,1 +1548,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00E)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E)) = VR[vt][07];
+@@ -1548,1 +1551,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][00];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][00];
+@@ -1549,1 +1552,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][01];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][01];
+@@ -1550,1 +1553,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][02];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][02];
+@@ -1551,1 +1554,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][03];
+@@ -1552,1 +1555,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00A)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A)) = VR[vt][04];
+@@ -1553,1 +1556,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00C)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C)) = VR[vt][05];
+@@ -1554,1 +1557,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00E)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E)) = VR[vt][06];
+@@ -1557,1 +1560,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][00];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][00];
+@@ -1558,1 +1561,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][01];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][01];
+@@ -1559,1 +1562,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][02];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][02];
+@@ -1560,1 +1563,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00A)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A)) = VR[vt][03];
+@@ -1561,1 +1564,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00C)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C)) = VR[vt][04];
+@@ -1562,1 +1565,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00E)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E)) = VR[vt][05];
+@@ -1565,1 +1568,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][00];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][00];
+@@ -1566,1 +1569,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][01];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][01];
+@@ -1567,1 +1570,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00A)) = VR[vt][02];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A)) = VR[vt][02];
+@@ -1568,1 +1571,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00C)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C)) = VR[vt][03];
+@@ -1569,1 +1572,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00E)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00E)) = VR[vt][04];
+@@ -1596,1 +1599,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][01];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][01];
+@@ -1597,1 +1600,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][02];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][02];
+@@ -1598,1 +1601,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][03];
+@@ -1599,1 +1602,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][04];
+@@ -1600,1 +1603,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][05];
+@@ -1601,1 +1604,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00A)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A)) = VR[vt][06];
+@@ -1602,1 +1605,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00C)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00C)) = VR[vt][07];
+@@ -1605,1 +1608,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][02];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][02];
+@@ -1606,1 +1609,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][03];
+@@ -1607,1 +1610,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][04];
+@@ -1608,1 +1611,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][05];
+@@ -1609,1 +1612,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][06];
+@@ -1610,1 +1613,1 @@
+-        *(pi16)(DMEM + addr + HES(0x00A)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x00A)) = VR[vt][07];
+@@ -1613,1 +1616,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][03];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][03];
+@@ -1614,1 +1617,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][04];
+@@ -1615,1 +1618,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][05];
+@@ -1616,1 +1619,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][06];
+@@ -1617,1 +1620,1 @@
+-        *(pi16)(DMEM + addr + HES(0x008)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x008)) = VR[vt][07];
+@@ -1620,1 +1623,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][04];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][04];
+@@ -1621,1 +1624,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][05];
+@@ -1622,1 +1625,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][06];
+@@ -1623,1 +1626,1 @@
+-        *(pi16)(DMEM + addr + HES(0x006)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x006)) = VR[vt][07];
+@@ -1626,1 +1629,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][05];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][05];
+@@ -1627,1 +1630,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][06];
+@@ -1628,1 +1631,1 @@
+-        *(pi16)(DMEM + addr + HES(0x004)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x004)) = VR[vt][07];
+@@ -1631,1 +1634,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][06];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][06];
+@@ -1632,1 +1635,1 @@
+-        *(pi16)(DMEM + addr + HES(0x002)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x002)) = VR[vt][07];
+@@ -1635,1 +1638,1 @@
+-        *(pi16)(DMEM + addr + HES(0x000)) = VR[vt][07];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(0x000)) = VR[vt][07];
+@@ -1667,1 +1670,1 @@
+-        VR[vt + i][(i - e/2) & 07] = *(pi16)(DMEM + addr + HES(2*i));
++        VR[vt + i][(i - e/2) & 07] = *(rsp_unaligned_i16 *)(DMEM + addr + HES(2*i));
+@@ -1695,1 +1698,1 @@
+-        *(pi16)(DMEM + addr + HES(2*i)) = VR[vt + (e/2 + i)%8][i];
++        *(rsp_unaligned_i16 *)(DMEM + addr + HES(2*i)) = VR[vt + (e/2 + i)%8][i];

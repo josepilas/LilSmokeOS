@@ -1,0 +1,33 @@
+#!/bin/sh
+# Print the addresses and exact SSH commands currently usable on LilSmokeOS.
+
+echo "LilSmokeOS remote access"
+echo "  user: lil"
+
+found=0
+if command -v ip >/dev/null 2>&1; then
+    ip -4 -o addr show scope global 2>/dev/null |
+    while IFS= read -r line; do
+        set -- $line
+        interface=$2
+        [ "$interface" != lo ] || continue
+        address=$4
+        address=${address%/*}
+        echo "  $interface: $address"
+        echo "    ssh lil@$address"
+    done
+    ip -4 -o addr show scope global 2>/dev/null | grep -q . && found=1 || true
+fi
+
+if [ "$found" -eq 0 ]; then
+    echo "  no active IPv4 connection"
+fi
+
+if [ -x /usr/lib/lilsmoke/lilsmoke-usb ]; then
+    echo
+    /usr/lib/lilsmoke/lilsmoke-usb status
+fi
+
+echo
+echo "Default password: lilsmoke"
+echo "Change it after login with: passwd"

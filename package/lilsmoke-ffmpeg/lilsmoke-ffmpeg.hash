@@ -1,0 +1,4 @@
+# Release signature verified against FFmpeg's published release-key fingerprint.
+sha256  d4fcb164028dd3beee5d92c0ac72e46aac6973c75ea12dc14de07bf8f407370a  ffmpeg-6.1.6.tar.xz
+sha256  cb48bf09a11f5fb576cddb0431c8f5ed0a60157a9ec942adffc13907cbe083f2  LICENSE.md
+sha256  246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30  COPYING.LGPLv2.1

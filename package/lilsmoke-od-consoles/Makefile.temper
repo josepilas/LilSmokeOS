@@ -1,0 +1,11 @@
+.DEFAULT_GOAL := all
+include SDL/Makefile.rs97
+override VPATH := . SDL linux tremor
+override BIN := SDL/temper
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DRS97_BUILD -DLETSGO_HOME -I$(OD_SYSROOT)/usr/include/SDL -Itremor
+override INCLUDES := -I. -ISDL -Ilinux -Itremor
+override LIBS := -lSDL -lz -lm -pthread
+override STRIP := true
+$(OBJS): $(OD_PACKAGE)/Makefile.temper
+cpu.o: cpu.c
+	$(CC) $(filter-out -O2,$(CFLAGS)) -O1 $(INCLUDES) -c -o $@ $<

@@ -1,0 +1,143 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] PocketSNES: opt-in PCM sink in isolated bounded audio worker
+
+--- a/menu/main.cpp
++++ b/menu/main.cpp
+@@ -1,6 +1,7 @@
+ 
+ #include <sal.h>
+ #include "m8_pocketsnes.h"
++#include "m8_pocketsnes_audio.h"
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <stdio.h>
+@@ -454,6 +455,14 @@
+ {
+   	int i;
+ 	bool PAL = !!(Memory.FillRAM[0x2133] & 4);
++
++	if (m8_pcm_requested())
++	{
++		mMenuOptions.soundRate = 44100;
++		mMenuOptions.stereo = 1;
++	}
++	fprintf(stderr, "POCKETSNES_AUDIO config native=%d sound_enabled=%d rate=%u stereo=%u sound_sync=%u\n",
++		m8_pcm_requested(), !!sound, mMenuOptions.soundRate, mMenuOptions.stereo, mMenuOptions.soundSync);
+ 
+ 	// Native M8 mode ignores legacy GCW crop/scaler settings; fallback uses 4:3.
+ 	mMenuOptions.fullScreen = 1;
+--- a/sal/linux/sal_sound.c
++++ b/sal/linux/sal_sound.c
+@@ -2,6 +2,8 @@
+ #include <SDL.h>
+ 
+ #include <sal.h>
++#include "m8_pocketsnes_audio.h"
++extern void S9xMixSamples(uint8_t *buffer, int sample_count);
+ 
+ #define BUFFER_FRAMES 3
+ // 48000 Hz maximum; 1/50 of a second; 3 frames to hold (2 plus a bit extra)
+@@ -16,6 +18,10 @@
+ static u32 SamplesPerFrame, BytesPerSample;
+ static u32 Muted; // S9xSetAudioMute(TRUE) gets undone after SNES Global Mute ends
+ static int SilentAudio;
++static int NativeAudio;
++static s32 NativeVolume[2] = {31, 31};
++static u32 NativeFrames;
++static int16_t NativePCM[M8_PCM_CHUNK_FRAMES * 2];
+ 
+ static void sdl_audio_callback (void *userdata, Uint8 *stream, int len)
+ {
+@@ -74,6 +80,17 @@
+ 	audiospec.samples = buffer;
+ 
+ 	SilentAudio = getenv("SDL_AUDIODRIVER") && !strcmp(getenv("SDL_AUDIODRIVER"), "dummy");
++	NativeAudio = m8_pcm_requested();
++	fprintf(stderr, "POCKETSNES_AUDIO sal-init native=%d rate=%d bits=%d channels=%d hz=%d\n",
++		NativeAudio, rate, bits, stereo + 1, Hz);
++	if (NativeAudio)
++	{
++		SilentAudio = 1;
++		WritePos = ReadPos = 0;
++		NativeFrames = 0;
++		(void)m8_pcm_init(rate, stereo + 1, bits);
++		return SAL_OK;
++	}
+ 	WritePos = ReadPos = 0;
+ 	if (SilentAudio) {
+ 		fprintf(stderr, "POCKETSNES_AUDIO driver=dummy mixing=0 apu=enabled\n");
+@@ -92,21 +109,52 @@
+ 
+ void sal_AudioPause(void)
+ {
++	if (NativeAudio) { NativeFrames = 0; (void)m8_pcm_close(); return; }
+ 	if (!SilentAudio) SDL_PauseAudio(1);
+ }
+ 
+ void sal_AudioResume(void)
+ {
++	if (NativeAudio) { NativeFrames = 0; (void)m8_pcm_init(44100, 2, 16); return; }
+ 	if (!SilentAudio) SDL_PauseAudio(0);
+ }
+ 
+ void sal_AudioClose(void)
+ {
++	if (NativeAudio)
++	{
++		(void)m8_pcm_close();
++		NativeAudio = 0;
++		NativeFrames = 0;
++		return;
++	}
+ 	if (!SilentAudio) SDL_CloseAudio();
+ }
+ 
+ void sal_AudioGenerate(u32 samples)
+ {
++	if (NativeAudio)
++	{
++		if (Muted || (!NativeFrames && !m8_pcm_active())) { NativeFrames = 0; return; }
++		if (samples > BUFFER_SAMPLES) samples = BUFFER_SAMPLES;
++		while (samples)
++		{
++			u32 available = M8_PCM_CHUNK_FRAMES - NativeFrames;
++			u32 frames = samples > available ? available : samples;
++			int16_t *pcm = NativePCM + NativeFrames * 2;
++			S9xMixSamples((uint8_t*)pcm, frames * 2);
++			for (u32 i = 0; i < frames * 2; ++i)
++				pcm[i] = (int16_t)((int32_t)pcm[i] * NativeVolume[i & 1] / 31);
++			NativeFrames += frames;
++			if (NativeFrames == M8_PCM_CHUNK_FRAMES)
++			{
++				(void)m8_pcm_send(NativePCM, NativeFrames);
++				NativeFrames = 0;
++			}
++			samples -= frames;
++		}
++		return;
++	}
+ 	if (SilentAudio || Muted || !BytesPerSample) return;
+ 	u32 SamplesAvailable,
+ 	    LocalReadPos = ReadPos /* isolate a bit against races with the audio thread */,
+@@ -133,6 +181,7 @@
+ 
+ u32 sal_AudioGetFramesBuffered()
+ {
++	if (NativeAudio) return 0;
+ 	if (SilentAudio || !SamplesPerFrame) return 0;
+ 	u32 SamplesBuffered,
+ 	    LocalReadPos = ReadPos /* isolate a bit against races with the audio thread */,
+@@ -166,9 +215,13 @@
+ 
+ void sal_AudioSetVolume(s32 l, s32 r)
+ {
++	NativeVolume[0] = l < 0 ? 0 : (l > 31 ? 31 : l);
++	NativeVolume[1] = r < 0 ? 0 : (r > 31 ? 31 : r);
+ }
+ 
+ void sal_AudioSetMuted(u32 muted)
+ {
++	if (NativeAudio && Muted != !!muted)
++		fprintf(stderr, "POCKETSNES_AUDIO muted=%u source=emulator-setting\n", !!muted);
+ 	Muted = muted;
+ }

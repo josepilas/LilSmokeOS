@@ -1,0 +1,18 @@
+config BR2_PACKAGE_DIRECTFB_MIPS
+    bool "DirectFB (LilSmokeOS framebuffer-only build)"
+    default y if BR2_PACKAGE_LILSMOKE_OS
+    select BR2_PACKAGE_DIRECTFB
+    help
+      Wrapper that enables Buildroot's stock DirectFB package with
+      LilSmokeOS-specific overrides:
+        - fbdev-only (no X11, no OpenGL/GLES, no multi-app core)
+        - FreeType + libpng support
+        - No SDL backend inside DirectFB (we use SDL2 on top)
+
+      This is the 2D rendering layer that SDL2 sits on top of. Without
+      it, SDL2 cannot create windows on the framebuffer.
+
+      For real hardware (SF3000/GB350), J1+ will add patches that:
+        - Force the E3100's specific fbdev pixel format (BGRA, 32bpp)
+        - Disable unused font drivers (saves ~600 KB RSS)
+        - Disable multi-application core (saves another ~400 KB)

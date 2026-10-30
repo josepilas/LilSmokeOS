@@ -1,0 +1,12 @@
+diff --git a/src/odx/odx_frontend.cpp b/src/odx/odx_frontend.cpp
+--- a/src/odx/odx_frontend.cpp
++++ b/src/odx/odx_frontend.cpp
+@@ -54,1 +54,2 @@
+ 	SDL_Surface *temp = SDL_LoadBMP_RW(rw, 1);
++	if(!temp) { SDL_FillRect(video,NULL,0); return; }
+@@ -57,1 +58,2 @@
+ 	image = SDL_DisplayFormat(temp);
++	if(!image) { SDL_FreeSurface(temp); return; }
+@@ -77,1 +79,1 @@
+-	odx_joystick_press();
++	if(!getenv("LILSMOKE_OD_NATIVE")) odx_joystick_press();

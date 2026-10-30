@@ -1,0 +1,4 @@
+Original LilSmoke packaging/build infrastructure: MPL-2.0.
+All nested emulator, engine, library and vendor source trees keep their existing
+upstream copyright and license notices. This infrastructure license does not
+relicense those projects or clear their binaries for redistribution.

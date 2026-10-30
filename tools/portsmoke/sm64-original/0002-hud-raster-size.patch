@@ -1,0 +1,13 @@
+--- a/src/pc/gfx/gfx_pc.c
++++ b/src/pc/gfx/gfx_pc.c
+@@ -1845,8 +1845,8 @@
+                     gfx_recalc_dimensions();
+                     rdp.viewport.x = 0;
+                     rdp.viewport.y = 0;
+-                    rdp.viewport.width = 320;
+-                    rdp.viewport.height = 240;
++                    rdp.viewport.width = gfx_current_dimensions.width;
++                    rdp.viewport.height = gfx_current_dimensions.height;
+                     rdp.scissor = rdp.viewport;
+                     rdp.viewport_or_scissor_changed = true;
+                     break;

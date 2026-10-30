@@ -1,0 +1,32 @@
+From: LilSmokeOS contributors
+Subject: [PATCH] directfb: preserve evdev Return and keypad Enter distinction
+
+Linux-input keymap discovery may report Return through a console keymap
+identifier. For the explicitly selected evdev-only backend, use its raw
+Linux key code for these keys. Other DirectFB backends keep their existing
+translation. Both window and grabbed input events need the same correction.
+
+--- a/src/video/directfb/SDL_DirectFB_events.c
++++ b/src/video/directfb/SDL_DirectFB_events.c
+@@ -587,1 +587,9 @@
+-    *unicode =
++    /* Opt-in only when DirectFB uses the Linux evdev input driver. */
++    if (SDL_getenv("LILSMOKE_DFB_EVDEV_KEYCODES")) {
++        if (evt->key_code == 28) /* Linux KEY_ENTER */
++            keysym->scancode = SDL_SCANCODE_RETURN;
++        else if (evt->key_code == 96) /* Linux KEY_KPENTER */
++            keysym->scancode = SDL_SCANCODE_KP_ENTER;
++    }
++
++    *unicode =
+@@ -616,1 +624,9 @@
+-    *unicode =
++    /* Opt-in only when DirectFB uses the Linux evdev input driver. */
++    if (SDL_getenv("LILSMOKE_DFB_EVDEV_KEYCODES")) {
++        if (evt->key_code == 28) /* Linux KEY_ENTER */
++            keysym->scancode = SDL_SCANCODE_RETURN;
++        else if (evt->key_code == 96) /* Linux KEY_KPENTER */
++            keysym->scancode = SDL_SCANCODE_KP_ENTER;
++    }
++
++    *unicode =

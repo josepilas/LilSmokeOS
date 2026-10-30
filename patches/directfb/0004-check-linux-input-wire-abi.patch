@@ -1,0 +1,19 @@
+From: LilSmokeOS developers
+Subject: [PATCH] linux-input: reject a libc-dependent evdev wire layout
+
+The kernel event stream uses two native-long timestamp fields, even when
+32-bit musl has 64-bit time_t. The time64 header accessors are not sufficient
+if stale headers expose a 24-byte event on a 32-bit target. Reject that ABI
+instead of silently misinterpreting keys. Buildroot's current musl headers
+provide the correct 16-byte structure.
+
+--- a/inputdrivers/linux_input/linux_input.c
++++ b/inputdrivers/linux_input/linux_input.c
+@@ -43,3 +43,7 @@
+ #include <linux/input.h>
+ 
++typedef char linux_input_event_wire_abi_check[
++     sizeof(struct input_event) == 2 * sizeof(long) + 8 &&
++     __builtin_offsetof(struct input_event, type) == 2 * sizeof(long) ? 1 : -1];
++
+ #ifndef input_event_sec

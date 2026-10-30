@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# S50fbtest — J1 framebuffer smoke test
+#
+# Runs lilsmoke-fbtest for 10 seconds after ALSA setup, before LilSmokeUI.
+# This paints the LilSmokeOS logo to /dev/fb0 to verify the fbdev stack
+# works end-to-end (kernel fbdev driver + libpng + mmap).
+#
+# If /dev/fb0 doesn't exist (QEMU without -display fbdev), this is a no-op.
+# In J3, when the real UI is built, this script will be removed.
+
+case "$1" in
+    start)
+        if [ ! -e /dev/fb0 ]; then
+            echo "[lilsmoke] S50: /dev/fb0 not present, skipping fbtest"
+            exit 0
+        fi
+        if [ ! -x /usr/bin/lilsmoke-fbtest ]; then
+            echo "[lilsmoke] S50: lilsmoke-fbtest not installed"
+            exit 0
+        fi
+        echo "[lilsmoke] S50: running fbdev smoke test (10s)..."
+        /usr/bin/lilsmoke-fbtest /usr/share/lilsmoke/logo.png
+        ;;
+    stop)
+        ;;
+esac
+exit 0

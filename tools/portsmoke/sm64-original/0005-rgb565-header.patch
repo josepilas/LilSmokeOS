@@ -1,0 +1,5 @@
+--- a/src/pc/gfx/gfx_soft.h
++++ b/src/pc/gfx/gfx_soft.h
+@@ -19,1 +19,1 @@
+-#include <SDL/SDL.h>
++#include <stdint.h>

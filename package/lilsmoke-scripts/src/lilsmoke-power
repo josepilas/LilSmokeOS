@@ -1,0 +1,37 @@
+#!/bin/sh
+set -eu
+umask 077
+[ "${1:-}" = poweroff ] && [ "$#" = 1 ] || exit 64
+if [ "${LILSMOKE_STOCK_SUPERVISOR:-0}" = 1 ] &&
+   [ "${LILSMOKE_M8_SAFE_POWEROFF:-1}" != 1 ]; then
+    echo 'Safe stock shutdown preparation failed; power off refused' >&2
+    exit 75
+fi
+lock=/run/lilsmoke-usb/lock
+mkdir -p /run/lilsmoke-usb
+mkdir "$lock" 2>/dev/null || { echo 'USB operation in progress; power off deferred' >&2; exit 75; }
+published=no
+cleanup() {
+    if [ "$published" = no ]; then
+        rm -f /run/lilsmoke-poweroff-request.new
+        rmdir "$lock" 2>/dev/null || true
+    fi
+}
+trap cleanup 0
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
+if [ -f /run/lilsmoke-storage/exporting ]; then
+    echo 'Power off refused while LILDRIVE belongs to the USB host' >&2
+    exit 75
+fi
+sync || exit 75
+[ ! -f /run/lilsmoke-storage/exporting ] || exit 75
+if [ "${LILSMOKE_STOCK_SUPERVISOR:-0}" = 1 ]; then
+    request=/run/lilsmoke-poweroff-request
+    printf 'poweroff\n' > "$request.new" || exit 75
+    mv "$request.new" "$request" || exit 75
+    published=yes
+    exit 0
+fi
+# Normal BusyBox init runs rcK, swapoff and unmount/readonly shutdown hooks.
+exec /sbin/poweroff

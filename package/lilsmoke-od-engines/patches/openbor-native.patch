@@ -1,0 +1,26 @@
+diff --git a/sdl/menu.c b/sdl/menu.c
+--- a/sdl/menu.c
++++ b/sdl/menu.c
+@@ -307,1 +307,3 @@
+ 	inputrefresh();
++	if (dListTotal < 1 && !(bothnewkeys & (FLAG_ESC|FLAG_SPECIAL)))
++		return 0;
+diff --git a/sdl/sdlport.c b/sdl/sdlport.c
+--- a/sdl/sdlport.c
++++ b/sdl/sdlport.c
+@@ -101,1 +101,8 @@
+ 	dirExists(paksDir, 1);
++	const char *native_paks=getenv("LILSMOKE_BOR_PAK_DIR");
++	const char *native_saves=getenv("LILSMOKE_BOR_SAVE_DIR");
++	if(native_paks) {
++		if(strlen(native_paks)>=sizeof(paksDir)) return 1;
++		strcpy(paksDir,native_paks);
++	}
++	if(native_saves && strlen(native_saves)<sizeof(savesDir)) strcpy(savesDir,native_saves);
+@@ -111,1 +118,5 @@
+-	Menu();
++	const char *native_content=getenv("LILSMOKE_BOR_CONTENT");
++	if(native_content && *native_content) {
++		if(strlen(native_content)>=sizeof(packfile)) return 1;
++		strcpy(packfile,native_content);
++	} else Menu();

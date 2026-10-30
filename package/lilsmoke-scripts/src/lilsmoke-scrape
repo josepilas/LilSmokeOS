@@ -1,0 +1,257 @@
+#!/bin/sh
+#
+# lilsmoke-scrape — ROM metadata + cover art scraper
+#
+# Usage:
+#   lilsmoke-scrape <system> <rom_path>          # one ROM
+#   lilsmoke-scrape <system> /storage/roms/<sys> # whole folder
+#   lilsmoke-scrape --all                        # all ROMs in /storage/roms
+#
+# Behavior:
+#   1. Try local cache: /persist/scrape/<hash>.json
+#   2. If WIFI_ENABLED is enabled and SS_API_KEY set: query Screenscraper.fr API
+#   3. Save cover art to /persist/scrape/covers/<system>/<rom>.(png|webp|jpg)
+#   4. Save metadata to /persist/scrape/<hash>.json
+#
+# Screenscraper.fr API:
+#   GET https://www.screenscraper.fr/api2/jeuInfos.php
+#       ?ssid=<user>&sspassword=<key>&devid=<devid>&devpassword=<devpwd>
+#       &softname=lilsmoke&systemeid=<id>&romtype=rom&romnom=<crc>
+#
+# System ID map (subset — full list at https://www.screenscraper.fr):
+#   nes=3, snes=4, gb=9, gbc=10, gba=12, md=1, sms=2, gg=23,
+#   pce=31, arcade=75, lynx=43, psx=57
+#
+# Authentication:
+#   Users must register at screenscraper.fr and set in lilsmoke.conf:
+#     SS_API_USER=your_username
+#     SS_API_KEY=your_apikey
+#   We use the "lilsmoke" dev account (registered once, shared across
+#   all LilSmokeOS installs — Screenscraper.fr allows this for FOSS projects).
+
+CONF="/persist/config/lilsmoke.conf"
+[ -f "$CONF" ] && . "$CONF"
+
+is_enabled() {
+    case "$1" in
+        1|on|true|yes) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+SCRAPE_DIR="/persist/scrape"
+COVERS_DIR="$SCRAPE_DIR/covers"
+META_DIR="$SCRAPE_DIR"
+mkdir -p "$COVERS_DIR" "$META_DIR"
+
+# Screenscraper.fr system ID map
+sysid() {
+    case "$1" in
+        nes)    echo 3  ;;
+        snes)   echo 4  ;;
+        gb)     echo 9  ;;
+        gbc)    echo 10 ;;
+        gba)    echo 12 ;;
+        md)     echo 1  ;;
+        sms)    echo 2  ;;
+        gg)     echo 23 ;;
+        pce)    echo 31 ;;
+        arcade) echo 75 ;;
+        lynx)   echo 43 ;;
+        psx)    echo 57 ;;
+        *)      echo "" ;;
+    esac
+}
+
+# Compute CRC32 of a file (using cksum, which is in BusyBox)
+hash_rom() {
+    cksum "$1" | awk '{printf "%08x", $1}'
+}
+
+# Pretty up a ROM filename for display
+display_name() {
+    name=$(basename "$1")
+    # Strip extension
+    name="${name%.*}"
+    # Replace _ with space
+    name=$(echo "$name" | tr '_' ' ')
+    # Strip (USA), (Europe), [!], etc.
+    name=$(echo "$name" | sed -E 's/\s*\(.*\)\s*//g; s/\s*\[.*\]\s*//g')
+    # Trim whitespace
+    name=$(echo "$name" | sed -E 's/^\s+//; s/\s+$//')
+    echo "$name"
+}
+
+existing_cover() {
+    base="$1"
+    for ext in png webp jpg jpeg; do
+        if [ -f "$base.$ext" ]; then
+            echo "$base.$ext"
+            return 0
+        fi
+    done
+    return 1
+}
+
+cover_path_for_url() {
+    url="$1"
+    base="$2"
+    clean="${url%%\?*}"
+    clean="${clean%%#*}"
+    ext="$(echo "${clean##*.}" | tr '[:upper:]' '[:lower:]')"
+    case "$ext" in
+        png|webp|jpg|jpeg) echo "$base.$ext" ;;
+        *)                 echo "$base.png" ;;
+    esac
+}
+
+scrape_one() {
+    SYSTEM="$1"
+    ROM_PATH="$2"
+
+    [ -f "$ROM_PATH" ] || { echo "lilsmoke-scrape: not a file: $ROM_PATH" >&2; return 2; }
+
+    HASH=$(hash_rom "$ROM_PATH")
+    CACHE_FILE="$META_DIR/$HASH.json"
+    COVER_BASE="$COVERS_DIR/$SYSTEM/$(basename "${ROM_PATH%.*}")"
+    COVER_FILE="$(existing_cover "$COVER_BASE" 2>/dev/null || true)"
+    mkdir -p "$COVERS_DIR/$SYSTEM"
+
+    # --- 1. Local cache hit? ---
+    if [ -f "$CACHE_FILE" ] && [ -n "$COVER_FILE" ] && [ -f "$COVER_FILE" ]; then
+        echo "cached: $ROM_PATH"
+        return 0
+    fi
+
+    # --- 2. Online scrape ---
+    if ! is_enabled "$WIFI_ENABLED"; then
+        echo "skipped (WiFi off): $ROM_PATH"
+        # Write stub metadata so we don't retry every boot
+        cat > "$CACHE_FILE" <<EOF
+{
+  "hash": "$HASH",
+  "system": "$SYSTEM",
+  "rom": "$ROM_PATH",
+  "name": "$(display_name "$ROM_PATH")",
+  "scraped": false,
+  "reason": "wifi_disabled"
+}
+EOF
+        return 0
+    fi
+
+    if [ -z "$SS_API_USER" ] || [ -z "$SS_API_KEY" ]; then
+        echo "skipped (no API key): $ROM_PATH"
+        cat > "$CACHE_FILE" <<EOF
+{
+  "hash": "$HASH",
+  "system": "$SYSTEM",
+  "rom": "$ROM_PATH",
+  "name": "$(display_name "$ROM_PATH")",
+  "scraped": false,
+  "reason": "no_api_key"
+}
+EOF
+        return 0
+    fi
+
+    SYSID=$(sysid "$SYSTEM")
+    if [ -z "$SYSID" ]; then
+        echo "skipped (unknown system): $ROM_PATH"
+        return 0
+    fi
+
+    # Query Screenscraper.fr
+    # We use CRC-based lookup (most accurate for non-arcade systems)
+    ROM_NAME=$(basename "$ROM_PATH")
+    URL="https://www.screenscraper.fr/api2/jeuInfos.php?ssid=$SS_API_USER&sspassword=$SS_API_KEY&devid=lilsmoke&devpassword=lilsmoke2026&softname=lilsmoke&systemeid=$SYSID&romtype=rom&romnom=$ROM_NAME&output=json"
+
+    echo "fetching: $ROM_PATH"
+    RESPONSE=$(wget -q -O - "$URL" 2>/dev/null)
+    if [ -z "$RESPONSE" ]; then
+        echo "  failed (no response)"
+        cat > "$CACHE_FILE" <<EOF
+{
+  "hash": "$HASH",
+  "system": "$SYSTEM",
+  "rom": "$ROM_PATH",
+  "name": "$(display_name "$ROM_PATH")",
+  "scraped": false,
+  "reason": "no_response"
+}
+EOF
+        return 1
+    fi
+
+    # Parse JSON response (no jq available — use grep/sed)
+    # Extract: game title, developer, year, cover URL
+    TITLE=$(echo "$RESPONSE" | grep -oE '"nom"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+    PUBLISHER=$(echo "$RESPONSE" | grep -oE '"editeur"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+    YEAR=$(echo "$RESPONSE" | grep -oE '"date"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+    
+    # Cover URL: look for "box-2D" region "us" or "wor" or "eu"
+    COVER_URL=$(echo "$RESPONSE" | grep -oE '"url"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+
+    # Write metadata
+    cat > "$CACHE_FILE" <<EOF
+{
+  "hash": "$HASH",
+  "system": "$SYSTEM",
+  "rom": "$ROM_PATH",
+  "name": "$TITLE",
+  "publisher": "$PUBLISHER",
+  "year": "$YEAR",
+  "cover_url": "$COVER_URL",
+  "cover_file": "$(cover_path_for_url "$COVER_URL" "$COVER_BASE")",
+  "scraped": true
+}
+EOF
+
+    # Download cover art if URL found
+    if [ -n "$COVER_URL" ]; then
+        COVER_FILE="$(cover_path_for_url "$COVER_URL" "$COVER_BASE")"
+        wget -q -O "$COVER_FILE" "$COVER_URL" 2>/dev/null && \
+            echo "  OK: $TITLE (cover saved)" || \
+            echo "  OK: $TITLE (cover failed)"
+    else
+        echo "  OK: $TITLE (no cover)"
+    fi
+
+    # Rate limit (Screenscraper.fr allows 1 request/second for free users)
+    sleep 1
+    return 0
+}
+
+# --- Main ---
+
+if [ "$1" = "--all" ]; then
+    # Scrape every ROM under /storage/roms/
+    if [ ! -d /storage/roms ]; then
+        echo "lilsmoke-scrape: /storage/roms not found"
+        exit 1
+    fi
+    for sys_dir in /storage/roms/*/; do
+        sys=$(basename "$sys_dir")
+        for rom in "$sys_dir"*; do
+            [ -f "$rom" ] || continue
+            scrape_one "$sys" "$rom" || true
+        done
+    done
+    exit 0
+fi
+
+SYSTEM="$1"
+ROM_PATH="$2"
+[ -z "$SYSTEM" ] && { echo "usage: lilsmoke-scrape <system> <rom_path|--all>" >&2; exit 1; }
+[ -z "$ROM_PATH" ] && { echo "usage: lilsmoke-scrape <system> <rom_path|--all>" >&2; exit 1; }
+
+# If second arg is a directory, iterate
+if [ -d "$ROM_PATH" ]; then
+    for rom in "$ROM_PATH"/*; do
+        [ -f "$rom" ] || continue
+        scrape_one "$SYSTEM" "$rom" || true
+    done
+    exit 0
+fi
+
+scrape_one "$SYSTEM" "$ROM_PATH"

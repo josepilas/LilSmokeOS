@@ -1,0 +1,24 @@
+--- a/menu/main.cpp
++++ b/menu/main.cpp
+@@ -408,6 +408,6 @@
+ void PSNESForceSaveSRAM (void)
+ {
+-	if(mRomName[0] != 0)
++	if(Memory.ROMFilename[0] != 0)
+ 	{
+ 		Memory.SaveSRAM ((s8*)S9xGetFilename (".srm"));
+ 	}
+@@ -435,7 +435,7 @@
+ 
+ bool8_32 S9xOpenSoundDevice(int a, unsigned char b, int c)
+ {
+-
++	return TRUE; /* The SAL layer owns the already-opened SDL audio device. */
+ }
+ 
+ void S9xAutoSaveSRAM (void)
+--- a/src/snes9x/spc7110.cpp
++++ b/src/snes9x/spc7110.cpp
+@@ -115,1 +115,1 @@
+-extern "C" char *osd_GetPackDir();
++extern "C" const char *osd_GetPackDir();

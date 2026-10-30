@@ -1,0 +1,16 @@
+include Makefile
+.DEFAULT_GOAL := all
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DDINGUX -DWANT_CRC32 -DANSI_GCC -DSDL_PATCH -I$(OD_SYSROOT)/usr/include/SDL
+override CPPFLAGS := $(CFLAGS) -std=gnu++11 -fpermissive
+override LIBS := -L$(OD_DEPS)/usr/lib -lstdc++ -lSDL_image -lSDL -lpng -lz -lm -pthread
+override LDFLAGS := -no-pie
+override STRIP := true
+obj/%.o: src/gui/%.cpp
+	$(CXX) $(CPPFLAGS) $(INCS) -c $< -o $@
+obj/%.o: src/handy-libretro/%.cpp
+	$(CXX) $(CPPFLAGS) $(INCS) -c $< -o $@
+obj/%.o: src/%.cpp
+	$(CXX) $(CPPFLAGS) $(INCS) -c $< -o $@
+obj:
+	mkdir -p obj
+$(OBJS): $(OD_PACKAGE)/Makefile.handy

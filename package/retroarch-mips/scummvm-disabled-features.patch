@@ -1,0 +1,11 @@
+diff --git a/backends/platform/libretro/Makefile.common b/backends/platform/libretro/Makefile.common
+--- a/backends/platform/libretro/Makefile.common
++++ b/backends/platform/libretro/Makefile.common
+@@ -228,6 +228,8 @@
+ 
+ # Retrieve shared modules definitions from main Makefile.common
++# Upstream module.mk uses ifdef, which treats a disabled value of 0 as enabled.
++$(foreach feature,USE_THEORADEC USE_BINK USE_MT32EMU USE_FRIBIDI USE_LIBCO USE_FLUIDSYNTH USE_MAD USE_FAAD USE_FLAC USE_LUA USE_TINYGL,$(if $(filter 0,$($(feature))),$(eval override undefine $(feature))))
+ RETRIEVED_SHARED_MODULES := $(shell cat $(UP_COMMON_MAKE) | tr -s "\n" "\00" | sed -e 's|.*-include engines/engines.mk||' -e 's|\#\#\#.*||' | tr -s "\00" "\n" > $(SHARED_MOD_MAKE) && printf ok || printf error)
+ ifeq ($(RETRIEVED_SHARED_MODULES), ok)
+    include $(SHARED_MOD_MAKE)

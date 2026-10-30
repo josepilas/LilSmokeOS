@@ -1,0 +1,35 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] Resolve compressed ROMs for playlists and content browser
+
+--- a/tasks/task_content.c
++++ b/tasks/task_content.c
+@@ -36,6 +36,7 @@
+ #endif
+ #endif
+ 
++#include "m8_content_resolver.h"
+ #ifdef __WINRT__
+ #include <Fileapifromapp.h>
+ #include <uwp/uwp_func.h>
+@@ -831,6 +832,21 @@
+    const char *content_path = content->elems[idx].data;
+    bool path_is_archive;
+    bool path_is_inside_archive;
++   char resolved_path[PATH_MAX_LENGTH];
++   int resolved;
++
++   if (!string_is_empty(content_path))
++   {
++      resolved = m8_resolve_content(content_path, valid_exts,
++         CONTENT_FILE_ATTR_GET_BLOCK_EXTRACT(content->elems[idx].attr),
++         resolved_path, sizeof(resolved_path));
++      if (resolved < 0) { *path = NULL; *path_is_compressed = false; return; }
++      if (resolved > 0)
++      {
++         string_list_set(content, idx, resolved_path);
++         content_path = content->elems[idx].data;
++      }
++   }
+ 
+    *path               = NULL;
+    *path_is_compressed = false;

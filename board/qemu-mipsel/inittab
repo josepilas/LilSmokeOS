@@ -1,0 +1,32 @@
+# LilSmokeOS — /etc/inittab
+#
+# BusyBox init. Boot flow:
+#   1. sysinit: mount /proc, /sys, /dev (done by kernel + S01)
+#   2. wait for S* scripts to run (mounts, mdev, network, daemons)
+#   3. launch LilSmokeUI on tty1
+#   4. respawn shells on ttyS0 (serial console, for dev) and tty2/3 (for debugging)
+#
+# Power button / shutdown: SIGUSR1 triggers a graceful shutdown script.
+# See /etc/init.d/rcK (created by Buildroot default).
+
+::sysinit:/etc/init.d/rcS
+
+# LilSmokeUI runs on the framebuffer console (tty1)
+tty1::respawn:/usr/bin/lilsmoke-ui >>/persist/logs/lilsmoke-ui.log 2>&1
+
+# Serial console (QEMU/dev) and debug shells
+ttyS0::respawn:/bin/sh
+tty2::respawn:/bin/sh
+tty3::respawn:/bin/sh
+
+# Ctrl-Alt-Del → graceful reboot
+::ctrlaltdel:/sbin/reboot
+
+# Shutdown handling
+::shutdown:/etc/init.d/rcK
+# The UI execs games, so stopping only lilsmoke-ui leaves save/log files open.
+::shutdown:/bin/busybox killall5 -15
+::shutdown:/bin/sleep 1
+::shutdown:/bin/busybox killall5 -9
+::shutdown:/bin/sync
+::shutdown:/bin/umount -a -r

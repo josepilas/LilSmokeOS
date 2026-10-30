@@ -1,0 +1,26 @@
+{
+  "nxengine": {
+    "url": "https://github.com/nxengine/nxengine-evo.git",
+    "commit": "1f093d1423cc395eb199230cd609b806ef1daa36",
+    "version": "2.6.5+git"
+  },
+  "prboom": {
+    "url": "https://github.com/coelckers/prboom-plus.git",
+    "commit": "969515162c5aebea4ad7a125ee178dcad3d576ad",
+    "version": "2.6.66"
+  },
+  "easyrpg": {
+    "url": "https://github.com/EasyRPG/Player.git",
+    "commit": "78328fa29f465315291e161130e6682f69410370",
+    "version": "0.8.1.1"
+  },
+  "scummvm": {
+    "url": "https://github.com/scummvm/scummvm.git",
+    "commit": "38af1883a2eb7a622c31bfc3708888bbcc47db48",
+    "version": "2.9.0"
+  },
+  "openbor-svn": {"url": "https://github.com/rofl0r/openbor.git", "commit": "20f5a7e71ddab0ac419a355850716d0c743524de", "version": "legacy-r4034-32bit"},
+  "mgba-native": {"url": "https://github.com/mgba-emu/mgba.git", "commit": "7a12d6d4b9acb14c0ae62c9166b6a2f3d08007f6", "version": "0.11-native-sdl"},
+  "mame4all": {"url": "https://github.com/alekmaul/mame4all.git", "commit": "3683f198f0d9f7043f4ba12fdce85ecc61867e77", "version": "0.37b5-gcw0", "license": "noncommercial"},
+  "sdl-gfx12": {"url": "https://github.com/ferzkopp/SDL_gfx.git", "commit": "4cc9485e8b36fab6126ee390c5746bbe16dcd3e6", "version": "2.0.27"}
+}

@@ -1,0 +1,44 @@
+{
+  "pins": {
+    "miniz": [
+      "richgel999/miniz",
+      "2948eebafc5b9f1c69bebed80333e403a09bd62d",
+      [
+        "miniz.c",
+        "miniz.h",
+        "miniz_common.h",
+        "miniz_tdef.c",
+        "miniz_tdef.h",
+        "miniz_tinfl.c",
+        "miniz_tinfl.h",
+        "miniz_zip.c",
+        "miniz_zip.h",
+        "LICENSE"
+      ]
+    ],
+    "cjson": [
+      "DaveGamble/cJSON",
+      "6d9f2443ab071f86e5d9b43025a40929ec41c46c",
+      [
+        "cJSON.c",
+        "cJSON.h",
+        "LICENSE"
+      ]
+    ]
+  },
+  "sha256": {
+    "vendor/miniz/miniz.c": "29a0c08c4610d20ab18381cbf18190f91b4b41d05c242376364756061b631f1d",
+    "vendor/miniz/miniz.h": "d5b08814d037f1aee60c426743434c70ee25f91c47c0cda56a3a2290e90711b1",
+    "vendor/miniz/miniz_common.h": "d0770cc478923e33bf22820fc51bbe22b6b99c3230ce4f5fc10eea3debc75623",
+    "vendor/miniz/miniz_tdef.c": "989e124126377e9e892469749822e3582fa11afc6ad2ec6f53c0f0fba20869a7",
+    "vendor/miniz/miniz_tdef.h": "18d4da29bd70a9395404e60b35b25e690fbc6bbc540bade2581639be05d5534b",
+    "vendor/miniz/miniz_tinfl.c": "7113a08a7722d671ce89b8de61fe6d02d0cadca0ff274ba357bf2a9dc85745ca",
+    "vendor/miniz/miniz_tinfl.h": "2c89615a4cbc5de4eac5b861051849392ec698264ee7dd399ea587c592cf68d1",
+    "vendor/miniz/miniz_zip.c": "6a362314a0f4ea0a8bf931a4d9b293238533cebecc2619fe7d0f9f743b0ad509",
+    "vendor/miniz/miniz_zip.h": "43d09867f79993a9ba1627cb1f3bbd78d3bf5ee0c91cd6e7527aa9ca1e3aed44",
+    "vendor/miniz/LICENSE": "0115478d567121238cf6cc1c0c361926cf07a49d9e4c9e66da97fac6a01646b3",
+    "vendor/cjson/cJSON.c": "607e756460fa0de37d20a7a9181f2de29c97bfb7ce5a0e6c2f548243836cd852",
+    "vendor/cjson/cJSON.h": "25b0145150d500498e4d209cec69c18c42cf818bffcc54690be3b895a2a16dee",
+    "vendor/cjson/LICENSE": "a36dda207c36db5818729c54e7ad4e8b0c6fba847491ba64f372c1a2037b6d5c"
+  }
+}

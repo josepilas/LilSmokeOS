@@ -1,0 +1,19 @@
+From: LilSmokeOS developers
+Subject: [PATCH] controller: avoid an unaligned word store into Joybus replies
+
+PIF replies are byte-packed. The standard controller reply starts three
+bytes into the command buffer, so a uint32_t pointer cast causes SIGBUS
+on MIPS32r2. Preserve the exact existing byte order with memcpy.
+Observed under MIPS74Kf/musl with the project's SI polling fixture.
+
+--- a/mupen64plus-core/src/device/controllers/game_controller.c
++++ b/mupen64plus-core/src/device/controllers/game_controller.c
+@@ -223,7 +223,7 @@
+     case JCMD_CONTROLLER_READ: {
+         JOYBUS_CHECK_COMMAND_FORMAT(1, 4)
+ 
+-        *((uint32_t*)(rx_buf)) = input_;
++        memcpy(rx_buf, &input_, sizeof(input_));
+ #ifdef COMPARE_CORE
+         CoreCompareDataSync(4, rx_buf);
+ #endif

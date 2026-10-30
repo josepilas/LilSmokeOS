@@ -1,0 +1,51 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] PocketSNES: software fullscreen and validate startup
+
+--- a/sal/linux/sal.c
++++ b/sal/linux/sal.c
+@@ -168,7 +168,7 @@ u32 sal_VideoInit(u32 bpp)
+ 	mBpp=bpp;
+ 
+ 	//Set up the screen
+-	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, bpp, SDL_HWSURFACE |
++	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, bpp, SDL_SWSURFACE | SDL_FULLSCREEN |
+ #ifdef SDL_TRIPLEBUF
+     SDL_TRIPLEBUF
+ #else
+@@ -219,7 +219,7 @@ void sal_VideoEnterGame(u32 fullscreenOption, u32 pal, u32 refreshRate)
+ 	}
+ 
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_UnlockSurface(mScreen);
+-	mScreen = SDL_SetVideoMode(Width, Height, mBpp, SDL_HWSURFACE |
++	mScreen = SDL_SetVideoMode(Width, Height, mBpp, SDL_SWSURFACE | SDL_FULLSCREEN |
+ #ifdef SDL_TRIPLEBUF
+ 		SDL_TRIPLEBUF
+ #else
+@@ -243,7 +243,7 @@ void sal_VideoExitGame()
+ {
+ #ifdef GCW_ZERO
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_UnlockSurface(mScreen);
+-	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, mBpp, SDL_HWSURFACE | SDL_DOUBLEBUF);
++	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, mBpp, SDL_SWSURFACE | SDL_FULLSCREEN | SDL_DOUBLEBUF);
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_LockSurface(mScreen);
+ #endif
+ }
+--- a/menu/main.cpp
++++ b/menu/main.cpp
+@@ -718,12 +718,13 @@ int mainEntry(int argc, char* argv[])
+ 
+ 	s32 event=EVENT_NONE;
+ 
+-	sal_Init();
+-	sal_VideoInit(16);
++	if (sal_Init() != SAL_OK || sal_VideoInit(16) != SAL_OK)
++		return 1;
+ 
+ 	mRomName[0]=0;
+ 	if (argc >= 2) {
+- 		strcpy(mRomName, argv[1]); // Record ROM name
++		if (strlen(argv[1]) >= sizeof(mRomName)) return 1;
++		strcpy(mRomName, argv[1]);
+ 		argv_rom_loaded = true;
+ 	}
+ 

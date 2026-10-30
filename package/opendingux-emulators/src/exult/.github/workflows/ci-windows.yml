@@ -1,0 +1,106 @@
+name: ci-windows
+
+on:
+  push:
+    paths:
+      - "**"
+      - "!android/**"
+      - "!docs/**"
+      - "docs/Makefile.am"
+      - "!ios/**"
+      - "!macosx/**"
+      - "!msvcstuff/**"
+      - "!AUTHORS"
+      - "!ChangeLog"
+      - "!COPYING"
+      - "!FAQ"
+      - "!INSTALL"
+      - "!NEWS"
+      - "!**README**"
+      - "!**.ico"
+      - "!**.md"
+      - "!**.png"
+      - "!**.txt"
+      - "!.clang*"
+      - "!.gitignore"
+      - "!.gitattributes"
+      - "!.github/workflows/*"
+      - ".github/workflows/ci-windows.yml"
+  pull_request:
+    paths:
+      - "**"
+      - "!android/**"
+      - "!docs/**"
+      - "docs/Makefile.am"
+      - "!ios/**"
+      - "!macosx/**"
+      - "!msvcstuff/**"
+      - "!AUTHORS"
+      - "!ChangeLog"
+      - "!COPYING"
+      - "!FAQ"
+      - "!INSTALL"
+      - "!NEWS"
+      - "!**README**"
+      - "!**.ico"
+      - "!**.md"
+      - "!**.png"
+      - "!**.txt"
+      - "!.clang*"
+      - "!.gitignore"
+      - "!.gitattributes"
+      - "!.github/workflows/*"
+      - ".github/workflows/ci-windows.yml"
+
+jobs:
+  ci-windows:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sys: [UCRT64, clang64,clangarm64]
+        include:
+          #- { sys: mingw64, env: mingw-w64-x86_64, runner:windows-2022 }
+          - { sys: UCRT64, env: mingw-w64-ucrt-x86_64, runner: windows-2022}
+          - { sys: clang64, env: mingw-w64-clang-x86_64, runner: windows-2022}
+          - { sys: clangarm64, env: mingw-w64-clang-aarch64, runner: windows-11-arm }
+    defaults:
+      run: 
+        shell: msys2 {0}    
+    env:  
+      msystem: ${{ matrix.sys }}
+    steps:
+      - name: Install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.sys }}
+          update: true
+          release: true
+          install: |
+            base-devel git zip
+            ${{ matrix.env }}-toolchain ${{ matrix.env }}-binutils ${{ matrix.env }}-ntldd ${{ matrix.env }}-sdl3
+            ${{ matrix.env }}-fluidsynth ${{ matrix.env }}-libtimidity ${{ matrix.env }}-libogg ${{ matrix.env }}-libvorbis
+            ${{ matrix.env }}-munt-mt32emu ${{ matrix.env }}-libpng ${{ matrix.env }}-zlib ${{ matrix.env }}-sdl3-image
+            ${{ matrix.env }}-gtk3 ${{ matrix.env }}-adwaita-icon-theme ${{ matrix.env }}-libxml2 ${{ matrix.env }}-freetype
+            ${{ matrix.env }}-gimp ${{ matrix.env }}-icu
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Build
+        run: |
+          make -j 5 -f Makefile.mingw DEBUG=1 USECODE_DEBUGGER=1 DISTPATH=dist Exult.exe mods exult_studio.exe tools u7shp.exe exult_shp.exe exconfig.exe dist studiodist toolsdist plugindist aseprite-plugindist
+          make -j 5 -f Makefile.mingw DEBUG=1 USECODE_DEBUGGER=1 DISTPATH=disttest
+          cd dist
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" -DMINGW_SYS=${{ matrix.sys }} exult_installer.iss
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" -DMINGW_SYS=${{ matrix.sys }} exult_studio_installer.iss
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" -DMINGW_SYS=${{ matrix.sys }} exult_tools_installer.iss
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" -DMINGW_SYS=${{ matrix.sys }} exult_shpplugin_installer.iss
+  notify:
+    if: ${{ always() }}
+    needs:
+      - ci-windows
+    uses: ./.github/workflows/notify.yml
+    with:
+      build_name: "The Exult Windows MSYS2 build"
+      build_result: ${{ needs.ci-windows.result }}
+    secrets:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}

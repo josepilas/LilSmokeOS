@@ -1,0 +1,23 @@
+#!/bin/sh
+pid=/run/lilsmoke-usb-gamepads.pid
+case "${1:-}" in
+    start)
+        mkdir -p /run || exit 1
+        export LD_LIBRARY_PATH=/usr/lib/lilsmoke-usb:/usr/lib:/lib
+        # BusyBox -b closes standard descriptors. Open the log after detaching.
+        start-stop-daemon -S -b -m -p "$pid" -x /bin/sh -- -c \
+            'log=/dev/null
+             helper=/usr/lib/lilsmoke/lilsmoke-session-log
+             if [ -x "$helper" ]; then
+                 log=$("$helper" usb-gamepads) || log=/dev/null
+             elif mkdir -p /persist/logs 2>/dev/null &&
+                  ( : >> /persist/logs/usb-gamepads.log ) 2>/dev/null; then
+                 log=/persist/logs/usb-gamepads.log
+             fi
+             exec /usr/bin/lilsmoke-usb-gamepads >> "$log" 2>&1'
+        ;;
+    stop)
+        start-stop-daemon -K -p "$pid" -x /usr/bin/lilsmoke-usb-gamepads -s TERM
+        ;;
+    *) exit 2 ;;
+esac

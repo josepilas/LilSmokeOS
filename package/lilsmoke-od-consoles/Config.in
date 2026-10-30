@@ -1,0 +1,11 @@
+config BR2_PACKAGE_LILSMOKE_OD_CONSOLES
+	bool "LilSmoke native console staging"
+	depends on BR2_mipsel && BR2_TOOLCHAIN_USES_MUSL
+	depends on BR2_INSTALL_LIBSTDCPP && BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_LILSMOKE_OD_SDL
+	select BR2_PACKAGE_SDL2
+	select BR2_PACKAGE_ZLIB
+	select BR2_PACKAGE_LIBPNG
+	help
+	  Pinned standalone SDL console executables. Builds isolated optional
+	  storage payloads only; never installs into the Buildroot target.

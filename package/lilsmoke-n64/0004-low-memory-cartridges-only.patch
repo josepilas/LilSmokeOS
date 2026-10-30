@@ -1,0 +1,45 @@
+From: LilSmokeOS contributors
+Subject: [PATCH] bound software N64 memory for cartridge-only low-RAM targets
+
+Drop the unused 67 MiB disk buffer and 64 renderer-worker states. Reject
+64DD loads explicitly; cartridge SRAM layout is unchanged. Cap workers at
+two, with one used by default on the target.
+
+--- a/libretro/libretro_memory.h
++++ b/libretro/libretro_memory.h
+@@ -13,1 +13,5 @@
+-   uint8_t disk[0x0435B0C0];
++#ifdef LILSMOKE_N64_NO_DD
++   uint8_t disk[1];
++#else
++   uint8_t disk[0x0435B0C0];
++#endif
+--- a/libretro/libretro.c
++++ b/libretro/libretro.c
+@@ -801,1 +801,5 @@
+-      /* 64DD Disk loading */
++#ifdef LILSMOKE_N64_NO_DD
++      if (log_cb) log_cb(RETRO_LOG_ERROR, "64DD disabled in low-memory cartridge build\n");
++      goto load_fail;
++#endif
++      /* 64DD Disk loading */
+@@ -2804,1 +2808,3 @@
+-   format_disk(saved_memory.disk);
++#ifndef LILSMOKE_N64_NO_DD
++   format_disk(saved_memory.disk);
++#endif
+@@ -3006,2 +3012,5 @@
+ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info)
+ {
++#ifdef LILSMOKE_N64_NO_DD
++   return false;
++#endif
+--- a/mupen64plus-video-angrylion/parallel_al.h
++++ b/mupen64plus-video-angrylion/parallel_al.h
+@@ -9,1 +9,5 @@
+-#define PARALLEL_MAX_WORKERS 64u
++#ifdef LILSMOKE_N64_LOW_RAM
++#define PARALLEL_MAX_WORKERS 2u
++#else
++#define PARALLEL_MAX_WORKERS 64u
++#endif

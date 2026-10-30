@@ -1,0 +1,7 @@
+include Makefile.linux
+.DEFAULT_GOAL := all
+override CFLAGS := $(OD_FLAGS) -D_GNU_SOURCE -D_REENTRANT -DNOCRYPT -DIS_LITTLE_ENDIAN -DNO_STDIO_REDIRECT -DATARI_VERSION=\"1.1.0\" -I. -Isrc -I$(OD_SYSROOT)/usr/include/SDL -I$(OD_DEPS)/usr/include/SDL
+override LDFLAGS := -Wl,--gc-sections
+override LIBS := -L$(OD_DEPS)/usr/lib -lSDL_image -lSDL -lpng -lz -lm -pthread -lstdc++ -ldl
+override SDL_CONFIG := sh $(OD_PACKAGE)/sdl12-config.sh
+override STRIP := true

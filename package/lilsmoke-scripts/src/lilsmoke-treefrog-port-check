@@ -1,0 +1,18 @@
+#!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# TreeFrog's missing-files protocol. Error data is RAM-only and never executed.
+set -eu
+[ "$#" -ge 5 ] || exit 2
+slug=$1; guide=$2; qr=$3; directory=$4
+shift 4
+missing=
+for file do
+    [ -f "$directory/$file" ] || missing="${missing}${missing:+
+}$file"
+done
+[ -n "$missing" ] || exit 0
+temporary=/mnt/sdcard/cubegm/port_error.txt.$$
+(umask 077; printf '%s\n%s\n%s\n%s\n' "$slug" "$guide" "$qr" "$missing" > "$temporary")
+mv -f "$temporary" /mnt/sdcard/cubegm/port_error.txt
+printf 'TreeFrog Ports: missing game files:\n%s\n' "$missing" >&2
+exit 1

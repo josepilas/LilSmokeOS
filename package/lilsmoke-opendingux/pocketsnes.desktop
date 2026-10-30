@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=PocketSNES
+Exec=/usr/lib/lilsmoke/od-launch pocketsnes %f
+X-LilSmoke-Systems=snes
+X-OpenDingux-Systems=snes
+Terminal=false

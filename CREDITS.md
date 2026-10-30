@@ -6,9 +6,9 @@
 **José Pilas** is the creator, designer and project lead of LilSmokeOS. He
 defines its behavior, visual direction, hardware goals and application ecosystem,
 provides the development hardware and carries out the physical-device feedback
-and acceptance tests. The initial authored OS release uses a personal-use
-proprietary license; public SM64 authored adaptations use MPL-2.0. Previous
-permissions and upstream terms remain in force.
+and acceptance tests. The authored Alpha-0.0.1 source uses MPL-2.0.
+Previous permissions and upstream terms remain in force; dependencies,
+commercial game data and vendor firmware are not relicensed by this credit.
 
 Codex assisted with implementation, research, porting, testing and documentation.
 This does not transfer authorship of upstream engines, commercial games or

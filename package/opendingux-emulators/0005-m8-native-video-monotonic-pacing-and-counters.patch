@@ -1,0 +1,309 @@
+From: LilSmokeOS <dev@lilsmokeos.local>
+Subject: [PATCH] PocketSNES: native video, monotonic pacing and measured counters
+
+--- a/menu/main.cpp
++++ b/menu/main.cpp
+@@ -1,5 +1,8 @@
+ 
+ #include <sal.h>
++#include "m8_pocketsnes.h"
++#include <fcntl.h>
++#include <unistd.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -33,6 +36,7 @@
+ static u32 mFps=0;
+ static u32 mLastTimer=0;
+ static u32 mEnterMenu=0;
++static u32 mExitApp=0;
+ static u32 mLoadRequested=0;
+ static u32 mSaveRequested=0;
+ static u32 mQuickStateTimer=0;
+@@ -153,10 +157,6 @@
+ {
+ 	if (mInMenu) return TRUE;
+ 
+-#ifdef GCW_ZERO
+-	if (mMenuOptions.fullScreen == 3) GFX.Screen = (uint8*) mScreen->pixels;
+-	else
+-#endif
+ 	GFX.Screen = (u8*) IntermediateScreen; /* replacement needed after loading the saved states menu */
+ 
+ 	return TRUE;
+@@ -165,6 +165,7 @@
+ bool8_32 S9xDeinitUpdate (int Width, int Height, bool8_32)
+ {
+ 	if(mInMenu) return TRUE;
++	uint64_t renderStart = m8_now_us();
+ 
+ 	// After returning from the menu, clear the background of 3 frames.
+ 	// This prevents remnants of the menu from appearing.
+@@ -183,7 +184,19 @@
+ 		LastPAL = PAL;
+ 	}
+ 
+-	switch (mMenuOptions.fullScreen)
++	if (m8_video_native())
++	{
++		u32 h = PAL ? SNES_HEIGHT_EXTENDED : SNES_HEIGHT;
++		u8 *src = (u8*)IntermediateScreen, *dst = (u8*)sal_VideoGetBuffer();
++		if (h > sal_VideoGetHeight()) h = sal_VideoGetHeight();
++		for (u32 y = 0; y < h; ++y)
++		{
++			memcpy(dst, src, SNES_WIDTH * sizeof(u16));
++			src += SNES_WIDTH * sizeof(u16);
++			dst += sal_VideoGetPitch();
++		}
++	}
++	else switch (mMenuOptions.fullScreen)
+ 	{
+ 		case 0: /* No scaling */
+ 		// case 3: /* Hardware scaling */
+@@ -226,20 +239,10 @@
+ 			break;
+ 	}
+ 
+-	u32 newTimer;
+ 	if (mMenuOptions.showFps)
+ 	{
+-		mFps++;
+-		newTimer=sal_TimerRead();
+-		if(newTimer-mLastTimer>Memory.ROMFramesPerSecond)
+-		{
+-			mLastTimer=newTimer;
+-			sprintf(mFpsDisplay,"%2d/%2d", mFps, Memory.ROMFramesPerSecond);
+-			mFps=0;
+-		}
+-
+-		sal_VideoDrawRect(0,0,5*8,8,SAL_RGB(0,0,0));
+-		sal_VideoPrint(0,0,mFpsDisplay,SAL_RGB(31,31,31));
++		sal_VideoDrawRect(0,0,16*8,8,SAL_RGB(0,0,0));
++		sal_VideoPrint(0,0,(s8*)m8_fps_text(),SAL_RGB(31,31,31));
+ 	}
+ 
+ 	if(mVolumeDisplayTimer>0)
+@@ -255,6 +258,7 @@
+ 	}
+ 
+ 	sal_VideoFlip(0);
++	m8_frame_rendered(renderStart);
+ 	static bool firstFrame = true;
+ 	if (firstFrame) { fprintf(stderr, "POCKETSNES_FRAME_READY\n"); fflush(stdout); firstFrame = false; }
+ 	return TRUE;
+@@ -284,7 +288,12 @@
+ 
+ 	u32 joy = sal_InputPoll(which1);
+ 
+-	if (joy & SAL_INPUT_MENU) {
++	if (joy & M8_INPUT_EXIT) {
++		fprintf(stderr, "POCKETSNES_EXIT_REQUEST player=%d\n", which1 + 1);
++		mExitApp = mEnterMenu = 1;
++		return val;
++	} else if (joy & SAL_INPUT_MENU) {
++		fprintf(stderr, "POCKETSNES_MENU_ENTER player=%d\n", which1 + 1);
+ 		mEnterMenu = 1;
+ 		return val;
+ 	} else if (joy & SAL_INPUT_QUICKLOAD) {
+@@ -367,34 +376,7 @@
+ 	if (IsPreviewingState())
+ 		return;
+ 
+-	if (Settings.SkipFrames == AUTO_FRAMERATE)
+-	{
+-		if (sal_AudioGetFramesBuffered() < sal_AudioGetMinFrames()
+-		 && ++IPPU.SkippedFrames < MAX_AUDIO_FRAMESKIP)
+-		{
+-			IPPU.RenderThisFrame = FALSE;
+-		}
+-		else
+-		{
+-			IPPU.RenderThisFrame = TRUE;
+-			IPPU.SkippedFrames = 0;
+-		}
+-	}
+-	else
+-	{
+-		if (++IPPU.SkippedFrames >= Settings.SkipFrames + 1)
+-		{
+-			IPPU.RenderThisFrame = TRUE;
+-			IPPU.SkippedFrames = 0;
+-		}
+-		else
+-		{
+-			IPPU.RenderThisFrame = FALSE;
+-		}
+-	}
+-
+-	while (sal_AudioGetFramesBuffered() >= sal_AudioGetMaxFrames())
+-		usleep(100);
++	IPPU.RenderThisFrame = m8_sync(Settings.SkipFrames == AUTO_FRAMERATE ? -1 : Settings.SkipFrames);
+ }
+ 
+ const char *S9xBasename (const char *f)
+@@ -413,7 +395,15 @@
+ {
+ 	if(Memory.ROMFilename[0] != 0)
+ 	{
+-		Memory.SaveSRAM ((s8*)S9xGetFilename (".srm"));
++		const char *path = S9xGetFilename(".srm");
++		int saved = Memory.SaveSRAM(path), durable = 0;
++		if (saved && (Memory.SRAMSize || Settings.SRTC)) {
++			int fd = open(path, O_RDONLY | O_CLOEXEC);
++			durable = fd >= 0 && fsync(fd) == 0;
++			if (fd >= 0) close(fd);
++		}
++		fprintf(stderr, "POCKETSNES_SRAM path=%s saved=%d durable=%d size_code=%u\n",
++			path, saved, durable, Memory.SRAMSize);
+ 	}
+ }
+ 
+@@ -465,14 +455,19 @@
+   	int i;
+ 	bool PAL = !!(Memory.FillRAM[0x2133] & 4);
+ 
++	// Native M8 mode ignores legacy GCW crop/scaler settings; fallback uses 4:3.
++	mMenuOptions.fullScreen = 1;
+ 	sal_VideoEnterGame(mMenuOptions.fullScreen, PAL, Memory.ROMFramesPerSecond);
+ 	LastPAL = PAL;
+ 
+ 	Settings.SoundSync = mMenuOptions.soundSync;
+ 	Settings.SkipFrames = mMenuOptions.frameSkip == 0 ? AUTO_FRAMERATE : mMenuOptions.frameSkip - 1;
+ 	sal_TimerInit(Settings.FrameTime);
+-
+-	if (sound) {
++	m8_timing_reset(Settings.FrameTime);
++	IPPU.RenderThisFrame = TRUE;
++	IPPU.SkippedFrames = 0;
++
++	{
+ 		/*
+ 		Settings.SoundPlaybackRate = mMenuOptions.soundRate;
+ 		Settings.Stereo = mMenuOptions.stereo ? TRUE : FALSE;
+@@ -497,10 +492,7 @@
+ 			LastStereo = mMenuOptions.stereo;
+ 			LastHz = Memory.ROMFramesPerSecond;
+ 		}
+-		sal_AudioSetMuted(0);
+-
+-	} else {
+-		sal_AudioSetMuted(1);
++		sal_AudioSetMuted(!sound);
+ 	}
+ 	sal_AudioResume();
+ 
+@@ -508,6 +500,7 @@
+   	{
+ 		//Run SNES for one glorious frame
+ 		S9xMainLoop ();
++		m8_frame_completed();
+ 
+ 		if (SamplesDoneThisFrame < sal_AudioGetSamplesPerFrame())
+ 			sal_AudioGenerate(sal_AudioGetSamplesPerFrame() - SamplesDoneThisFrame);
+@@ -520,7 +513,7 @@
+ 	sal_VideoExitGame();
+ 
+ 	mEnterMenu=0;
+-	return mEnterMenu;
++	return mExitApp ? EVENT_EXIT_APP : EVENT_NONE;
+ 
+ }
+ 
+@@ -607,10 +600,6 @@
+ 	Settings.C4 = TRUE;
+ 	Settings.SDD1 = TRUE;
+ 
+-#ifdef GCW_ZERO
+-	if (mMenuOptions.fullScreen == 3) GFX.Screen = (uint8*) mScreen->pixels;
+-	else
+-#endif
+ 	GFX.Screen = (u8*) IntermediateScreen; /* replacement needed after loading the saved states menu */
+ 
+ 	GFX.RealPitch = GFX.Pitch = 256 * sizeof(u16);
+@@ -780,16 +769,14 @@
+ 			sal_CpuSpeedSet(mMenuOptions.cpuSpeed);
+ 			mFramesCleared = 0;
+ 			if(mMenuOptions.soundEnabled)
+-				RunSound();
+-			else	RunNoSound();
+-
+-			event=EVENT_NONE;
++				event=RunSound();
++			else	event=RunNoSound();
+ 		}
+ 
+ 		if(event==EVENT_EXIT_APP) break;
+ 	}
+ 
+-	MenuMessageBox("Saving SRAM...","","",MENU_MESSAGE_BOX_MODE_MSG);
++	fprintf(stderr, "POCKETSNES_EXIT_APP cleanup=1\n");
+ 	PSNESForceSaveSRAM();
+ 
+ 	S9xGraphicsDeinit();
+--- a/sal/linux/sal.c
++++ b/sal/linux/sal.c
+@@ -3,6 +3,7 @@
+ #include <SDL.h>
+ #include <sys/time.h>
+ #include "sal.h"
++#include "m8_pocketsnes.h"
+ 
+ #define PALETTE_BUFFER_LENGTH	256*2*4
+ #define SNES_WIDTH  256
+@@ -204,6 +205,25 @@
+ void sal_VideoEnterGame(u32 fullscreenOption, u32 pal, u32 refreshRate)
+ {
+ #ifdef GCW_ZERO
++	if (SDL_MUSTLOCK(mScreen)) SDL_UnlockSurface(mScreen);
++	m8_video_set_native(0);
++	mScreen = SDL_SetVideoMode(256, pal ? 239 : 224, mBpp, SDL_SWSURFACE | SDL_FULLSCREEN);
++	if (mScreen && mScreen->w == 256 && mScreen->format->BitsPerPixel == 16 && m8_video_aspect())
++	{
++		m8_video_set_native(1);
++		mRefreshRate = refreshRate;
++		if (SDL_MUSTLOCK(mScreen)) SDL_LockSurface(mScreen);
++		return;
++	}
++	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, mBpp,
++		SDL_SWSURFACE | SDL_FULLSCREEN);
++	if (!mScreen) { fprintf(stderr, "POCKETSNES_VIDEO_FAILED %s\n", SDL_GetError()); exit(1); }
++	fprintf(stderr, "POCKETSNES_VIDEO fallback=320x240 aspect=4:3 scale_passes=2\n");
++	mRefreshRate = refreshRate;
++	if (SDL_MUSTLOCK(mScreen)) SDL_LockSurface(mScreen);
++	return;
++#endif
++#if defined(GCW_ZERO) && !defined(LILSMOKE_M8)
+ 	/* Copied from C++ headers which we can't include in C */
+ 	unsigned int Width = 256 /* SNES_WIDTH */,
+ 	             Height = pal ? 239 /* SNES_HEIGHT_EXTENDED */ : 224 /* SNES_HEIGHT */;
+@@ -233,7 +253,7 @@
+ 
+ void sal_VideoSetPAL(u32 fullscreenOption, u32 pal)
+ {
+-	if (fullscreenOption == 3) /* hardware scaling */
++	if (m8_video_native() || fullscreenOption == 3)
+ 	{
+ 		sal_VideoEnterGame(fullscreenOption, pal, mRefreshRate);
+ 	}
+@@ -242,6 +262,7 @@
+ void sal_VideoExitGame()
+ {
+ #ifdef GCW_ZERO
++	m8_video_set_native(0);
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_UnlockSurface(mScreen);
+ 	mScreen = SDL_SetVideoMode(SAL_SCREEN_WIDTH, SAL_SCREEN_HEIGHT, mBpp, SDL_SWSURFACE | SDL_FULLSCREEN | SDL_DOUBLEBUF);
+ 	if (SDL_MUSTLOCK(mScreen)) SDL_LockSurface(mScreen);
+--- a/src/snes9x/memmap.cpp
++++ b/src/snes9x/memmap.cpp
+@@ -1743,8 +1743,9 @@
+ 		FILE *file= fopen(filename, "w");
+ 		if (file)
+ 		{
+-			fwrite((unsigned char *) ::SRAM, size, 1, file);
+-			fclose(file);
++			bool written = fwrite((unsigned char *) ::SRAM, size, 1, file) == 1;
++			if (fclose(file) != 0) written = false;
++			if (!written) return FALSE;
+ 			if(Settings.SPC7110RTC)
+ 			{
+ 				S9xSaveSPC7110RTC (&rtc_f9);

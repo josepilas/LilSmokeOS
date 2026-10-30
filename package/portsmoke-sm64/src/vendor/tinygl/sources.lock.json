@@ -1,0 +1,198 @@
+{
+  "repository": "https://github.com/jserv/tinygl",
+  "revision": "c2e48591a6bfba1a85f1b87a78dcf1abf7dff57a",
+  "license": "MIT",
+  "source_bytes": 329276,
+  "files": [
+    {
+      "path": "LICENSE",
+      "bytes": 1072,
+      "sha256": "d9449a1303cc324cc36e8d479557880c6b864e01fbada7c3c171f90de522698d"
+    },
+    {
+      "path": "include/TGL/gl.h",
+      "bytes": 38589,
+      "sha256": "8e1f46b9494b2e5cc1efd68a5cf99d0a6cdfe97d85a81b7db4355cadbf736c8d"
+    },
+    {
+      "path": "include/zbuffer.h",
+      "bytes": 16607,
+      "sha256": "c7cffbb36676cae5e57eecc4bd264d2e9f3570290280b09704f883698a1eff30"
+    },
+    {
+      "path": "include/zfeatures.h",
+      "bytes": 4533,
+      "sha256": "af8beb5a37449a201c50a23236a5375c9f3c53b6e810997d311729e3d4e17f75"
+    },
+    {
+      "path": "src/api.c",
+      "bytes": 14166,
+      "sha256": "88cd705a9bb60b17ccc3f619e86a8a2213f87fc1f7748d146ba7fa025d28c196"
+    },
+    {
+      "path": "src/arrays.c",
+      "bytes": 13798,
+      "sha256": "24dd507adeaea19318763cf391a979fca031a1f59587e3b04ba3ea7dac5af541"
+    },
+    {
+      "path": "src/clear.c",
+      "bytes": 769,
+      "sha256": "de55167d832f449dc0133dc35cb9ad7c946f2cdf7e3ba8e2a2e768acd9fd7cd4"
+    },
+    {
+      "path": "src/clip.c",
+      "bytes": 16270,
+      "sha256": "0e156e4a1b6057a2c59bfae8c59ad84e6c133f64311ebfc33ae1a04fc95671b1"
+    },
+    {
+      "path": "src/error_check.h",
+      "bytes": 384,
+      "sha256": "a9af67b1cd1a8e35ee2a0cd45cd648e8b6f17222377508b1826c3384d4850044"
+    },
+    {
+      "path": "src/error_check_no_context.h",
+      "bytes": 295,
+      "sha256": "b97f10989f73cede499ed20237f5c1782f6153432bad8df18475767c91c685d2"
+    },
+    {
+      "path": "src/font8x8_basic.h",
+      "bytes": 9262,
+      "sha256": "7ce6dea6d72c8a4a7046c709565b90fc89e5c16323e7f677e71781e103d110ab"
+    },
+    {
+      "path": "src/get.c",
+      "bytes": 17186,
+      "sha256": "d3c262dce9275a12a04b33d98dbb398faef943181fcc8745e716fa15525de696"
+    },
+    {
+      "path": "src/image_util.c",
+      "bytes": 4114,
+      "sha256": "5f3f8d09c8f7b640ec9d1aaeb80ab4fe07642812ace4a60f5cd407f9dae8ceb4"
+    },
+    {
+      "path": "src/init.c",
+      "bytes": 10097,
+      "sha256": "0a091707e0fcd95abaf8fe8d58c10618f69037007254ad685e07c0719c032a56"
+    },
+    {
+      "path": "src/light.c",
+      "bytes": 11107,
+      "sha256": "647b1123153f3cc42e2bc6fc08b9dd49917a98a5575444b74ef87e77112ace45"
+    },
+    {
+      "path": "src/list.c",
+      "bytes": 5502,
+      "sha256": "21d6fb28a8f39479d881102404c131e0a9e66014875507d92fbc46041a3811bd"
+    },
+    {
+      "path": "src/matrix.c",
+      "bytes": 6073,
+      "sha256": "10afecd12ce193973397baab3ae6f8357c828e7ad467a2afd098c79495ae701d"
+    },
+    {
+      "path": "src/memory.c",
+      "bytes": 235,
+      "sha256": "33962093f54f90fdb861cf0f0d3f55bbbaf1cbb378459ca7db740a08b4c2eb66"
+    },
+    {
+      "path": "src/misc.c",
+      "bytes": 7378,
+      "sha256": "d55968fe0cd123af9ed4ad9523d2f9d20b3883167023bdb902af7e56eef341c8"
+    },
+    {
+      "path": "src/msghandling.c",
+      "bytes": 1630,
+      "sha256": "aa8d1adf599ef82f53b3d2b8caa4ba766c43e7d5f76885c3aa4a2e7c5f3ab795"
+    },
+    {
+      "path": "src/msghandling.h",
+      "bytes": 240,
+      "sha256": "ab0c097d7eb4ba47b98d152409cf5d519d444de5997f6f3026a36a3c73dd35e3"
+    },
+    {
+      "path": "src/opinfo.h",
+      "bytes": 2100,
+      "sha256": "16a9f8589a42259708738a5a8b7206abc4865f271279c10e6a3f268f851d290d"
+    },
+    {
+      "path": "src/select.c",
+      "bytes": 10861,
+      "sha256": "3b7fef6abfd84a083ba8845958b07968889fd67a17e4d6de15b2f92262eda82d"
+    },
+    {
+      "path": "src/specbuf.c",
+      "bytes": 1581,
+      "sha256": "e3277c728e373bf8cdaa7c5d20becb0c26776670c3541286e7042175515474c3"
+    },
+    {
+      "path": "src/texture.c",
+      "bytes": 10735,
+      "sha256": "4380a481f0ca795665752ac500ab1a32a68e6c225e7d799d7b12a3ae678ea904"
+    },
+    {
+      "path": "src/vertex.c",
+      "bytes": 12120,
+      "sha256": "3be939eeb89e114ff51657e1a3e50c289a7af30aee0416c1bfd690e813625f1c"
+    },
+    {
+      "path": "src/zbuffer.c",
+      "bytes": 9937,
+      "sha256": "b18955940e6db54e8aef0bc1060842553263dbffb6c07b10ee62aca0a43a7d84"
+    },
+    {
+      "path": "src/zgl.h",
+      "bytes": 10749,
+      "sha256": "68464e5a17f5b812958b26819063d2c56bc0edaa16f2bdf15b7b9b9ec8709b0d"
+    },
+    {
+      "path": "src/zline.c",
+      "bytes": 4935,
+      "sha256": "b2d96897240d6f73e4fe58e1609655820919fffe633e60594fbc8137cd3b91ea"
+    },
+    {
+      "path": "src/zline.h",
+      "bytes": 3958,
+      "sha256": "334616f67e3b35479951afc3ebc4c785d33dafbe5fdb76f4447d6ded25726d9e"
+    },
+    {
+      "path": "src/zmath.c",
+      "bytes": 6540,
+      "sha256": "9f6f7a46a4c0ea317139c2d7566859bf19cd2eaa61d279be9564321b61be247a"
+    },
+    {
+      "path": "src/zmath.h",
+      "bytes": 1389,
+      "sha256": "8186d1d1f3c835276e1a0907d94f9d8808dce5b51127e87f17edb75986a70c75"
+    },
+    {
+      "path": "src/zpostprocess.c",
+      "bytes": 658,
+      "sha256": "a49250a807a69c48e39bf75d43e1f1f34a2a169ba503e45ee1df4bb519781c90"
+    },
+    {
+      "path": "src/zraster.c",
+      "bytes": 8430,
+      "sha256": "e0f9be9d174044aa2c332b895b8d532838ffca11de3cc82e30190a7c6ffadc71"
+    },
+    {
+      "path": "src/ztext.c",
+      "bytes": 2621,
+      "sha256": "e58a2f4bcec82163a6018fffc093eeffa83430c76b82acb5f7a34a8b9a96f2f3"
+    },
+    {
+      "path": "src/ztriangle.c",
+      "bytes": 48923,
+      "sha256": "c91cd2600cf437ad4feb77afd523130428987e7f64673041f9311b979fd59b9f"
+    },
+    {
+      "path": "src/ztriangle.h",
+      "bytes": 11197,
+      "sha256": "3aaf25e9a83a07a86d74517c5f94ca1a7146a0d598bd8cda658f7a23607aed3e"
+    },
+    {
+      "path": "src/ztriangle_variants.h",
+      "bytes": 3235,
+      "sha256": "b2cd471b875de3eeb741c90b8a272bde8f44cef4790169b448e4ef1ace5615b7"
+    }
+  ]
+}

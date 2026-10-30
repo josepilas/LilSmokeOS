@@ -1,6 +1,9 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 # LilSmokeOS Pre-Alpha-0.0.1
 
+Historical Pre-Alpha guide. Alpha-0.0.1 publishes the authored OS source under
+MPL-2.0; see the [Alpha source guide](../alpha-0.0.1-source.md).
+
 **Release documentation draft. No public image release is declared by these
 documents.** Publication must pass the [release checklist](PUBLICATION-CHECKLIST.md).
 Private development images are not public download artifacts.

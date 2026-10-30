@@ -1,0 +1,810 @@
+{
+  "fceu320": [
+    {
+      "file": "src/drivers/dingux-sdl/gui/gui.cpp",
+      "before": "switch(event.type) {",
+      "after": "switch(event.type) {\n\t\t\tcase SDL_QUIT:\n\t\t\t\tFCEUI_CloseGame();\n\t\t\t\tSDL_Quit();\n\t\t\t\texit(0);",
+      "marker": "case SDL_QUIT:"
+    },
+    {
+      "file": "src/drivers/dingux-sdl/gui/gui.cpp",
+      "before": "\t\t\t\tDriverKill();\n\t\t\t\tSDL_Quit();",
+      "after": "\t\t\t\tSDL_Quit();",
+      "optional": true
+    },
+    {
+      "file": "src/drivers/dingux-sdl/gui/gui.cpp",
+      "before": "\t\t\tcase SDL_QUIT:\n\t\t\t\tFCEUI_CloseGame();\n\t\t\t\tSDL_Quit();\n\t\t\t\texit(0);\n\t\t\tcase SDL_QUIT:\n\t\t\t\tFCEUI_CloseGame();\n\t\t\t\tSDL_Quit();\n\t\t\t\texit(0);",
+      "after": "\t\t\tcase SDL_QUIT:\n\t\t\t\tFCEUI_CloseGame();\n\t\t\t\tSDL_Quit();\n\t\t\t\texit(0);",
+      "optional": true
+    },
+    {
+      "file": "src/cheat.cpp",
+      "before": "while(fgets(linebuf,2048,fp)>0)",
+      "after": "while(fgets(linebuf,2048,fp) != NULL)"
+    },
+    {
+      "file": "src/drivers/dingux-sdl/dingoo.cpp",
+      "before": "#include \"gui/gui.h\"",
+      "after": "#include \"gui/gui.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/drivers/dingux-sdl/dingoo.cpp",
+      "before": "int LoadGame(const char *path) {",
+      "after": "int LoadGame(const char *path) {\n\tpath = od_resolve_content(path, \"nes\");\n\tif (!path) return 0;"
+    },
+    {
+      "file": "src/drivers/dingux-sdl/dingoo.cpp",
+      "before": "{ \".nes\", \".fds\", \".zip\", \".fcm\"",
+      "after": "{ \".nes\", \".fds\", \".zip\", \".7z\", \".fcm\""
+    },
+    {
+      "file": "src/drivers/dingux-sdl/gui/gui.cpp",
+      "before": "#include \"font.h\"",
+      "after": "#include \"font.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/drivers/dingux-sdl/gui/gui.cpp",
+      "before": "{ \".nes\", \".fds\", \".zip\",",
+      "after": "{ \".nes\", \".fds\", \".zip\", \".7z\","
+    },
+    {
+      "file": "src/drivers/dingux-sdl/gui/file_browser.cpp",
+      "before": "// Create file list\n",
+      "after": "// Create file list\n\tif (!source) snprintf(s_LastDir, sizeof(s_LastDir), \"%s\", od_rom_directory(\"nes\"));\n"
+    },
+    {
+      "file": "src/drivers/dingux-sdl/dingoo.cpp",
+      "before": "\".7z\",",
+      "after": "\".7z\", \".rar\", \".tar\", \".gz\", \".bz2\", \".xz\", \".tgz\", \".tbz2\", \".txz\","
+    },
+    {
+      "file": "src/drivers/dingux-sdl/gui/gui.cpp",
+      "before": "\".7z\",",
+      "after": "\".7z\", \".rar\", \".tar\", \".gz\", \".bz2\", \".xz\", \".tgz\", \".tbz2\", \".txz\","
+    }
+  ],
+  "regba": [
+    {
+      "file": "source/opendingux/gui.c",
+      "before": "u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)\n{",
+      "after": "u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)\n{\n\tfprintf(stderr, \"REGBA_MENU_ENTER reason=%u\\n\", (unsigned)EntryReason);"
+    },
+    {
+      "file": "source/cpu_asm.c",
+      "before": "#include \"cpu_common.h\"",
+      "after": "#include \"cpu_common.h\"\n#include <sys/mman.h>\n#include <unistd.h>"
+    },
+    {
+      "file": "source/cpu_asm.c",
+      "before": "__attribute__((aligned(CODE_ALIGN_SIZE)));",
+      "after": "__attribute__((aligned(65536)));",
+      "count": 2
+    },
+    {
+      "file": "source/cpu_asm.c",
+      "before": "void init_cpu(uint32_t BootFromBIOS)\n{\n  uint32_t i;",
+      "after": "void init_cpu(uint32_t BootFromBIOS)\n{\n  uint32_t i;\n  static int executable_cache_ready;\n  if (!executable_cache_ready) {\n    long page = sysconf(_SC_PAGESIZE);\n    if (page <= 0 || page > 65536 ||\n        sizeof(readonly_code_cache) % (size_t)page || sizeof(writable_code_cache) % (size_t)page ||\n        mprotect(readonly_code_cache, sizeof(readonly_code_cache), PROT_READ | PROT_WRITE | PROT_EXEC) ||\n        mprotect(writable_code_cache, sizeof(writable_code_cache), PROT_READ | PROT_WRITE | PROT_EXEC)) {\n      fprintf(stderr, \"ReGBA: cannot enable isolated JIT code caches\\n\");\n      exit(1);\n    }\n    executable_cache_ready = 1;\n  }"
+    },
+    {
+      "file": "source/opendingux/od-input.c",
+      "before": "switch (ev.type)\n\t\t{",
+      "after": "switch (ev.type)\n\t\t{\n\t\t\tcase SDL_QUIT: quit(); break;"
+    },
+    {
+      "file": "source/opendingux/main.c",
+      "before": "sprintf(file, \"%s/regba-sp-border-silver.png\", executable_path);",
+      "after": "snprintf(file, sizeof(file), \"%s\", od_asset_path(\"regba-sp-border-silver.png\"));"
+    },
+    {
+      "file": "source/opendingux/main.c",
+      "before": "#include \"common.h\"",
+      "after": "#include \"common.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "source/opendingux/port.c",
+      "before": "#include \"common.h\"",
+      "after": "#include \"common.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "source/opendingux/port.c",
+      "before": "sprintf(Result, \"%s/%s\", executable_path, CONFIG_FILENAME);",
+      "after": "const char *asset = od_asset_path(CONFIG_FILENAME);\n\tif (!asset || strlen(asset) > MAX_PATH) return false;\n\tsnprintf(Result, MAX_PATH + 1, \"%s\", asset);"
+    },
+    {
+      "file": "source/opendingux/main.c",
+      "before": "\tif(load_bios(file) == -1)",
+      "after": "\tif(argc > 1 && load_bios(file) == -1)"
+    },
+    {
+      "file": "source/opendingux/main.c",
+      "before": "\tif(argc > 1 && load_bios(file) == -1)",
+      "after": "\tconst char *bios_dir = getenv(\"BIOS_DIR\");\n\tif (argc > 1 && bios_dir && *bios_dir) snprintf(file, sizeof(file), \"%s/gba_bios.bin\", bios_dir);\n\tif(argc > 1 && load_bios(file) == -1)",
+      "marker": "const char *bios_dir = getenv(\"BIOS_DIR\");"
+    },
+    {
+      "file": "source/opendingux/main.c",
+      "before": "\t\t\tfprintf(stderr, \"No ROM was specified was on the command line.\\n\");\n\t\t\terror_quit();",
+      "after": "\t\tReGBA_Menu(REGBA_MENU_ENTRY_REASON_NO_ROM);\n\t\tif (!IsGameLoaded) return 0;\n\t\tinit_cpu(!ResolveSetting(BootFromBIOS, PerGameBootFromBIOS));",
+      "marker": "ReGBA_Menu(REGBA_MENU_ENTRY_REASON_NO_ROM);\n\t\tif (!IsGameLoaded) return 0;"
+    },
+    {
+      "file": "source/opendingux/main.c",
+      "before": "\t\t/* The menu loaded a ROM; require a user-supplied BIOS before emulation. */\n\t\tsnprintf(file, sizeof(file), \"%s/gba_bios.bin\", main_path);\n\t\tif (load_bios(file) == -1 && load_bios(\"./gba_bios.bin\") == -1) {\n\t\t\tShowErrorScreen(\"GBA BIOS required: %s/gba_bios.bin\", main_path);\n\t\t\terror_quit();\n\t\t}\n",
+      "after": "\t\t/* BIOS validation is performed by the native Load ROM action. */\n",
+      "optional": true
+    },
+    {
+      "file": "source/memory.c",
+      "before": "#include \"common.h\"",
+      "after": "#include \"common.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "source/memory.c",
+      "before": "ssize_t load_gamepak(const char* file_path)\n{",
+      "after": "ssize_t load_gamepak(const char* file_path)\n{\n\tfile_path = od_resolve_content(file_path, \"gba\");\n\tif (!file_path) { errno = EINVAL; return -1; }"
+    },
+    {
+      "file": "source/opendingux/gui.c",
+      "before": "static void ActionExit(struct Menu** ActiveMenu, uint32_t* ActiveMenuEntryIndex)",
+      "after": "#include \"regba-browser.h\"\n\nstatic void ActionExit(struct Menu** ActiveMenu, uint32_t* ActiveMenuEntryIndex)"
+    },
+    {
+      "file": "source/opendingux/gui.c",
+      "before": "struct Menu MainMenu = {",
+      "after": "static struct MenuEntry MainMenu_Load = {\n\t.Kind = KIND_CUSTOM, .Name = \"Load ROM\", .ButtonEnterFunction = &ActionLoadROM\n};\n\nstruct Menu MainMenu = {"
+    },
+    {
+      "file": "source/opendingux/gui.c",
+      "before": ".Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &MainMenu_Settings",
+      "after": ".Entries = { &MainMenu_Load, &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &MainMenu_Settings"
+    }
+  ],
+  "gnuboy": [
+    {
+      "file": "sys/sdl/sdl.c",
+      "before": "case SDL_QUIT:\n\t\t\texit(1);",
+      "after": "case SDL_QUIT:\n\t\t\texit(0);"
+    },
+    {
+      "file": "menu.c",
+      "before": "#include \"menu.h\"",
+      "after": "#include \"menu.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "menu.c",
+      "before": "void menu_init(void) {",
+      "after": "void menu_init(void) {\n\tfree(romdir);\n\tromdir = strdup(od_rom_directory(\"gbc\"));"
+    },
+    {
+      "file": "menu.c",
+      "before": "\".xz\", \".gz\", \".zip\", 0",
+      "after": "\".xz\", \".gz\", \".zip\", \".7z\", 0"
+    },
+    {
+      "file": "loader.c",
+      "before": "#include \"loader.h\"",
+      "after": "#include \"loader.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "loader.c",
+      "before": "int loader_init(char *s)\n{",
+      "after": "int loader_init(char *s)\n{\n\ts = (char *)od_resolve_content(s, \"gbc\");\n\tif (!s) { loader_set_error(\"archive resolution failed\"); return -1; }"
+    },
+    {
+      "file": "menu.c",
+      "before": "\".7z\", 0",
+      "after": "\".7z\", \".rar\", \".tar\", \".bz2\", \".tgz\", \".tbz2\", \".txz\", 0"
+    }
+  ],
+  "prosystem": [
+    {
+      "file": "opendingux/menu.c",
+      "before": "MENUITEM MainMenuItems[] = {",
+      "after": "MENUITEM MainMenuItems[] = {\n\t{\"Load ROM\", NULL, 0, NULL, &menuFileBrowse},"
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "#include \"shared.h\"",
+      "after": "#include \"shared.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "strcpy(name, gameName);\n\tstrcpy(strrchr(name, '.'), \".sta\");",
+      "after": "const char *save = od_save_path(gameName, \".sta\");\n\tif (!save) return 0;\n\tsnprintf(name, sizeof(name), \"%s\", save);"
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "strcpy(szFile, gameName);\n\t\tstrcpy(strrchr(szFile, '.'), \".sta\");",
+      "after": "const char *save = od_save_path(gameName, \".sta\");\n\t\tif (!save) return;\n\t\tsnprintf(szFile, sizeof(szFile), \"%s\", save);",
+      "count": 2
+    },
+    {
+      "file": "opendingux/main.c",
+      "before": "sprintf(current_conf_app,\"%s/prosystem-od.cfg\",current_conf_app);",
+      "after": "snprintf(current_conf_app, sizeof(current_conf_app), \"%s/.prosystem-od/prosystem-od.cfg\", getenv(\"HOME\"));"
+    },
+    {
+      "file": "opendingux/main.c",
+      "before": "SDL_PollEvent(&event);",
+      "after": "if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { m_Flag = GF_GAMEQUIT; break; }"
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "SDL_PollEvent(&event);",
+      "after": "if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { system_savecfg(current_conf_app); SDL_Quit(); exit(0); }",
+      "count": 3
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "if(event.type == SDL_KEYDOWN)",
+      "after": "if (event.type == SDL_QUIT) { system_savecfg(current_conf_app); SDL_Quit(); exit(0); }\n\t\t\tif(event.type == SDL_KEYDOWN)"
+    },
+    {
+      "file": "opendingux/main.c",
+      "before": "#include \"shared.h\"",
+      "after": "#include \"shared.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "opendingux/main.c",
+      "before": "system_loadcfg(current_conf_app);",
+      "after": "system_loadcfg(current_conf_app);\n\tsnprintf(GameConf.current_dir_rom, sizeof(GameConf.current_dir_rom), \"%s\", od_rom_directory(\"atari7800\"));"
+    },
+    {
+      "file": "opendingux/main.c",
+      "before": "if (cartridge_Load(gameName) != 0)",
+      "after": "const char *content = od_resolve_content(gameName, \"atari7800\");\n\t\t\t\tif (content && cartridge_Load(content) != 0)"
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "\".a78\", (char *) \".bin\", NULL",
+      "after": "\".a78\", (char *) \".bin\", (char *) \".zip\", (char *) \".7z\", NULL"
+    },
+    {
+      "file": "opendingux/menu.c",
+      "before": "(char *) \".7z\", NULL",
+      "after": "(char *) \".7z\", (char *) \".rar\", (char *) \".tar\", (char *) \".gz\", (char *) \".bz2\", (char *) \".xz\", (char *) \".tgz\", (char *) \".tbz2\", (char *) \".txz\", NULL"
+    }
+  ],
+  "temper": [
+    {
+      "file": "main.c",
+      "before": "#include \"common.h\"",
+      "after": "#include \"common.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "main.c",
+      "before": "command_line_options = process_arguments(argc, argv);",
+      "after": "command_line_options = process_arguments(argc, argv);\n  snprintf(config.rom_directory, sizeof(config.rom_directory), \"%s\", od_rom_directory(\"pce\"));"
+    },
+    {
+      "file": "main.c",
+      "before": "snprintf(config.rom_directory, sizeof(config.rom_directory), \"%s\", od_rom_directory(\"pce\"));",
+      "after": "snprintf(config.rom_directory, sizeof(config.rom_directory), \"%s\", od_rom_directory(\"pce\"));\n  if (chdir(config.rom_directory) != 0) return 1;"
+    },
+    {
+      "file": "memory.c",
+      "before": "#include \"common.h\"",
+      "after": "#include \"common.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "memory.c",
+      "before": "s32 load_rom(char *path)\n{",
+      "after": "s32 load_rom(char *path)\n{\n  path = (char *)od_resolve_content(path, \"pce\");\n  if (!path) return -1;"
+    },
+    {
+      "file": "menu.c",
+      "before": "\".sgx\", NULL",
+      "after": "\".sgx\", \".zip\", \".7z\", NULL"
+    },
+    {
+      "file": "menu.c",
+      "before": "\".7z\", NULL",
+      "after": "\".7z\", \".rar\", \".tar\", \".gz\", \".bz2\", \".xz\", \".tgz\", \".tbz2\", \".txz\", NULL"
+    }
+  ],
+  "picodrive": [
+    {
+      "file": "platform/common/plat_sdl.c",
+      "before": "static void plat_sdl_resize(int w, int h)\n{\n\t// take over new settings",
+      "after": "static void plat_sdl_resize(int w, int h)\n{\n\tif (getenv(\"LILSMOKE_OD_NATIVE\")) {\n\t\tg_menuscreen_w = 320; g_menuscreen_h = 240;\n\t\trendstatus_old = -1; return;\n\t}\n\t// take over new settings"
+    },
+    {
+      "file": "platform/libpicofe/plat_sdl.c",
+      "before": "  plat_sdl_overlay = SDL_CreateYUVOverlay(plat_sdl_screen->w, plat_sdl_screen->h,\n    SDL_UYVY_OVERLAY, plat_sdl_screen);",
+      "after": "  plat_sdl_overlay = getenv(\"PICOFE_SW_ONLY\") ? NULL : SDL_CreateYUVOverlay(plat_sdl_screen->w, plat_sdl_screen->h,\n    SDL_UYVY_OVERLAY, plat_sdl_screen);"
+    },
+    {
+      "file": "platform/libpicofe/plat_sdl.c",
+      "before": "  plat_sdl_screen = SDL_SetVideoMode(g_menuscreen_w, g_menuscreen_h, 16, SDL_HWSURFACE);",
+      "after": "  if (getenv(\"LILSMOKE_OD_NATIVE\")) {\n    g_menuscreen_w = 320; g_menuscreen_h = 240;\n    window_b = 0; fs_w = 320; fs_h = 240;\n  }\n  plat_sdl_screen = SDL_SetVideoMode(g_menuscreen_w, g_menuscreen_h, 16, SDL_SWSURFACE);"
+    },
+    {
+      "file": "platform/libpicofe/plat_sdl.c",
+      "before": "    if (plat_target.vout_fullscreen && fs_w && fs_h) {",
+      "after": "    if (plat_target.vout_fullscreen && fs_w && fs_h && !getenv(\"LILSMOKE_OD_NATIVE\")) {"
+    },
+    {
+      "file": "platform/libpicofe/plat_sdl.c",
+      "before": "0, plat_sdl_screen->flags);",
+      "after": "getenv(\"PICOFE_SW_ONLY\") ? 16 : 0, plat_sdl_screen->flags);"
+    },
+    {
+      "file": "platform/common/plat_sdl.c",
+      "before": "static void plat_sdl_quit(void)\n{\n\t// for now..\n\texit(1);\n}",
+      "after": "static void plat_sdl_quit(void)\n{\n\temu_finish();\n\tSDL_Quit();\n\texit(0);\n}"
+    },
+    {
+      "file": "platform/common/inputmap_kbd.c",
+      "before": "{ SDLK_RETURN,\tPBTN_MOK },",
+      "after": "{ SDLK_RETURN,\tPBTN_MOK },\n\t{ SDLK_z, PBTN_MOK },\n\t{ SDLK_x, PBTN_MBACK },"
+    },
+    {
+      "file": "platform/libpicofe/plat_sdl.c",
+      "before": "if (overlay_works) {",
+      "after": "if (overlay_works && !getenv(\"PICOFE_SW_ONLY\")) {"
+    },
+    {
+      "file": "platform/libpicofe/plat_sdl.c",
+      "before": "// invalid method might come from config..",
+      "after": "if (getenv(\"PICOFE_SW_ONLY\")) plat_target.vout_method = 0;\n  // invalid method might come from config.."
+    },
+    {
+      "file": "platform/libpicofe/linux/plat.c",
+      "before": "int plat_get_skin_dir(char *dst, int len)\n{",
+      "after": "int plat_get_skin_dir(char *dst, int len)\n{\n    const char *share = getenv(\"LILSMOKE_OD_SHARE_DIR\");\n    if (share && *share) { int n = snprintf(dst, len, \"%s/skin/\", share); return n >= 0 && n < len ? n : -1; }"
+    },
+    {
+      "file": "platform/common/emu.c",
+      "before": "#include \"emu.h\"",
+      "after": "#include \"emu.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "platform/common/emu.c",
+      "before": "int emu_reload_rom(const char *rom_fname_in)\n{",
+      "after": "int emu_reload_rom(const char *rom_fname_in)\n{\n\trom_fname_in = od_resolve_content(rom_fname_in, \"md\");\n\tif (!rom_fname_in) return 0;"
+    },
+    {
+      "file": "platform/common/main.c",
+      "before": "#include \"emu.h\"",
+      "after": "#include \"emu.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "platform/common/main.c",
+      "before": "engineState = rom_fname_reload ? PGS_ReloadRom : PGS_Menu;",
+      "after": "if (!rom_fname_reload)\n\t\tsnprintf(rom_fname_loaded, sizeof(rom_fname_loaded), \"%s/\", od_rom_directory(\"md\"));\n\tengineState = rom_fname_reload ? PGS_ReloadRom : PGS_Menu;"
+    },
+    {
+      "file": "platform/common/menu_pico.c",
+      "before": "\"zip\", \"bin\",",
+      "after": "\"zip\", \"7z\", \"bin\","
+    },
+    {
+      "file": "platform/common/menu_pico.c",
+      "before": "\"7z\", \"bin\",",
+      "after": "\"7z\", \"rar\", \"tar\", \"gz\", \"bz2\", \"xz\", \"tgz\", \"tbz2\", \"txz\", \"bin\","
+    }
+  ],
+  "stella": [
+    {
+      "file": "src/gp2x_psp.c",
+      "before": "if (SDL_PollEvent(&SDLEvent)) {",
+      "after": "if (SDL_PollEvent(&SDLEvent)) {\n    if (SDLEvent.type == SDL_QUIT) psp_sdl_exit(0);"
+    },
+    {
+      "file": "src/common/mainSDL.cpp",
+      "before": "#include \"psp_sdl.h\"",
+      "after": "#include \"psp_sdl.h\"\nextern \"C\" {\n#include \"psp_fmgr.h\"\n}\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/common/mainSDL.cpp",
+      "before": "theOSystem->createConsole(\"./default.bin\");  /* dc 20130702 */",
+      "after": "if (psp_fmgr_menu(FMGR_FORMAT_ROM) != 1) { Cleanup(); return 0; }"
+    },
+    {
+      "file": "src/Atari.cpp",
+      "before": "#include \"Atari.h\"",
+      "after": "#include \"Atari.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/Atari.cpp",
+      "before": "atari_load_rom(char *FileName, int zip_format)\n{",
+      "after": "atari_load_rom(char *FileName, int zip_format)\n{\n  const char *resolved = od_resolve_content(FileName, \"atari2600\");\n  if (!resolved) return 1;\n  if (resolved != FileName) { FileName = (char *)resolved; zip_format = 0; }"
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "#include \"Atari.h\"",
+      "after": "#include \"Atari.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "strcat(user_filedir_rom, \"/roms/\");",
+      "after": "snprintf(user_filedir_rom, sizeof(user_filedir_rom), \"%s/\", od_rom_directory(\"atari2600\"));"
+    },
+    {
+      "file": "src/psp_menu.c",
+      "before": "// MENU_LOAD_ROM,",
+      "after": "MENU_LOAD_ROM,"
+    },
+    {
+      "file": "src/psp_menu.c",
+      "before": "// { \"Load Rom\" },",
+      "after": "{ \"Load Rom\" },"
+    },
+    {
+      "file": "src/psp_menu.c",
+      "before": "// case MENU_LOAD_ROM  : if (psp_main_menu_load(FMGR_FORMAT_ROM)) {",
+      "after": "case MENU_LOAD_ROM: if (psp_main_menu_load(FMGR_FORMAT_ROM)) { end_menu = 1; } break;"
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "(!strcasecmp(pszExt, \".a26\")) ||",
+      "after": "(!strcasecmp(pszExt, \".a26\")) ||\n        (!strcasecmp(pszExt, \".7z\")) ||"
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "(!strcasecmp(pszExt, \".7z\"))",
+      "after": "od_is_archive(pszExt)"
+    }
+  ],
+  "atari800": [
+    {
+      "file": "src/psp_menu.c",
+      "before": "static int cur_menu_id = 0;",
+      "after": "static int cur_menu_id = MENU_LOAD_ROM;"
+    },
+    {
+      "file": "src/gp2x_psp.c",
+      "before": "if (SDL_PollEvent(&SDLEvent)) {",
+      "after": "if (SDL_PollEvent(&SDLEvent)) {\n    if (SDLEvent.type == SDL_QUIT) { SDL_Quit(); exit(0); }"
+    },
+    {
+      "file": "src/atari.c",
+      "before": "#include \"atari.h\"",
+      "after": "#include \"atari.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/atari.c",
+      "before": "atari_load_rom(char *FileName, int zip_format)\n{",
+      "after": "atari_load_rom(char *FileName, int zip_format)\n{\n  const char *resolved = od_resolve_content(FileName, \"atari800\");\n  if (!resolved) return 1;\n  if (resolved != FileName) { FileName = (char *)resolved; zip_format = 0; }"
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "#include \"atari.h\"",
+      "after": "#include \"atari.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "strcat(user_filedir_rom, \"/roms/\");",
+      "after": "snprintf(user_filedir_rom, sizeof(user_filedir_rom), \"%s/\", od_rom_directory(\"atari800\"));"
+    },
+    {
+      "file": "src/atari_sdl.c",
+      "before": "/* main loop */\n",
+      "after": "/* main loop */\n  if (argc == 1) psp_main_menu();\n"
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "(!strcasecmp(pszExt, \".7z\"))",
+      "after": "od_is_archive(pszExt)",
+      "optional": true
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "(!strcasecmp(pszExt, \".atr\")) || od_is_archive(pszExt)",
+      "after": "(!strcasecmp(pszExt, \".atr\"))",
+      "optional": true
+    },
+    {
+      "file": "src/psp_fmgr.c",
+      "before": "!strcasecmp(pszExt, \".zip\")",
+      "after": "od_is_archive(pszExt)"
+    },
+    {
+      "file": "src/atari.c",
+      "before": "atari_load_cart(char *FileName, int zip_format)\n{",
+      "after": "atari_load_cart(char *FileName, int zip_format)\n{\n  const char *resolved = od_resolve_content(FileName, \"atari5200\");\n  if (!resolved) return 1;\n  if (resolved != FileName) { FileName = (char *)resolved; zip_format = 0; }"
+    }
+  ],
+  "handy": [
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "while(SDL_PollEvent(&gui_event)) {",
+      "after": "while(SDL_PollEvent(&gui_event)) {\n                if(gui_event.type == SDL_QUIT) { SDL_Quit(); exit(0); }",
+      "count": 2
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "if(gui_event.key.keysym.sym == SDLK_RETURN) {",
+      "after": "if(gui_event.key.keysym.sym == SDLK_RETURN || gui_event.key.keysym.sym == SDLK_LCTRL) {"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "if(gui_event.key.keysym.sym == SDLK_ESCAPE) {",
+      "after": "if(gui_event.key.keysym.sym == SDLK_ESCAPE || gui_event.key.keysym.sym == SDLK_LALT) {"
+    },
+    {
+      "file": "src/handy_sdl_main.cpp",
+      "before": "switch(handy_sdl_event.type)\n            {",
+      "after": "switch(handy_sdl_event.type)\n            {\n                case SDL_QUIT: emulation = 1; break;"
+    },
+    {
+      "file": "src/handy_sdl_main.cpp",
+      "before": "void handy_sdl_core_init(char *romname)\n{",
+      "after": "void handy_sdl_core_init(char *romname)\n{\n    romname = (char *)od_resolve_content(romname, \"lynx\");\n    if (!romname) { fprintf(stderr, \"Archive resolution failed\\n\"); exit(1); }"
+    },
+    {
+      "file": "src/handy_sdl_main.cpp",
+      "before": "#include <cstdio>",
+      "after": "#include <cstdio>\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "#include <stdio.h>",
+      "after": "#include <stdio.h>\n#include \"od-content.h\""
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "int gui_LoadFile(char *romname)\n{",
+      "after": "int gui_LoadFile(char *romname)\n{\n\tchar previous[PATH_MAX];\n\tgetcwd(previous, sizeof(previous));"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "if(load_file(file_ext, romname) != -1) result = 1;",
+      "after": "chdir(od_rom_directory(\"lynx\"));\n\tif(load_file(file_ext, romname) != -1) result = 1;\n\tchdir(previous);"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "\".lnx\", \".lyx\", \".zip\", NULL",
+      "after": "\".lnx\", \".lyx\", \".zip\", \".7z\", NULL"
+    },
+    {
+      "file": "src/handy_sdl_graphics.cpp",
+      "before": "#include <SDL/SDL_ttf.h>",
+      "after": "/* GCWZERO-only BIOS-warning TTF UI is excluded on HC16xx. */"
+    },
+    {
+      "file": "src/handy_sdl_graphics.cpp",
+      "before": "#ifdef GCWZERO\n#include <SDL/SDL_image.h>",
+      "after": "#include <SDL/SDL_image.h>\n#ifdef GCWZERO"
+    },
+    {
+      "file": "src/handy_sdl_graphics.h",
+      "before": "#ifdef GCWZERO\nextern int redrawbackground;",
+      "after": "extern int redrawbackground;\n#ifdef GCWZERO"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "char* file_ext[10]",
+      "after": "char* file_ext[]"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "{(char *)\"Settings\", NULL, NULL, NULL,",
+      "after": "{(char *)\"Settings\", NULL, 0, NULL,"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "{(char *)\"Reset\", NULL, NULL, NULL,",
+      "after": "{(char *)\"Reset\", NULL, 0, NULL,"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "{(char *)\"Exit\", NULL, NULL, NULL,",
+      "after": "{(char *)\"Exit\", NULL, 0, NULL,"
+    },
+    {
+      "file": "src/gui/gui.cpp",
+      "before": "\".7z\", NULL",
+      "after": "\".7z\", \".rar\", \".tar\", \".gz\", \".bz2\", \".xz\", \".tgz\", \".tbz2\", \".txz\", NULL"
+    }
+  ],
+  "race": [
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "#include \"state.h\"",
+      "after": "#include \"od-content.h\"\n#include \"state.h\""
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "strcpy(szFile, gameName);\n\t\tstrcpy(strrchr(szFile, '.'), \".sta\");\n\t\tsprintf(szFile, \"%s%d\", szFile, cur_state);",
+      "after": "const char *state = od_state_path(gameName, cur_state);\n\t\tif (!state || snprintf(szFile, sizeof(szFile), \"%s\", state) >= (int)sizeof(szFile)) {\n\t\t\tprint_string(\"State path unavailable\", COLOR_KO, COLOR_BG, 8, 205); screen_flip(); return;\n\t\t}",
+      "count": 2
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "state_store(szFile);\n\t\tmenuContinue();",
+      "after": "if (state_store(szFile)) menuContinue();\n\t\telse { print_string(\"Save state failed\", COLOR_KO, COLOR_BG, 8, 205); screen_flip(); screen_waitkey(); }"
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "state_restore(szFile);\n\t\tmenuContinue();",
+      "after": "if (access(szFile, F_OK) != 0) {\n\t\t\tchar legacy[sizeof(szFile)]; snprintf(legacy, sizeof(legacy), \"%s\", gameName);\n\t\t\tchar *dot = strrchr(legacy, '.'); if (dot) *dot = 0;\n\t\t\tsnprintf(szFile, sizeof(szFile), \"%s.sta%d\", legacy, cur_state);\n\t\t}\n\t\tif (state_restore(szFile)) menuContinue();\n\t\telse { print_string(\"Load state failed\", COLOR_KO, COLOR_BG, 8, 205); screen_flip(); screen_waitkey(); }"
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "#include \"state.h\"",
+      "after": "#include \"state.h\"\nstatic int od_poll_event(SDL_Event *value) {\n    int present = SDL_PollEvent(value);\n    if (present && value->type == SDL_QUIT) { system_savecfg(current_conf_app); SDL_Quit(); exit(0); }\n    return present;\n}"
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "SDL_PollEvent(&event)",
+      "after": "od_poll_event(&event)",
+      "count": 4
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "SDL_Surface *temp = IMG_Load(img);\n\tSDL_Surface *image = SDL_DisplayFormat(temp);",
+      "after": "SDL_Surface *temp = IMG_Load(img);\n\tif (!temp) { SDL_FillRect(s, NULL, 0); return; }\n\tSDL_Surface *image = SDL_DisplayFormat(temp);\n\tif (!image) { SDL_FreeSurface(temp); SDL_FillRect(s, NULL, 0); return; }"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "#include \"shared.h\"",
+      "after": "#include \"shared.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "system_loadcfg(current_conf_app);",
+      "after": "system_loadcfg(current_conf_app);\n\tsnprintf(GameConf.current_dir_rom, sizeof(GameConf.current_dir_rom), \"%s\", od_rom_directory(\"ngpc\"));"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "handleInputFile(gameName);",
+      "after": "const char *content = od_resolve_content(gameName, \"ngpc\");\n\t\t\t\tif (!content) { m_Flag = GF_MAINUI; break; }\n\t\t\t\thandleInputFile((char *)content);"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "const char *content = od_resolve_content(gameName, \"ngpc\");\n\t\t\t\tif (!content) { m_Flag = GF_MAINUI; break; }\n\t\t\t\thandleInputFile((char *)content);",
+      "after": "{ const char *content = od_resolve_content(gameName, \"ngpc\");\n\t\t\t\tif (!content) { m_Flag = GF_MAINUI; break; }\n\t\t\t\thandleInputFile((char *)content); }"
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "\".ngc\", NULL",
+      "after": "\".ngc\", (char *) \".zip\", (char *) \".7z\", NULL"
+    },
+    {
+      "file": "emu/main.cpp",
+      "before": "#include <SDL/SDL_ttf.h>",
+      "after": "/* SDL_ttf is unused by the TARGET_OD native frontend. */"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "currentTick, wait;",
+      "after": "currentTick, od_frame_wait;"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "wait = (nextTick - currentTick);",
+      "after": "od_frame_wait = (nextTick - currentTick);"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "if (wait > 0)",
+      "after": "if (od_frame_wait > 0)"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "if (wait < 1000000)",
+      "after": "if (od_frame_wait < 1000000)"
+    },
+    {
+      "file": "opendingux/main.cpp",
+      "before": "usleep(wait);",
+      "after": "usleep(od_frame_wait);"
+    },
+    {
+      "file": "opendingux/menu.cpp",
+      "before": "(char *) \".7z\", NULL",
+      "after": "(char *) \".7z\", (char *) \".rar\", (char *) \".tar\", (char *) \".gz\", (char *) \".bz2\", (char *) \".xz\", (char *) \".tgz\", (char *) \".tbz2\", (char *) \".txz\", NULL"
+    }
+  ],
+  "oswan": [
+    {
+      "file": "main/sdl/input.c",
+      "before": "SDL_PollEvent(&event);",
+      "after": "if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { system_savecfg(current_conf_app); exit_oswan(); exit(0); }"
+    },
+    {
+      "file": "main/sdl/menu.h",
+      "before": "(const int8_t *) \".zip\",",
+      "after": "(const int8_t *) \".zip\", (const int8_t *) \".7z\","
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "#include \"shared.h\"",
+      "after": "#include \"shared.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "system_loadcfg(current_conf_app);",
+      "after": "system_loadcfg(current_conf_app);\n\tsnprintf(GameConf.current_dir_rom, sizeof(GameConf.current_dir_rom), \"%s\", od_rom_directory(\"wswan\"));"
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "if (WsCreate(gameName))",
+      "after": "const char *content = od_resolve_content((char *)gameName, \"wswan\");\n\t\t\t\tif (content && WsCreate((int8_t *)content))"
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "currentTick, wait;",
+      "after": "currentTick, od_frame_wait;"
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "wait = (nextTick - currentTick);",
+      "after": "od_frame_wait = (nextTick - currentTick);"
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "if (wait > 0)",
+      "after": "if (od_frame_wait > 0)"
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "if (wait < 1000000)",
+      "after": "if (od_frame_wait < 1000000)"
+    },
+    {
+      "file": "main/sdl/main.c",
+      "before": "msleep(wait/1000);",
+      "after": "msleep(od_frame_wait/1000);"
+    },
+    {
+      "file": "main/sdl/menu.h",
+      "before": "(const int8_t *) \".7z\",",
+      "after": "(const int8_t *) \".7z\", (const int8_t *) \".rar\", (const int8_t *) \".tar\", (const int8_t *) \".gz\", (const int8_t *) \".bz2\", (const int8_t *) \".xz\", (const int8_t *) \".tgz\", (const int8_t *) \".tbz2\", (const int8_t *) \".txz\","
+    }
+  ],
+  "pokemini": [
+    {
+      "file": "source/UI.c",
+      "before": "#include \"PokeMini.h\"",
+      "after": "#include \"PokeMini.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "source/UI.c",
+      "before": "sprintf(tmp, \"%s.st%d\", CommandLine.min_file, UIMenu_Savestate);\n\t\t\t\tif (PokeMini_LoadSSFile(tmp))",
+      "after": "const char *load_state = od_state_path(CommandLine.min_file, UIMenu_Savestate);\n\t\t\t\tif (load_state && access(load_state, F_OK) == 0) snprintf(tmp, sizeof(tmp), \"%s\", load_state);\n\t\t\t\telse snprintf(tmp, sizeof(tmp), \"%s.st%d\", CommandLine.min_file, UIMenu_Savestate);\n\t\t\t\tif (PokeMini_LoadSSFile(tmp))"
+    },
+    {
+      "file": "source/UI.c",
+      "before": "sprintf(tmp, \"%s.st%d\", CommandLine.min_file, UIMenu_Savestate);\n\t\t\t\tif (PokeMini_SaveSSFile(tmp, CommandLine.min_file))",
+      "after": "const char *save_state = od_state_path(CommandLine.min_file, UIMenu_Savestate);\n\t\t\t\tif (!save_state || snprintf(tmp, sizeof(tmp), \"%s\", save_state) >= (int)sizeof(tmp)) {\n\t\t\t\t\tUIMenu_SetMessage(\"State path unavailable\", 0); UIMenu_EndMessage(240); break;\n\t\t\t\t}\n\t\t\t\tif (PokeMini_SaveSSFile(tmp, CommandLine.min_file))"
+    },
+    {
+      "file": "platform/rs97/PokeMini_Dingux.c",
+      "before": "#include \"UI.h\"",
+      "after": "#include \"UI.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "platform/rs97/PokeMini_Dingux.c",
+      "before": "JoystickSetup(\"Dingoo\", 0, 30000, Joy_KeysNames, 12, Joy_KeysMapping);",
+      "after": "snprintf(CommandLine.rom_dir, sizeof(CommandLine.rom_dir), \"%s\", od_rom_directory(\"pokemini\"));\n\tJoystickSetup(\"Dingoo\", 0, 30000, Joy_KeysNames, 12, Joy_KeysMapping);"
+    },
+    {
+      "file": "source/PokeMini.c",
+      "before": "#include \"PokeMini.h\"",
+      "after": "#include \"PokeMini.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "source/PokeMini.c",
+      "before": "int PokeMini_LoadMINFile(const char *filename)\n{",
+      "after": "int PokeMini_LoadMINFile(const char *filename)\n{\n\tfilename = od_resolve_content(filename, \"pokemini\");\n\tif (!filename) return 0;"
+    },
+    {
+      "file": "source/UI.c",
+      "before": "ExtensionCheck(dirEntry->d_name, \".min\")",
+      "after": "(ExtensionCheck(dirEntry->d_name, \".min\") || ExtensionCheck(dirEntry->d_name, \".zip\") || ExtensionCheck(dirEntry->d_name, \".7z\"))"
+    },
+    {
+      "file": "source/UI.c",
+      "before": "#include \"UI.h\"",
+      "after": "#include \"UI.h\"\n#include \"od-content.h\""
+    },
+    {
+      "file": "source/UI.c",
+      "before": "ExtensionCheck(dirEntry->d_name, \".7z\")",
+      "after": "od_is_archive(dirEntry->d_name)"
+    }
+  ]
+}

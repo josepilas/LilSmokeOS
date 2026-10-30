@@ -1,0 +1,18 @@
+diff --git a/src/graphics/Renderer.cpp b/src/graphics/Renderer.cpp
+--- a/src/graphics/Renderer.cpp
++++ b/src/graphics/Renderer.cpp
+@@ -32,6 +32,7 @@
+ bool Renderer::init(int resolution)
+ {
++  if (getenv("LILSMOKE_OD_NATIVE")) resolution = 1;
+   _current_res = resolution;
+   if (!initVideo())
+     return false;
+ 
+@@ -167,5 +168,6 @@
+ bool Renderer::setResolution(int r, bool restoreOnFailure)
+ {
++  if (getenv("LILSMOKE_OD_NATIVE")) r = 1;
+ #if defined(__VITA__) || defined(__SWITCH__)
+   r = 1; // one fixed resolution
+ #endif

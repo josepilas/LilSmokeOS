@@ -1,0 +1,11 @@
+config BR2_PACKAGE_LILSMOKE_USB_GAMEPADS
+    bool "LilSmoke USB HIDAPI controller driver"
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_LIBUSB
+    select BR2_PACKAGE_LILSMOKE_USB_TRANSPORT
+    default y if BR2_PACKAGE_LILSMOKE_UI
+    help
+      Native gamepad input for supported HIDAPI controllers and USB dongles.
+      Uses uinput where available, otherwise bounded shared gamepad state.
+      It does not translate gamepads into keyboards or mouse input.

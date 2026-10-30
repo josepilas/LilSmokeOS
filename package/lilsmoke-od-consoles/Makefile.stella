@@ -1,0 +1,7 @@
+include Makefile.linux
+.DEFAULT_GOAL := $(TARGET)
+override CFLAGS := $(OD_FLAGS) -std=gnu++11 -fpermissive -DNO_STDIO_REDIRECT -D_GNU_SOURCE -D_REENTRANT -DNARROW -DSOUND -DBPP16 -DSDL -DLSB_FIRST -DPSP -DBSPF_PSP -DSOUND_SUPPORT -DATARI_VERSION=\"1.1.0\" -Isrc -Isrc/emucore -Isrc/common -Isrc/psp -I$(OD_SYSROOT)/usr/include/SDL -I$(OD_DEPS)/usr/include/SDL
+override LDFLAGS := -Wl,--gc-sections
+override LIBS := -L$(OD_DEPS)/usr/lib -lSDL_image -lSDL -lpng -lz -lm -pthread -lstdc++ -ldl
+override SDL_CONFIG := sh $(OD_PACKAGE)/sdl12-config.sh
+override STRIP := true

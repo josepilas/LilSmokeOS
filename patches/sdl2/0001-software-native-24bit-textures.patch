@@ -1,0 +1,28 @@
+From: LilSmokeOS developers
+Subject: [PATCH] software: advertise the supported native 24-bit formats
+
+SDL's software surfaces support these formats. Exposing them avoids an
+extra conversion at scaled framebuffer resolution on RGB24 fbdev systems.
+
+--- a/src/render/software/SDL_render_sw.c
++++ b/src/render/software/SDL_render_sw.c
+@@ -1076,7 +1076,7 @@
+     {
+      "software",
+      SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE,
+-     8,
++     10,
+      {
+       SDL_PIXELFORMAT_ARGB8888,
+       SDL_PIXELFORMAT_ABGR8888,
+@@ -1085,7 +1085,9 @@
+       SDL_PIXELFORMAT_RGB888,
+       SDL_PIXELFORMAT_BGR888,
+       SDL_PIXELFORMAT_RGB565,
+-      SDL_PIXELFORMAT_RGB555
++      SDL_PIXELFORMAT_RGB555,
++      SDL_PIXELFORMAT_RGB24,
++      SDL_PIXELFORMAT_BGR24
+      },
+      0,
+      0}

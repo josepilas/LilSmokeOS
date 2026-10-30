@@ -1,0 +1,24 @@
+config BR2_PACKAGE_PORTSMOKE_SM64
+    bool "SM64 native movement prototype .lilpck"
+    depends on BR2_INSTALL_LIBSTDCPP
+    depends on BR2_mipsel
+    depends on BR2_TOOLCHAIN_HAS_THREADS
+    select BR2_PACKAGE_HOST_PYTHON3
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_WEBP
+    help
+      Independent SM64 development app: extract validated US ROM assets on
+      the device, without Python, a compiler, a GPU, or bundled game data.
+      Produces a bundled .lilpck in BINARIES_DIR, not a shared .peng.
+      Includes a native ROM-derived Bob-omb Battlefield scene, a pinned MIT
+      static CPU rasterizer, original Mario model/animations, basic movement,
+      collision and jump handling. Includes a native WebP progress screen.
+      Successful extraction deletes only the app's verified original ROM copy.
+      Checked private caches are reused on future launches. User data and
+      saves are created inside the installed independent app, never bundled.
+      There is no system GL/GPU or N64 emulator. This is not the complete game;
+      enemies, stars, other levels, advanced actions and audio are absent.
+      This option is intentionally off by default.
+
+comment "SM64 BYO-Data tools need a C++ toolchain"
+    depends on !BR2_INSTALL_LIBSTDCPP

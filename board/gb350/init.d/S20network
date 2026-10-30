@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/lib/lilsmoke/lilsmoke-network "${1:-start}"

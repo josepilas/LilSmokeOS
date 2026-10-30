@@ -1,0 +1,165 @@
+#!/bin/sh
+#
+# lilsmoke-zram - bounded, runtime-configurable ZRAM swap management.
+#
+# Usage: lilsmoke-zram start|stop|apply|status
+
+set -u
+
+PERSIST_CONFIG="${LILSMOKE_CONFIG:-/persist/config/lilsmoke.conf}"
+DEFAULT_CONFIG="${LILSMOKE_DEFAULT_CONFIG:-/etc/lilsmoke/lilsmoke.conf.default}"
+ZRAM_DEVICE="${LILSMOKE_ZRAM_DEVICE:-/dev/zram0}"
+ZRAM_SYS="${LILSMOKE_ZRAM_SYS:-/sys/block/zram0}"
+PROC_SWAPS="${LILSMOKE_PROC_SWAPS:-/proc/swaps}"
+PROC_MEMINFO="${LILSMOKE_PROC_MEMINFO:-/proc/meminfo}"
+
+log() {
+    echo "[lilsmoke] zram: $*"
+}
+
+config_get() {
+    wanted="$1"
+    file="$2"
+    [ -f "$file" ] || return 1
+    awk -v wanted="$wanted" '
+        /^[[:space:]]*($|#)/ { next }
+        {
+            line = $0
+            sub(/[[:space:]]+#.*$/, "", line)
+            split(line, pair, "=")
+            key = pair[1]
+            sub(/^[[:space:]]*/, "", key)
+            sub(/[[:space:]]*$/, "", key)
+            if (key == wanted) {
+                sub(/^[^=]*=/, "", line)
+                sub(/^[[:space:]]*/, "", line)
+                sub(/[[:space:]]*$/, "", line)
+                if ((substr(line, 1, 1) == "\"" && substr(line, length(line), 1) == "\"") ||
+                    (substr(line, 1, 1) == "\047" && substr(line, length(line), 1) == "\047")) {
+                    line = substr(line, 2, length(line) - 2)
+                }
+                print line
+                exit
+            }
+        }
+    ' "$file"
+}
+
+setting() {
+    key="$1"
+    fallback="$2"
+    value="$(config_get "$key" "$PERSIST_CONFIG" 2>/dev/null || true)"
+    [ -n "$value" ] || value="$(config_get "$key" "$DEFAULT_CONFIG" 2>/dev/null || true)"
+    [ -n "$value" ] || value="$fallback"
+    printf '%s\n' "$value"
+}
+
+is_enabled() {
+    case "$1" in
+        1|on|true|yes|enabled) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+is_active() {
+    [ -r "$PROC_SWAPS" ] || return 1
+    awk -v wanted="$ZRAM_DEVICE" 'NR > 1 && $1 == wanted { found = 1 } END { exit found ? 0 : 1 }' "$PROC_SWAPS"
+}
+
+physical_memory_mb() {
+    if [ -r "$PROC_MEMINFO" ]; then
+        awk '/^MemTotal:/ { print int($2 / 1024); exit }' "$PROC_MEMINFO"
+    fi
+}
+
+bounded_size_mb() {
+    requested="$1"
+    case "$requested" in
+        ""|*[!0-9]*) requested=48 ;;
+    esac
+    [ "$requested" -gt 0 ] || { echo 0; return; }
+    [ "$requested" -le 64 ] || requested=64
+
+    ram_mb="$(physical_memory_mb)"
+    case "$ram_mb" in
+        ""|*[!0-9]*) ram_mb=0 ;;
+    esac
+    if [ "$ram_mb" -gt 0 ]; then
+        half_mb=$((ram_mb / 2))
+        [ "$requested" -le "$half_mb" ] || requested="$half_mb"
+    fi
+    [ "$requested" -ge 16 ] || requested=16
+    echo "$requested"
+}
+
+stop_zram() {
+    if is_active; then
+        log "disabling $ZRAM_DEVICE"
+        if ! swapoff "$ZRAM_DEVICE"; then
+            log "cannot disable swap while pages are in use"
+            return 1
+        fi
+    fi
+    if [ -w "$ZRAM_SYS/reset" ]; then
+        echo 1 > "$ZRAM_SYS/reset"
+    fi
+    return 0
+}
+
+start_zram() {
+    enabled="$(setting ZRAM_ENABLED on)"
+    requested="$(setting ZRAM_SIZE_MB 48)"
+    if ! is_enabled "$enabled" || [ "$requested" = "0" ]; then
+        log "disabled by configuration"
+        return 0
+    fi
+
+    if [ ! -d "$ZRAM_SYS" ]; then
+        command -v modprobe >/dev/null 2>&1 && modprobe zram >/dev/null 2>&1 || true
+    fi
+    if [ ! -d "$ZRAM_SYS" ] || [ ! -e "$ZRAM_DEVICE" ]; then
+        log "kernel does not expose zram0"
+        return 0
+    fi
+    is_active && return 0
+
+    size_mb="$(bounded_size_mb "$requested")"
+    size_bytes=$((size_mb * 1024 * 1024))
+
+    if [ -r "$ZRAM_SYS/comp_algorithm" ] && grep -qw lz4 "$ZRAM_SYS/comp_algorithm"; then
+        echo lz4 > "$ZRAM_SYS/comp_algorithm"
+    fi
+    echo "$size_bytes" > "$ZRAM_SYS/disksize" || return 1
+    mkswap "$ZRAM_DEVICE" >/dev/null || return 1
+    swapon -p 100 "$ZRAM_DEVICE" || return 1
+    log "enabled ${size_mb} MB swap"
+}
+
+case "${1:-}" in
+    start)
+        start_zram
+        ;;
+    stop)
+        stop_zram
+        ;;
+    apply)
+        enabled="$(setting ZRAM_ENABLED on)"
+        requested="$(setting ZRAM_SIZE_MB 48)"
+        if ! is_enabled "$enabled" || [ "$requested" = "0" ]; then
+            stop_zram
+        else
+            stop_zram && start_zram
+        fi
+        ;;
+    status)
+        if is_active; then
+            awk -v wanted="$ZRAM_DEVICE" 'NR == 1 || $1 == wanted' "$PROC_SWAPS"
+        else
+            log "disabled"
+        fi
+        ;;
+    *)
+        echo "usage: lilsmoke-zram start|stop|apply|status" >&2
+        exit 1
+        ;;
+esac

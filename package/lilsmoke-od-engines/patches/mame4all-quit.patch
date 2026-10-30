@@ -1,0 +1,19 @@
+diff --git a/src/odx/minimal.cpp b/src/odx/minimal.cpp
+--- a/src/odx/minimal.cpp
++++ b/src/odx/minimal.cpp
+@@ -25,1 +25,2 @@
+ #include "minimal.h"
++int odx_quit_requested=0;
+@@ -77,2 +78,1 @@
+-	SDL_PollEvent(&event);
+-	if (event.type == SDL_QUIT) return OD_SELECT;
++	if (SDL_PollEvent(&event) && event.type == SDL_QUIT) { odx_quit_requested=1; return OD_SELECT; }
+diff --git a/src/odx/odx_frontend.cpp b/src/odx/odx_frontend.cpp
+--- a/src/odx/odx_frontend.cpp
++++ b/src/odx/odx_frontend.cpp
+@@ -47,1 +47,2 @@
+ char romdir[512];
++extern int odx_quit_requested;
+@@ -813,1 +814,2 @@
+ signed int get_romdir(char *result) {
++	if(odx_quit_requested) return -1;

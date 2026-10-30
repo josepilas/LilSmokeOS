@@ -1,11 +1,10 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 # License Scope And Distribution
 
-Initial releases use a **personal-use proprietary license** for original OS
-material owned and designated by José Pilas. Its source remains private in
-initial versions for personal reasons; future source publication is intended
-to use MPL-2.0. Public SM64 authored adaptations remain **MPL-2.0**. Earlier
-permissions are not revoked. This is **not blanket relicensing of the Linux
+This guide describes historical Pre-Alpha binaries. The authored OS source
+for Alpha-0.0.1 is public under **MPL-2.0**, not the historical personal-use
+license. Earlier grants are not revoked. Public SM64 authored adaptations
+remain **MPL-2.0**. This is **not blanket relicensing of the Linux
 distribution or upstream software**. See [LICENSE](../../LICENSE),
 [license policy](../../LICENSE_POLICY.md) and
 [third-party notices](../../THIRD_PARTY_NOTICES.md). The release audit owns

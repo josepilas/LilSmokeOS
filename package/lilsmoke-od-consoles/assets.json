@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "engines": {
+    "regba": {"files": ["regba/game_config.txt", "regba/regba-sp-border-silver.png"]},
+    "fceu320": {"files": ["fceux/sp.bmp", "fceux/backdrop.png"], "trees": {"fceux/palettes": [".pal"]}},
+    "atari800": {"files": ["dingux-atari/splash.png", "dingux-atari/thumb.png", "dingux-atari/menu.png"], "trees": {"dingux-atari/graphics": [".png"]}},
+    "gnuboy": {"files": []},
+    "prosystem": {"files": []},
+    "oswan": {"files": []},
+    "picodrive": {"files": [], "trees": {"platform/gp2x/skin": [".png", ".txt"]}},
+    "stella": {"files": ["dingux-2600/splash.png"], "trees": {"dingux-2600/graphics": [".png"]}},
+    "race": {"files": []},
+    "temper": {"files": ["font_8x8.chr"]},
+    "handy": {"files": ["handy320/background_lynx.png", "handy320/background_lynx2.png", "handy320/ProggyTiny.ttf"]},
+    "pokemini": {"files": []}
+  }
+}

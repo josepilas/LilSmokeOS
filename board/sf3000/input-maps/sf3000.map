@@ -1,0 +1,69 @@
+# LilSmokeOS — SF3000 GPIO keypad input map
+#
+# Format: <device> <code> <action>
+#   device  = "evdev" | "js"
+#   code    = evdev keycode (decimal) OR js button index
+#   action  = "up" "down" "left" "right" "a" "b" "x" "y"
+#             "l1" "r1" "l2" "r2" "select" "start" "home"
+#             "vol_up" "vol_down" "power" "menu"
+#
+# SF3000 hardware layout (from linux-hichip sf3000.dts):
+#   - 4.5" IPS panel (854x480)
+#   - D-pad (4 GPIO buttons)
+#   - A / B / X / Y face buttons (4 GPIO buttons)
+#   - L1 / R1 shoulder buttons (top of device)
+#   - L2 / R2 triggers (under shoulders — analog on rev2, digital on rev1)
+#   - Start / Select (small buttons below the panel)
+#   - Power button (long-press = power menu)
+#   - Volume up / down (small buttons on the side)
+#
+# The GPIO keypad appears as a single evdev device at /dev/input/event0
+# (or event1 on some rev2 boards). The driver is gpio-keys (declared
+# in the devicetree).
+#
+# These evdev keycodes follow the open HC16xx kernel DTS pinned in
+# board/sf3000/bsp-status.conf. Volume-down conflicts with UART TX on L12
+# in that DTS and is therefore not exposed by the open kernel yet.
+#
+# See docs/input.md for the format reference and docs/hardware.md §7
+# for how to find the real codes with evtest.
+
+# D-pad (4 GPIO buttons, wired to KEY_UP/DOWN/LEFT/RIGHT by the dtb)
+evdev 103 up
+evdev 108 down
+evdev 105 left
+evdev 106 right
+
+# Face buttons
+evdev 29  a         # KEY_LEFTCTRL
+evdev 56  b         # KEY_LEFTALT
+evdev 57  x         # KEY_SPACE
+evdev 42  y         # KEY_LEFTSHIFT
+
+# Shoulder buttons
+evdev 15  l1        # KEY_TAB
+evdev 14  r1        # KEY_BACKSPACE
+evdev 104 l2        # KEY_PAGEUP
+evdev 109 r2        # KEY_PAGEDOWN
+
+# Start / Select
+evdev 28  start     # KEY_ENTER
+evdev 1   select    # KEY_ESC
+
+# Volume buttons (side of device)
+evdev 115 vol_up
+# KEY_VOLUMEDOWN (114) is reserved here but disabled by the current DTS
+# because L12 is used for UART TX.
+
+# Standard Linux gamepad buttons. ABS_HAT0X/Y is decoded by LilSmokeUI.
+evdev 304 a
+evdev 305 b
+evdev 308 x
+evdev 307 y
+evdev 310 l1
+evdev 311 r1
+evdev 312 l2
+evdev 313 r2
+evdev 314 select
+evdev 315 start
+evdev 316 home

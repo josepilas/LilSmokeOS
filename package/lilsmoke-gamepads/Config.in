@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LILSMOKE_GAMEPADS
+    bool "LilSmokeOS controller profiles"
+    default y if BR2_PACKAGE_RETROARCH_MIPS
+    help
+      Pinned RetroArch Linux joystick and SDL2 fallback profiles.
+      Generic pads additionally get profiles from their actual joydev
+      descriptors at UI startup. No background input mapper is used.
