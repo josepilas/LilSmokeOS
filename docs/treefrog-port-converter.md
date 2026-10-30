@@ -15,9 +15,13 @@ that old copy. New ports should use only `treefrog-ports`.
 
 ## Browser Converter
 
-[LilSmoke Port Converter](https://lilsmoke-port-converter.fabiofcardoso.chatgpt.site)
-is currently an owner-private preview. It is intended for ports that the native
-TreeFrog compatibility path cannot handle, not as a required installation step.
+[LilSmoke Port Converter](https://josepilas.github.io/LilSmoke-Port-Converter/)
+is public, with a [0.2.0 release](https://github.com/josepilas/LilSmoke-Port-Converter/releases/tag/0.2.0)
+and separate [source](https://github.com/josepilas/LilSmoke-Port-Converter/tree/source)
+and [dist](https://github.com/josepilas/LilSmoke-Port-Converter/tree/dist)
+branches. It is intended for ports that the native TreeFrog compatibility path
+cannot handle, not as a required installation step. It is a companion browser
+tool, not an on-device compiler or a prerequisite for direct compatibility.
 
 1. Select the TreeFrog port ZIP and choose Analyze archive.
 2. Select a detected port. Review its engine, ABI, dependencies, adaptation

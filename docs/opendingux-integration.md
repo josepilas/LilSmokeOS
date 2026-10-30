@@ -1,104 +1,192 @@
-# OpenDingux Integration
+# OpenDingux Integration - Alpha-0.0.1
 
-## Navigation and Policy
+This guide describes the current native-engine, OPK and emulator-provider
+integration. "OpenDingux" is a source-port/menu channel here, not a claim that
+LilSmoke runs the original OpenDingux OS or every legacy binary package.
+The old Candidate11 deployment record discussed below is historical, not
+Alpha inventory or installation instructions.
 
-- The home screen has an OpenDingux entry listing native engines and installed
-  applications. Emulator entries open a compatible-game list; applications
-  without a content argument launch directly. Incompatible packages remain
-  visible with a diagnostic instead of being represented as working engines.
-- Settings > Emulator Core Settings: left/right changes the global backend
-  between RetroArch and OpenDingux and clears per-system exceptions.
-- Pressing this setting opens all thirteen supported emulated systems,
-  including systems without ROMs. Press a system to choose an installed
-  compatible engine or Follow global setting. Per-system choices can use a
-  different backend from the global default.
-- Policy applies to every system routed by lilsmoke-launch. No installed
-  compatible engine means a visible launch error, not an implicit fallback.
-- Before the user explicitly changes global policy, existing PocketSNES and
-  PCSX4ALL selections are migrated to explicit per-system exceptions under
-  the RetroArch default. Settings and execution use the same
-  provider registry; stale/missing engine overrides are refused.
+## Navigation And Provider Policy
 
-Configuration stores EMULATOR_BACKEND=retroarch|opendingux and optional keys
-such as EMULATOR_snes=od:pocketsnes or EMULATOR_gba=ra:mgba. Empty per-system
-values follow the global policy. Metadata is never evaluated by a shell.
+- The **OpenDingux** home entry lists installed native engines and imported
+  OpenDingux packages. Selecting a native engine opens its **engine-owned
+  menu** through `lilsmoke-emulators menu ID`, not the old LilSmoke ROM selector.
+  Imported packages use their supported menu entry; incompatible imported
+  packages remain visible with a diagnostic. Missing built-in engines are hidden.
+- Selecting a ROM from a console/system list is a different operation:
+  `lilsmoke-launch SYSTEM ROM` routes to that system's configured provider and
+  passes content directly. Opening an engine menu does not change that policy.
+- In **Settings > Emulator Core Settings**, left/right switches the global
+  backend between RetroArch and OpenDingux and clears per-system exceptions.
+  A or Start opens the per-system list; select a system and choose an installed
+  provider or **Follow global setting**. An exception can use a different
+  backend or an independent emulator Application.
+- The current registry defines **24 system IDs**, not thirteen installed or
+  fully compatible emulators. Base rows can appear without ROMs or engines.
+  Expansion rows normally require both installed backend candidates or an
+  emulator Application; native OpenBOR is also admitted on its own. Choices
+  are filtered by installed available providers. See the complete
+  [system/provider table](cores.md#registered-systems-and-providers).
+- Missing/stale explicit providers fail visibly instead of silently falling
+  back. Global policy normally selects the first installed matching provider.
+  Its explicit exceptions are installed PCSX4ALL for PSX under unset/OpenDingux
+  policy and native OpenBOR when no global-policy provider exists.
 
-## Hardware Boundary
+Configuration stores `EMULATOR_BACKEND=retroarch|opendingux` and optional
+`EMULATOR_<system>` values such as `od:pocketsnes`, `ra:mgba`, or
+`app:org.lilsmoke.pcsx4all`. Empty values follow global policy. First migration
+preserves legacy PocketSNES and PCSX4ALL selections as exceptions under the
+RetroArch default; `od:pcsx4all` migrates to the Application ID. Settings and
+execution share [EmulatorRegistry.h](../package/lilsmoke-scripts/src/EmulatorRegistry.h);
+metadata is never evaluated as shell commands.
 
-The real SEGAM-M8-V6 is HC16xx MIPS 74Kc, one Linux CPU, roughly 110 MiB
-usable RAM, Linux 4.4.186, and musl userspace. It is not an Ingenic JZ4770
-board. Original OpenDingux often expects an Ingenic display/input stack,
-uClibc, and loop-mounted OPK files. The stock M8 has no loop or FUSE support
-and flock is unavailable. Those interfaces cannot be assumed.
+## Independent Applications And PlayStation
 
-OpenDingux's package execution behavior is documented in upstream
-[opkrun.c](https://github.com/pcercuei/libopk/blob/master/opkrun.c). Its SDL
-fork also adds nonstandard video flags in
-[SDL_video.h](https://github.com/OpenDingux/SDL/blob/opendingux/include/SDL_video.h).
-Native MIPS/musl source rebuilds using standard software SDL are supported;
-arbitrary legacy OPKs are not universally binary-compatible. A musl loader
-must never be symlinked under the name of a uClibc/glibc loader.
+PCSX4ALL now belongs in **LilSmoke Applications**, not the OpenDingux home
+channel. Its package declares `open_core=psx`, so Settings exposes
+**LilSmoke App: PCSX4ALL** with selection ID `app:org.lilsmoke.pcsx4all`.
+A menu launch receives no emulator arguments; ROM selection uses the
+Applications helper's `run-core` contract. Stable app IDs preserve selection
+when an app is renamed. Bundled-app seeding preserves user data, does not
+downgrade a newer user package and honors intentional uninstall.
 
-The new OPK layer uses upstream libini metadata parsing and libsquashfs
-streaming rather than mounting packages or allocating complete files. Import
-locations and detailed accepted ABI/package rules are documented alongside
-the runtime sources and tests. ROM archives use the existing shared bounded
-resolver before emulator handoff. ROMs and proprietary assets are not shipped.
-The M8 launch path preserves the fixed native display adapter and evdev
-mapping after removing untrusted preload/search-path variables. Because this
-kernel lacks ALSA, a source port needs the native PCM adaptation for sound;
-passing ELF/package checks alone does not prove all application behavior.
+Optional RetroArch PCSX ReARMed remains a separate PSX choice when installed.
+Owner feedback favors PCSX4ALL on the tested M8 and identifies ReARMed speed
+concerns; neither is a full-speed/all-games promise. Selecting the PSX system
+does not force every launch to PCSX4ALL. Independent app runtimes and
+`open_core` declarations also do not create emulation capabilities the engine
+lacks. See [Applications](lilsmoke-applications.md) and
+[PCSX4ALL details](cores.md#playstation-pcsx4all-and-pcsx-rearmed).
 
-## Verification
+The direct **TreeFrog Ports** catalogue is a separate compatibility component,
+not this native musl OPK loader or an Applications installation requirement.
+Converted TreeFrog `.lilpck` packages instead use the Applications route and
+their explicit compatibility adapter. See [direct ports and converter](treefrog-port-converter.md).
 
-Registry tests cover global policy, exceptions, legacy choices, installed-core
-filtering, aliases, malformed catalog records, output limits, child deadlines,
-and quoted/commented configuration. Host and MIPS/musl runs pass. Existing
-MIPS archive and native menu/damage mock-device tests also pass.
+## Hardware And Runtime Boundary
 
-End-to-end VM and physical deployment results are recorded separately under
-test-results/m8-candidate08-2026-10-07. A 128 MiB single-CPU MIPS VM is functional
-QA, not a faithful model of the HC16xx framebuffer, audio device, or timing.
-Do not interpret VM measurements as actual game/cursor FPS on the M8.
+The tested SEGAM-M8-V6.0 lineage is HC16xx/MIPS 74Kc, one Linux CPU, 128 MiB
+physical RAM and roughly **110 MiB usable RAM**, Linux 4.4.186 and musl
+userspace. It is not an Ingenic JZ4770 board. No 3D GPU/GL/GLES interface is
+assumed; 2D framebuffer scaling is not 3D acceleration. Other boards require
+separate qualification, and a 128 MiB VM is not a model of M8 cycle timing.
 
-The complete run in
-test-results/m8-candidate08-2026-10-07/opendingux-native-final/result.json
-passed: 7z SNES, ZIP/plain GBA and Mega Drive, three menu/resume cycles per
-variant, manual scanning, controller exits, safe shutdown, global/per-system
-selection and clearing overrides. A separate original native OPK was opened
-from the home UI, streamed to its FAT cache, rendered without GPU APIs,
-accepted arrow/Start/chord input, and saved its per-app HOME journal.
-The OPK is a disposable QA fixture, not a game or an app shipped on the card.
+Original OpenDingux packages often expect an Ingenic display/input stack,
+uClibc and loop-mounted OPKs. The tested M8 kernel has no loop/FUSE support
+and `flock` is unavailable. Native MIPS/musl source rebuilds using the supported
+software SDL layer are the intended path. Never rename/symlink a musl loader
+to impersonate a uClibc/glibc loader.
 
-The OPK layer also passed nineteen host and nineteen MIPS hostile-fixture
-tests, plus sanitizer/unit checks. Tested rejections include legacy/GPU
-dependencies, traversal, links, FAT case collisions, corrupt metadata,
-tampered cache contents, and resource limits. Exact commands and caveats
-are in tools/opendingux/README.md.
+The M8 also lacks an ALSA device. Adapted source engines use the native PCM
+worker for sound; `SDL_AUDIODRIVER=dummy` in that profile does not mean the
+native PCM path is muted. Generic/non-M8 profiles can use ALSA. Imported OPKs
+do not receive an automatic legacy audio/ioctl translator: passing ELF and
+package checks is not proof of sound, controls, speed or all application APIs.
 
-Cursor follow-up is documented in tools/hwtest/ui_cursor_gen10_diagnosis.md:
-native retries, exact opaque bulk fills and a visible-span framebuffer mapping
-are ready. The previous device log cannot identify the initial C rejection
-branch, so the next physical boot must confirm recovery and cursor timing.
+The trusted native [launcher](../package/lilsmoke-scripts/src/lilsmoke-od-launch)
+sets per-engine HOME under `/persist/od-engines/<engine>`, ROM roots under
+`/storage/roms/<system>` and native display/input/audio flags. It replaces
+arbitrary inherited preloads/search paths with the fixed OS adapter policy,
+retaining only the validated loading gate when active. ScummVM uses its own
+game cursor. Each engine still owns its menus, configuration and save formats.
 
-## Candidate11 Deployment
+**Save State / Load State are engine capabilities**, not universal OpenDingux
+services. A native menu must implement them; RetroArch Quick Menu visibility
+also depends on core serialization and matching `.info` metadata. PCSX4ALL
+has its own ten-slot state menu. Battery saves/memory cards are distinct from
+states, and switching providers does not make their states interchangeable.
+See [state limits](cores.md#save-and-load-state).
 
-Installed on the identity-verified spare 62,534,975,488-byte USB card:
-33 new runtime objects and 629 reused objects hash-verified. Stock kernel
-and the user's ROM hash unchanged; no partition writes or formatting.
-Rollback: D:/lilsmoke/rollback/before-candidate11.
-Active manifest SHA256:
-9720f708864926d3eb04192231eaa075630e4577e364f9d2847c7ff81580a527.
+## Shared Archive Resolution
 
-Generated image SHA256:
-ad1b8943331defcf75ab020f387b4e2b877f399940770cd32cef8237c34da2f6.
-The final M8 environment/migration/native OPK follow-up passed in
-test-results/m8-candidate08-2026-10-07/opendingux-m8-env-confirmed/result.json.
-Test input chords use longer guest-only holds to span slow TCG software
-frames; the physically confirmed RetroArch input code was not altered.
+ROM launches use the shared bounded `lilsmoke-rom` resolver, including ZIP/7z
+and other supported wrappers, before handing resolved content to native
+engines. Adapted native browsers use the same resolver rather than a second
+archive decoder. Emulator Applications receive the original logical filename
+and invoke resolution in their own launcher. Launch is blocked while
+LILDRIVE is exported.
 
-Put native-compatible OPKs/desktops in LILROMS/opendingux/apps. Arbitrary
-legacy uClibc/GPU packages still require native source adaptation/rebuild.
-The disposable Native OPK QA application is not installed on the real card.
-Safely eject and cold-boot the spare card to check the touchpad, OpenDingux
-home entry, and global/per-system emulator choices on the actual M8.
+The resolver extracts to storage, not a whole-ROM RAM buffer, and caches by
+archive SHA-256 under `/storage/.cache/lilsmoke/archives/<system>/`. Arcade
+ZIPs pass through; arcade 7z/other supported containers normalize to ZIP.
+Matching ROM-set versions are still required. Non-arcade archives retain
+companion files but select one primary file by extension priority/sorted path,
+not a multi-game chooser. Current limits are 20,000 entries / 2 GiB expanded
+and a requested 96 MiB helper address-space ceiling, not guaranteed M8 capacity.
+
+Keep every CUE track, M3U-referenced disc and project asset with its original
+relative name. Archive acceptance and scanner extensions do not establish a
+provider's CHD/M3U, disc-switching or multi-file game support. The PSX archive
+primary-file list does not select M3U. No missing tracks or project files are
+invented. See [archive/disc caveats](cores.md#zip-7z-and-multi-file-content).
+
+## Native OPK And Desktop Import
+
+Put native-compatible `.opk`/`.desktop` entries in `LILROMS/opendingux/apps`
+(`/storage/opendingux/apps`). The second catalogue root is
+`/usr/share/lilsmoke/opendingux/apps`; extraction cache is
+`/storage/opendingux/cache`, with per-ID HOME at `/persist/opendingux/home/ID`.
+The cache must be writable and executable. ROMs and proprietary assets are
+not supplied by this layer. Executing native code is not a security sandbox.
+
+The loader uses upstream libini metadata parsing and private libsquashfs
+streaming, not mounts, FUSE or whole-package buffers. It checks every embedded
+ELF against its native little-endian MIPS O32/FP32/musl subset and allowlisted
+dependencies. Legacy glibc/uClibc loaders, GPU/private dependencies, unsafe
+paths, links and special files are rejected. These musl OPK rules are separate
+from TreeFrog's explicit device-matched legacy runtime.
+
+`lilsmoke-opendingux scan` emits five bounded TSV fields:
+`id`, `name`, `systemsCSV`, `reason`, `needsRom`. An empty reason means the
+entry passes static policy, not gameplay qualification. `run ID [ROM]`
+executes parsed argv without shell evaluation; `menu ID` uses the supported
+menu entry. Package/cache budgets, desktop field-code rules and exact commands
+remain in [runtime documentation](../tools/opendingux/README.md) and
+[integration contract](../tools/opendingux/INTEGRATION.md).
+
+## Build Integration
+
+- `BR2_PACKAGE_LILSMOKE_OPENDINGUX` builds the OPK helper and selects its
+  libsquashfs/zlib/xz/libsodium closure. The private SquashFS library is pinned
+  to squashfs-tools-ng 1.2.0; libini has its own pinned source and LGPL terms.
+- `package/opendingux-emulators` builds the pinned PocketSNES source port
+  against the software SDL1.2 compatibility layer and installs it in
+  `/usr/lib/lilsmoke/od-emulators`. Its patched browser, native PCM, evdev
+  controls and framebuffer/menu restoration are not generic legacy-OPK support.
+- `package/lilsmoke-od-engines` and `tools/emulators/od-engines/build.sh`
+  produce additional native/Libretro expansion payloads with audited libraries,
+  support data and notices. They stage under `emulator-expansion` in the build
+  images directory, not an automatic install of every registered engine.
+- Runtime lookup also supports `/storage/emulators/opendingux` and
+  `/storage/emulators/libretro`. Use matching source/toolchain/runtime profiles;
+  copying an arbitrary executable there does not adapt its ABI or hardware APIs.
+
+Upstream engines/libraries retain their own licenses. Static registration,
+successful source compilation and a public OS source tree are not blanket
+binary redistribution clearance or device qualification.
+
+## Verification And Historical Records
+
+Registry tests cover global policy, exceptions, aliases, legacy migration,
+installed-provider filtering, bounded helper output/deadlines and parsed
+configuration. OPK tests cover native ABI, hostile paths, metadata/cache
+tampering and extraction budgets. Commands and recorded host/MIPS evidence
+are in [runtime tests](../tools/opendingux/README.md#verification-commands) and
+[verification notes](../tools/opendingux/VERIFICATION.md). This guide records
+existing evidence; it does not declare a new Alpha test run or physical boot.
+
+The Candidate08/Candidate11 records under
+`test-results/m8-candidate08-2026-10-07/` are **historical development evidence**.
+Their ROM/archive/menu, scanning, selection, shutdown and disposable native-OPK
+VM cases do not establish Alpha image contents, physical FPS, HDMI or audible
+M8 PCM. The Native OPK QA fixture was not a shipped game/application. Longer
+guest-only key holds compensated for TCG timing; they were not device input
+performance measurements.
+
+Candidate11's old spare-card geometry, rollback directory, manifest/image
+hashes and "next cold boot" checklist are not current deployment instructions
+and must not identify Alpha-0.0.1. Cursor follow-up in
+`tools/hwtest/ui_cursor_gen10_diagnosis.md` is likewise a historical diagnosis,
+not a current physical acceptance claim. Use the exact Alpha image report and
+actual-device logs for delivery/acceptance; no previous candidate or VM result
+certifies another board or every registered provider.

@@ -1,17 +1,20 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 # LilSmokeOS Pre-Alpha-0.0.1
 
-Historical Pre-Alpha guide. Alpha-0.0.1 publishes the authored OS source under
-MPL-2.0; see the [Alpha source guide](../alpha-0.0.1-source.md).
+Historical guide for the Pre-Alpha image published October 12, 2026.
+For the updated runtime, theme/boot/input/emulator/TreeFrog fixes and current
+instructions, use [Alpha-0.0.1](../alpha-0.0.1/README.md) and its
+[complete changelog](../alpha-0.0.1/RELEASE-NOTES.md).
 
-**Release documentation draft. No public image release is declared by these
-documents.** Publication must pass the [release checklist](PUBLICATION-CHECKLIST.md).
+This folder preserves the original preparation/audit notes; remaining draft
+language describes that historical preparation, not today's publication status.
 Private development images are not public download artifacts.
 
 Project links: [repository](https://github.com/josepilas/LilSmokeOS),
 [issues](https://github.com/josepilas/LilSmokeOS/issues),
 [release index](https://github.com/josepilas/LilSmokeOS/releases).
-The release index is not a claim that a Pre-Alpha-0.0.1 tag/image exists.
+The [published Pre-Alpha image](https://github.com/josepilas/LilSmokeOS/releases/tag/Pre-Alpha-0.0.1)
+is separate from the later Alpha image and its checksums.
 
 LilSmokeOS is a lightweight Linux frontend, emulator integration and native
 application environment created and led by **José Pilas**. This edition's

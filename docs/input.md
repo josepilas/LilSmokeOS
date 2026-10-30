@@ -1,177 +1,84 @@
-# LilSmokeOS — Input System (J5)
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+# Input And Gamepad Mapping
 
-LilSmokeOS supports remappable gamepad input via evdev + a simple
-keymap file format. This doc describes the J5 input architecture.
+Current **Alpha-0.0.1** input behavior. The earlier J5 placeholders and
+swap-only remapping limitation no longer describe the active UI.
 
-## Architecture
+## Device Paths
 
-```
-┌──────────────────────────────────────────────────────┐
-│  LilSmokeUI / RetroArch / pcsx4all-launch            │
-│        calls Input::poll() or reads /dev/input/event*│
-├──────────────────────────────────────────────────────┤
-│  Input class (LilSmokeUI)                            │
-│   • Opens all /dev/input/event* devices              │
-│   • Polls in non-blocking mode                       │
-│   • Translates evdev KEY_* codes → InputButton enum  │
-│     via the Keymap class                             │
-├──────────────────────────────────────────────────────┤
-│  Keymap class                                         │
-│   • Loads /etc/lilsmoke/input-maps/*.map (system)    │
-│   • Loads /persist/config/input-maps/*.map (user)    │
-│   • User maps override system maps for same code     │
-│   • Falls back to hardcoded defaults if no files     │
-├──────────────────────────────────────────────────────┤
-│  Linux evdev driver (/dev/input/event*)              │
-│   • SF3000/GB350: GPIO keypad driver                 │
-│   • QEMU: keyboard emulation                          │
-└──────────────────────────────────────────────────────┘
-```
+LilSmokeUI reads Linux evdev devices and handles gamepad buttons, hats/axes,
+keyboard and pointer events. Device discovery/state recovery accounts for
+reconnects, mode changes and dropped event batches. RetroArch and adapted
+native engines have their own input integrations; recognizing a controller
+in the UI alone does not prove every engine mapping is correct.
 
-## Keymap file format
+RK707 D-Input, PS-Input and X-Input paths received mode-specific fixes.
+RetroArch now receives both analog sticks as well as digital controls.
+Those owner-confirmed results are not universal controller certification.
 
-Plain text, one binding per line:
+## Remap In Settings
 
-```
-# Comments start with #
-<device> <code> <action>
+1. Open **Settings -> Gamepad mapping**.
+2. Highlight the logical control and press confirm.
+3. Press the physical input to capture its raw binding.
+4. Check the status/result and repeat for other controls; B cancels capture
+   when no binding has been captured.
 
-# SF3000/GB350 gamepad (Linux evdev keycodes)
-evdev 103 up       # KEY_UP
-evdev 108 down     # KEY_DOWN
-evdev 105 left     # KEY_LEFT
-evdev 106 right    # KEY_RIGHT
-evdev 28  start    # KEY_ENTER
-evdev 1   select   # KEY_ESC
-evdev 57  a        # KEY_SPACE
-evdev 42  b        # KEY_G (placeholder — real HW uses dedicated GPIO)
-evdev 24  x        # KEY_O
-evdev 25  y        # KEY_P
-evdev 29  l1       # KEY_LEFTCTRL
-evdev 97  r1       # KEY_RIGHTCTRL
-evdev 115 vol_up
-evdev 114 vol_down
-evdev 116 power
-```
+The current capture path can receive raw, previously unmapped input; it is not
+limited to swapping two existing translated buttons. L3/R3 are included.
+Saved user mappings override defaults. Per-game/engine remapping availability
+is separate from frontend capture.
 
-### Supported devices
+## Navigation And Shortcuts
 
-| Device | Status | Notes |
-|---|---|---|
-| `evdev` | ✅ supported | Linux input-event-codes.h KEY_* values |
-| `js` | ⏳ J5.1 | Joystick button indices (for older gamepads) |
+| Context | Control | Result |
+| --- | --- | --- |
+| Game list | Y | On-screen search keyboard |
+| Game list | Hold R2 | Fast downward navigation |
+| Game list | X | Game Options / Favorites |
+| Integrated emulator | Start+X | Menu request where implemented |
+| Integrated emulator | Start+Select | Exit where implemented |
+| Native TreeFrog bridge | Hold Start+Select about 500 ms on one pad | Exit |
+| SDK lifecycle helper | Hold Start+Select, default 1500 ms | Cooperative exit request |
 
-### Supported actions
+An arbitrary third-party program must consume the appropriate input/quit
+events; the OS does not inject Windows keys or guarantee every application's
+behavior. Do not combine half a chord from two different controllers.
 
-`up` `down` `left` `right` `a` `b` `x` `y` `l1` `r1` `l2` `r2`
-`select` `start` `home` `vol_up` `vol_down` `power` `menu` (alias for `home`)
+## Pointer And Keyboard
 
-## File locations
+Settings offers **Mouse / touchpad**, **Pointer speed** and **Cursor size**.
+The native cursor is intended for compatible pointer views, not an extra
+stick-driven mouse overlay inside every emulator. Motion coalescing and native
+rendering/cache changes reduce work, but device polling and load still affect
+smoothness.
 
-| Path | Purpose | Writable by user? |
-|---|---|---|
-| `/etc/lilsmoke/input-maps/default.map` | System default (shipped with rootfs) | No (read-only squashfs) |
-| `/persist/config/input-maps/*.map` | User overrides | Yes |
-| `/persist/config/input-maps/user.map` | Saved by LilSmokeUI Settings → Input | Yes |
+The shared on-screen keyboard is controller-operated. A connected physical
+keyboard also works in supported views and **Settings -> Shell Terminal**.
 
-Files are loaded in alphabetical order. Later files override earlier
-ones for the same `(device, code)` pair.
+## Low-Level Keymap Files
 
-## Remapping via the UI
+Traditional keymaps use `<device> <code> <action>`, for example:
 
-Settings → Input — Button Mapping:
-
-1. Select a button (Up, Down, A, B, etc.)
-2. Press A to start remapping
-3. UI shows "Press a key for A..."
-4. Press any already-mapped button (e.g., press B to swap A↔B)
-5. The new binding is applied immediately
-6. On exit, the user map is saved to `/persist/config/input-maps/user.map`
-
-### Limitations of v0.1
-
-- **Cannot capture unmapped keys.** If you press a physical button that
-  isn't currently bound to *anything*, the UI can't see it (because
-  evdev code → button translation already filtered it out). This means
-  you can swap existing bindings but can't add new ones from the UI.
-  Workaround: edit `user.map` directly with vi.
-- **No "press a key" capture modal.** J5.1 will add a raw evdev capture
-  mode that intercepts keys before keymap translation.
-- **No per-game bindings.** All games share the same keymap. J5.1 may
-  add per-system overrides (e.g., PS1 uses R2/L2 but NES doesn't).
-
-## Manual editing
-
-```sh
-# Edit user map directly
-vi /persist/config/input-maps/user.map
-
-# Add lines like:
-evdev 57 a
-evdev 42 b
-
-# Save and reboot (or restart lilsmoke-ui)
-killall lilsmoke-ui
-# inittab will respawn it
+```text
+# Linux evdev keycodes; not a universal physical-pad layout
+evdev 103 up
+evdev 108 down
+evdev 105 left
+evdev 106 right
+evdev 28 start
+evdev 1 select
 ```
 
-## Default keymap (SF3000/GB350)
+System defaults are under `/etc/lilsmoke/input-maps/`; writable user mappings
+are under `/persist/config/input-maps/`. Later applicable mappings override
+earlier defaults. Device-specific captured mappings and emulator autoconfigs
+must not be confused with these simple keyboard-code examples.
 
-The GPIO keypad driver in the SF3000-RE BSP emits these codes:
+## Diagnostics And Limits
 
-| Button | evdev code | KEY_* constant |
-|---|---|---|
-| D-pad Up | 103 | KEY_UP |
-| D-pad Down | 108 | KEY_DOWN |
-| D-pad Left | 105 | KEY_LEFT |
-| D-pad Right | 106 | KEY_RIGHT |
-| A | 57 | KEY_SPACE |
-| B | 42 | KEY_G (placeholder) |
-| X | 24 | KEY_O (placeholder) |
-| Y | 25 | KEY_P (placeholder) |
-| L1 | 29 | KEY_LEFTCTRL |
-| R1 | 97 | KEY_RIGHTCTRL |
-| L2 | 56 | KEY_LEFTALT |
-| R2 | 100 | KEY_RIGHTALT |
-| Select | 1 | KEY_ESC |
-| Start | 28 | KEY_ENTER |
-| Home | 14 | KEY_BACK |
-| Vol+ | 115 | KEY_VOLUMEUP |
-| Vol- | 114 | KEY_VOLUMEDOWN |
-| Power | 116 | KEY_POWER |
-
-> Note: the A/B/X/Y codes for real hardware are placeholders. The
-> SF3000-RE project is still reversing the GPIO keypad driver; once
-> we have the real codes, we'll update `default.map` accordingly.
-
-## QEMU development
-
-For QEMU (no real gamepad), the default map also binds keyboard keys:
-
-| Action | Keyboard key |
-|---|---|
-| D-pad | Arrow keys |
-| A | Space |
-| B | Left Ctrl |
-| X | Left Shift |
-| Y | Left Alt |
-| L1 | Tab |
-| R1 | Backspace |
-| Select | Esc |
-| Start | Enter |
-| Home | Q |
-| Vol+/- | (not bound) |
-| Power | (not bound — close QEMU window instead) |
-
-## What's NOT in J5 (deferred)
-
-- **Raw key capture** — needed to bind currently-unmapped keys. J5.1.
-- **Per-system keymaps** — e.g., different layouts for PS1 vs NES. J5.1.
-- **Analog stick support** — `evdev` EV_ABS events. SF3000/GB350 have
-  digital D-pads only, but a USB gamepad with analog sticks would need
-  this. J5.2.
-- **Touchscreen support** — not relevant for SF3000/GB350 (no touchscreen).
-- **Hotplug** — when a USB gamepad is plugged in, we should re-scan
-  `/dev/input/event*`. Currently we only scan at startup. J5.2.
-- **Multi-player** — `Input` class supports up to 2 devices but the UI
-  doesn't distinguish player 1 vs player 2. J5.2.
+Report controller/receiver model, mode, connection type, whether connected
+before boot, and whether analog input fails in UI, core or both. Preserve
+input/USB and emulator logs. Generic mapping collections do not supply missing
+kernel drivers or Bluetooth support. USB hub power and receiver faults can
+cause failures outside the frontend's control.

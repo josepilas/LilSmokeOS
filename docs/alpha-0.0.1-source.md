@@ -1,6 +1,15 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 # Alpha-0.0.1 Source Distribution
 
+For runtime features and changes since Pre-Alpha, read the
+[Alpha release notes](alpha-0.0.1/RELEASE-NOTES.md). This document describes
+source staging, not the complete user-facing changelog.
+
+The initial release source ZIP, its tag and SOURCE-INVENTORY/AUDIT reports
+are a frozen publication snapshot. Later documentation-only corrections on
+`main` do not silently replace that archive or change its hashes. Corrected
+documentation is also published as a separate release asset.
+
 Created and led by **José Pilas**. Original authored Alpha source is public
 under MPL-2.0. Upstream source/fork modifications retain their own terms.
 Daedalus-LilSmoke and custom Mupen-LilSmoke experiments are excluded; generic

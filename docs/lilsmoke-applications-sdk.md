@@ -2,6 +2,11 @@
 <!-- Copyright (c) 2026 José Pilas. -->
 # LilSmoke Applications SDK 0.3.0-dev
 
+Public [SDK/API repository](https://github.com/josepilas/LilSmoke-SDK) and
+[0.3.0-dev release](https://github.com/josepilas/LilSmoke-SDK/releases/tag/0.3.0-dev)
+provide source, documentation and SDK Studio. This host/developer tool is
+published separately from the OS image and its installed user applications.
+
 The complete [standalone SDK/API guide](../tools/lilsmoke-sdk/docs/lilsmoke-applications-sdk.md)
 now lives inside the SDK, alongside its [README](../tools/lilsmoke-sdk/README.md),
 so relative documentation links also work after extracting the source ZIP.

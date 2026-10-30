@@ -39,7 +39,7 @@ build/relinking and resource notices still have documented audit gaps.
 Private SM64 packages embed extracted game data and a source-only renderer and
 must not be attached to a release. See [licensing](LICENSE_POLICY.md).
 
-The asset-free [SM64-LilSmoke Pre-Alpha-0.0.1](https://github.com/josepilas/SM64-LilSmoke/releases/tag/Pre-Alpha-0.0.1)
+The asset-free [SM64-LilSmoke Pre-Alpha-0.0.2](https://github.com/josepilas/SM64-LilSmoke/releases/tag/Pre-Alpha-0.0.2)
 is published separately with public adaptation source and a `.lilpck` release.
 It prepares the original game locally from the user's supported ROM in `original/`;
 no ROM or pre-cooked original-game runtime is distributed.
@@ -49,11 +49,33 @@ The physically tested device is the owner's **SEGAM-M8-V6.0**, stock firmware
 boards are not certified by that result. Never select firmware solely by a
 console's marketing name.
 
+## Changes Since Pre-Alpha
+
+Alpha includes the updated device runtime, not only the public-source release:
+
+- Expanded theme layouts, carousel/storyboard animation and transitions;
+  corrected fixed backgrounds and themed shutdown, with software-rendering,
+  frame-pacing and cache optimizations.
+- Branded boot logo kept visible during loading, with progress/percentage;
+  faster cached returns, manual scanning, Y search, held-R2 fast scrolling,
+  Favorites and Recently Played.
+- RetroArch menu/performance/save-state repairs, PCSX4ALL state persistence,
+  RK707 mode/analog/reconnect fixes and safer shutdown feedback.
+- Separate copy-and-play TreeFrog Ports compatibility, improved port controls
+  and exit handling; optional browser conversion into LilSmoke Applications.
+- Shell Terminal, FFmpeg and media startup/audio/presentation improvements.
+- Public Applications SDK/API and Studio, Port Converter, and full OS source.
+
+Read the [full Alpha changelog](docs/alpha-0.0.1/RELEASE-NOTES.md) for the
+complete feature/fix breakdown, inherited features, known limits and validation.
+Not every theme, port, game or codec is guaranteed to run at full speed.
+
 ## Guides
 
-- [Pre-alpha guide](docs/pre-alpha-0.0.1/README.md)
-- [Installation](docs/pre-alpha-0.0.1/installation.md)
-- [User manual](docs/pre-alpha-0.0.1/user-manual.md)
+- [Alpha release and installation](docs/alpha-0.0.1/README.md)
+- [Alpha changes since Pre-Alpha](docs/alpha-0.0.1/RELEASE-NOTES.md)
+- [Current user manual](docs/alpha-0.0.1/USER-GUIDE.md)
+- [Historical Pre-Alpha guide](docs/pre-alpha-0.0.1/README.md)
 - [Troubleshooting](docs/pre-alpha-0.0.1/troubleshooting.md)
 - [Developer guides](docs/developer/README.md)
 - [Applications SDK/API](docs/lilsmoke-applications-sdk.md)

@@ -1,5 +1,9 @@
 # LilSmokeOS — Theme Creation Guide
 
+For Alpha-0.0.1, use the [current compatibility matrix](theme-compat.md)
+alongside these XML authoring examples. The engine now renders carousels,
+bounded storyboards, metadata, ratings, help prompts and layered transitions.
+
 This guide explains how to write a LilSmokeOS theme. LilSmokeOS themes
 are XML + PNG/JPEG/WebP, deliberately compatible with a subset of the
 EmuELEC and ArkOS theme formats so you can drop existing themes into
@@ -251,15 +255,15 @@ EmuELEC/ArkOS format. Here's what's supported and what isn't:
 | `<textlist>` with `selectorColor` / `selectedColor` / `primaryColor` / `secondaryColor` / `fontSize` / `pos` / `size` | Yes |
 | `<gridtile>` with `backgroundColor` / `imageColor` / `padding` / `size` | Yes |
 | `<sound>` | No (silently ignored) |
-| `<video>` | No (silently ignored) |
-| `<carousel>` | No (silently ignored — we use a vertical list) |
-| `<helpsystem>` | No (we draw our own footer help) |
-| `<rating>` | No |
-| `<datetime>` | No |
+| `<video>` | Static cover fallback, not live video decoding |
+| `<carousel>` | Horizontal/vertical and wheel layouts |
+| `<helpsystem>` | Supported prompt styling and placement |
+| `<rating>` | Supported game rating widget |
+| `<datetime>` | Supported metadata date fields |
 | `<controls>` (the on-screen controller diagram) | No |
-| Animations (`<storyboard>`) | No (silently ignored) |
+| Animations (`<storyboard>`) | Bounded position/scale/opacity/rotation tracks |
 | Shaders | No |
-| Z-index (`<z>`)| No (rendered in document order) |
+| Layer order (`<zIndex>`) | Supported, stable order for equal values |
 
 Unsupported elements are silently skipped — they don't break the theme.
 This means you can drop an unmodified EmuELEC/ArkOS theme into
@@ -385,16 +389,15 @@ Users extract into `/storage/themes/`. There is no in-UI theme installer
 yet — it's a manual file copy. LilSmokeOS includes `7za` for users who
 copy a `.7z` theme package onto the device and extract it from the shell.
 
-## 13. What's NOT supported (and won't be)
+## 13. Current Limits
 
-- Video backgrounds (no GPU, no video decoder — would cost 60 MB+).
-- Animated GIFs (would need a full GIF decoder).
-- Theme sound effects (we have an audio budget for the *game*, not the
-  UI).
-- Per-system theme overrides (every system uses the same theme —
-  system logos are loaded from `<theme>/art/system/<system>.png`).
+- Live theme background/preview video (static artwork fallback is used).
+- Animated GIF playback and theme sound events.
 - Lua scripting in themes.
-- Live shader parameters.
+- GPU shaders and arbitrary custom widgets/condition expressions.
 
-If you want any of these, you want a different OS — LilSmokeOS is for
-hardware that can't do them.
+Per-system overrides are supported: `<theme>/<system-theme>/theme.xml`
+merges over the default theme XML. Shared identical scenery stays stationary
+while carousel foregrounds move; differing or authored animated backgrounds
+may change. See [theme-compat.md](theme-compat.md) for exact limits rather
+than inferring all upstream features from successful XML loading.

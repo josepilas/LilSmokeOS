@@ -1,221 +1,245 @@
-# LilSmokeOS — Emulation Cores (J2)
+# LilSmokeOS Emulation Cores - Alpha-0.0.1
 
-This document describes the J2 emulation layer: RetroArch + 8 libretro
-cores + PCSX4ALL (PS1 via MIPS dynarec).
+This guide describes the current system registry, installed-provider selection,
+RetroArch integration and independent emulator Applications. It replaces the
+historical J2 overview. A registered system or provider is not an inventory of
+the Alpha image, proof that an engine is installed, or a full-speed/game
+compatibility guarantee.
 
-## Configured Systems
+## Hardware And Scope
 
-These are configured integrations, not physical-console speed or game
-compatibility guarantees. Earlier labels such as "Excellent", "full speed",
-"all mappers" and "60 FPS on most titles" were not supported by recorded
-measurements and are withdrawn. See [performance.md](performance.md).
+The tested SEGAM-M8-V6.0 lineage uses HC16xx/MIPS 74Kc, one Linux CPU and
+128 MiB physical RAM, with roughly 110 MiB usable by Linux. Its stock kernel
+is Linux 4.4.186; LilSmoke uses musl userspace. It is not an Ingenic JZ4770
+board or a universal 256 MiB target. Display scaling is a 2D facility, not
+OpenGL/GLES/Vulkan or a 3D GPU. Other board profiles need separate validation.
+Host and Malta/QEMU results do not establish physical M8 speed, HDMI or sound.
 
-| System | Status | Emulator | Notes |
+## Registered Systems And Providers
+
+The authoritative [system definitions](../package/lilsmoke-scripts/src/EmulatorSystems.h)
+contain **24 canonical IDs**. The [provider registry](../package/lilsmoke-scripts/src/EmulatorRegistry.h)
+maps them to the following candidates; missing binaries are marked unavailable.
+Names in this table do not mean every candidate is bundled or qualified.
+
+| ID | System / content | RetroArch candidates | Native OpenDingux / Application candidates |
 |---|---|---|---|
-| NES, Famicom, FDS | Configured | FCEUmm (libretro) | Game/mappers require testing |
-| Game Boy (DMG) | Configured | Gambatte (libretro) | Physical timing unmeasured |
-| Game Boy Color | Configured | Gambatte (libretro) | Same core, dual mode |
-| Game Boy Advance | Configured | mGBA (libretro) | No measured full-speed guarantee |
-| SNES / Super Famicom | VM tested | Snes9x 2005 (libretro) | Slow VM throughput under investigation |
-| Genesis / Mega Drive | Configured | Genesis Plus GX (libretro) | Software rendering |
-| Master System | Configured | Genesis Plus GX (libretro) | Same core |
-| Game Gear | Configured | Genesis Plus GX (libretro) | Same core |
-| PC Engine / TG16 | Configured | Beetle PCE Fast (libretro) | BIOS/assets required for CD |
-| Arcade (CPS1, early CPS2, early Neo Geo) | Configured | FBNeo (libretro) | Per-game memory limits apply |
-| Atari Lynx | Configured | Handy (libretro) | Requires game validation |
-| **PS1 / PlayStation** | **Experimental** | **PCSX4ALL (rkgame reconstruction)** | **MIPS dynarec needs physical validation** |
-| N64, PSP, Dreamcast, PS2 | **Not supported** | — | Hardware cannot |
+| `nes` | NES / Famicom / FDS | FCEUmm, QuickNES | FCEUX (`fceu320`) |
+| `snes` | Super Nintendo | Snes9x 2005, Snes9x 2002 | PocketSNES |
+| `n64` | Nintendo 64 | ParaLLEl N64, software profile | No fixed native provider |
+| `gb` | Game Boy | Gambatte | Gnuboy, Gambatte |
+| `gbc` | Game Boy Color | Gambatte | Gnuboy, Gambatte |
+| `gba` | Game Boy Advance | mGBA, gpSP | ReGBA, native mGBA |
+| `md` | Mega Drive | Genesis Plus GX, PicoDrive | PicoDrive |
+| `sms` | Master System | Genesis Plus GX, PicoDrive | PicoDrive |
+| `gg` | Game Gear | Genesis Plus GX, PicoDrive | PicoDrive |
+| `pce` | PC Engine | Mednafen PCE Fast | Temper |
+| `arcade` | Arcade ROM sets | FinalBurn Neo | MAME4ALL (0.37b5), FBA SDL |
+| `lynx` | Atari Lynx | Handy | Handy |
+| `psx` | PlayStation | PCSX ReARMed | PCSX4ALL Application |
+| `atari2600` | Atari 2600 | Stella 2014 | Stella |
+| `atari7800` | Atari 7800 | ProSystem | ProSystem |
+| `atari800` | Atari 800 / 5200 | Atari800 | Atari800 |
+| `ngpc` | Neo Geo Pocket | RACE | RACE |
+| `wswan` | WonderSwan | Beetle WonderSwan | Oswan |
+| `pokemini` | Pokemon Mini | PokeMini | PokeMini |
+| `doom` | Doom IWAD / project | PrBoom | PrBoom |
+| `cavestory` | Cave Story data | NXEngine | NXEngine |
+| `easyrpg` | RPG Maker 2000 / 2003 project | EasyRPG | EasyRPG |
+| `scummvm` | ScummVM marker and game data | ScummVM (2D) | ScummVM (2D) |
+| `openbor` | OpenBOR PAK | No fixed libretro provider | OpenBOR (legacy 32-bit) |
 
-## RetroArch configuration
+Installed Applications can add providers through `open_core`. Expansion-system
+rows are filtered by installed providers: normally both RetroArch and native
+providers are needed, or an emulator Application; OpenBOR also appears with
+its native provider alone. Base-system rows can remain visible without an
+installed engine or ROM. Thus neither the Settings row count nor the source
+registry is a shipping or gameplay-qualification count.
 
-RetroArch is configured for fbdev-only rendering (no OpenGL/GLES):
+Classic PC engines require complete compatible data: `Doukutsu.exe` plus Cave
+Story data, `RPG_RT.ldb` plus its project, a `.scummvm`/`.svm` marker plus game
+files, the appropriate Doom IWAD, or an OpenBOR `.pak`. A marker EXE is not
+executed as a Windows program. BIOS, ROM sets and game assets remain the user's
+responsibility; arcade set versions and required BIOS differ by provider.
 
-| Setting | Value | Why |
-|---|---|---|
-| `video_driver` | `sdl2` | SDL2 → DirectFB → fbdev |
-| `audio_driver` | `alsa` | Direct ALSA, no dmix |
-| `input_driver` | `sdl2` | DirectFB evdev keyboard; avoids competing tty readers |
-| `input_joypad_driver` | `linuxraw` | Joystick device backend, not console keyboard input |
-| `menu_driver` | `rgui` | Lightweight software menu selected for this build |
-| `video_fullscreen` | `true` | Always fullscreen (no window manager) |
-| `video_scale_integer` | `true` | Pixel-perfect on 640x480 |
-| `video_aspect_ratio` | `1.3333` | 4:3 native |
-| `video_smooth` | `false` | No bilinear filtering (sharp pixels) |
+## Select A Provider
 
-Default config file: `/etc/retroarch.cfg` (installed by the `retroarch-mips` package).
+In **Settings > Emulator Core Settings**:
 
-Pinned core info files install in `/usr/share/libretro/info`, renamed to match
-each installed binary. Without them RetroArch 1.19.1 disables save states.
-Metadata caching is disabled for these eight small files to avoid carrying
-old missing-info capabilities through an upgrade. Snes9x 2005 exposes basic
-save states: video restoration and UI save/load were tested; bit-exact audio
-restoration fails in the legacy serializer. Other cores have API/load tests,
-not equivalent gameplay coverage. Game buttons do not trigger fast-forward
-or quit; F12 uses RetroArch's two-press quit confirmation.
+- Left/right switches the global RetroArch/OpenDingux policy and clears
+  per-system exceptions.
+- A or Start opens the per-system list. Select a system, then an installed
+  provider or **Follow global setting**. This does not change the global policy.
+- An unavailable explicit selection produces a launch error, not a silent
+  switch to another engine. A provider's presence is not a compatibility test.
 
-## Cores directory
+Configuration uses `EMULATOR_BACKEND=retroarch|opendingux` and exceptions such
+as `EMULATOR_snes=od:pocketsnes`, `EMULATOR_gba=ra:mgba` or
+`EMULATOR_psx=app:org.lilsmoke.pcsx4all`. Empty exceptions follow global policy.
+Initial migration preserves a legacy PocketSNES choice and selects the
+PCSX4ALL app for PSX; old `od:pcsx4all` values migrate to its app ID. The
+registry also prefers an installed PCSX4ALL app for PSX under an unset or
+OpenDingux global policy, and allows native OpenBOR without inventing a
+libretro provider. Other missing global-policy providers fail visibly.
 
-All libretro cores install to `/usr/lib/libretro/`:
+The **OpenDingux** home entry opens each native engine's own menu, not the old
+LilSmoke compatible-ROM selector. Selecting a ROM in a system list instead
+routes that content through the configured provider. PCSX4ALL's menu lives in
+**LilSmoke Applications**. See [OpenDingux integration](opendingux-integration.md).
 
-```
-/usr/lib/libretro/
-├── fceumm_libretro.so              # NES/Famicom/FDS
-├── gambatte_libretro.so            # Game Boy / Game Boy Color
-├── mgba_libretro.so                # Game Boy Advance
-├── snes9x_2005_libretro.so         # SNES
-├── genesis_plus_gx_libretro.so     # SMS/GG/MD
-├── mednafen_pce_fast_libretro.so   # PC Engine
-├── fbneo_libretro.so               # Arcade
-└── handy_libretro.so               # Atari Lynx
-```
+## RetroArch Runtime
 
-## PCSX4ALL (PS1)
+[lilsmoke-retroarch](../package/lilsmoke-scripts/src/lilsmoke-retroarch)
+launches RetroArch 1.19.1 with software SDL2/DirectFB and a generated runtime
+configuration. `/etc/retroarch.cfg` is the packaged baseline; persistent
+preferences are `/persist/config/retroarch.cfg` and
+`/persist/config/retroarch-core-options.cfg`. Hardware constraints precede
+preferences and baseline defaults; duplicate keys keep their first definition.
 
-PS1 is **not** handled by a libretro core. Instead, we ship the
-[PCSX4ALL "rkgame reconstruction"](https://github.com/goph-R/SF3000-RE)
-which was extracted from the stock SF3000 firmware. This remains an
-experimental integration: the LilSmokeOS physical BSP and ABI must be
-validated before claiming it works on the target console.
-
-Why not a libretro PS1 core?
-1. **Performance.** PCSX4ALL uses a MIPS-to-MIPS dynamic recompiler
-   (dynarec) that runs PS1 code natively on the 74Kf CPU. This is
-   potentially faster than an interpreter. No matched LilSmokeOS physical
-   benchmark has been collected in this performance investigation.
-2. **Compatibility.** The rkgame reconstruction was tested against the
-   real SF3000/GB350 hardware during the firmware reverse-engineering
-   project. That does not establish compatibility or full speed for this
-   different Linux/musl integration; games and board drivers need testing.
-3. **Memory.** The dynarec uses the lower 2 GB of virtual address space
-   for fixed PS1 memory mappings. A libretro core would have to fight
-   the host process for that space.
-
-### Architecture
-
-```
-┌──────────────────────────────────────────────────────┐
-│  pcsx4all-launch  (~12 KB, the binary LilSmokeUI     │
-│                    execve()s)                         │
-│       │                                               │
-│       │  calls via rkgame_bridge.h:                   │
-│       │   PCSX_Load(game_path)                        │
-│       │   pcsx_Thread(NULL)  ← blocks until user quit │
-│       ▼                                               │
-│  libpcsx4all_rkgame.a  (4 MB pre-built static lib)   │
-│   • R3000A MIPS dynarec (mips_to_mips)               │
-│   • GPU: gpu_unai via gpulib                         │
-│   • SPU: spu_pcsxrearmed                             │
-│   • CDROM, MDEC, GTE, pad, SIO                       │
-│   • rkgame port (src/port/rkgame/)                   │
-│       │                                               │
-│       ▼                                               │
-│  SDL 1.2 (already on device as part of stock firmware│
-│  libs — we link against it for compatibility)        │
-└──────────────────────────────────────────────────────┘
-```
-
-### Build
-
-The static library `libpcsx4all_rkgame.a` is **pre-built** and shipped
-in the package source tree (`package/pcsx4all/src/`). We do NOT rebuild
-it because:
-1. Its provenance is the stock reconstruction, not a verified LilSmokeOS deployment
-2. It uses a MIPS dynarec with specific toolchain requirements
-3. Saves build time (~3 min vs ~30 sec to just link)
-
-The launcher (`pcsx4all-launch.c`) is a tiny (~150 line) C program that:
-1. Allocates a 640×480×16 video buffer
-2. Sets up callbacks via `rkgame_pcsx_set_*` API
-3. Calls `PCSX_Load(game_path)` to load the disc
-4. Spawns `pcsx_Thread(NULL)` which runs the emulator until the user quits
-
-### BIOS
-
-PS1 BIOS is required. Users must provide `scph1001.bin` (North America,
-512 KB) and place it at `/persist/bios/scph1001.bin`.
-
-We cannot ship the BIOS due to copyright. The launcher prints a clear
-warning if the BIOS is missing.
-
-### Saves & states
-
-| Path | Purpose |
+| Area | Current behavior |
 |---|---|
-| `/persist/saves/pcsx4all/<gamename>.mcr` | Memory card saves |
-| `/persist/states/pcsx4all/<gamename>.state` | Save states |
+| Video | `sdl2`, software rendering; M8 native framebuffer adapter/presentation, no GPU APIs |
+| Audio | Generic profile: ALSA. M8 HCFB profile: `lilsmoke` native PCM driver, not universal ALSA; SDL audio is set to dummy there |
+| Input | SDL2 event input; generic joypad backend `linuxraw` or `sdl2`; M8 uses the `lilsmoke` joypad driver and configured shared input |
+| Menu | RGUI; M8-specific presentation/aspect settings override generic fullscreen/integer defaults |
+| Saves / states | `/persist/saves` and `/persist/states`, overridable by launch environment; states sorted by core/content |
+| BIOS | RetroArch system directory `/storage/bios`; names and requirements depend on the core |
+| Costly features | Rewind, run-ahead, shaders and filters disabled by default; online core updater, networking and achievements disabled in this build |
 
-These are created automatically on first run.
+System cores are discovered in `/usr/lib/libretro`; optional cores in
+`/storage/emulators/libretro`. Matching info files use
+`/usr/share/libretro/info` and `/storage/emulators/info`. The launcher merges
+installed locations in RAM for the RetroArch menu, with OS files taking
+precedence when filenames collide. Optional binaries still need the matching
+MIPS/musl ABI, runtime dependencies and software-only interfaces.
 
-### ROM formats
+### Save And Load State
 
-PCSX4ALL supports:
-- `.bin` + `.cue` (most common)
-- `.img` + `.cue`
-- `.pbp` (PlayStation Portable format — works for PS1)
-- `.ecm` (with `.cue`)
+The launcher enables **Save State** and **Load State** Quick Menu controls,
+but an engine must actually implement compatible serialization and have the
+correct core info metadata. An absent/disabled action does not by itself mean
+the UI or storage is broken. SRAM, PSX memory cards and in-game saves are
+separate from emulator states; states are not portable between unrelated
+providers or necessarily between versions.
 
-The `lilsmoke-launch psx <rom>` wrapper auto-detects a sibling `.cue`
-file for `.bin`/`.img` inputs.
+Pinned core info files are renamed to match installed `.so` names and metadata
+caching is disabled. Snes9x 2005 exposes **basic**, not deterministic, states:
+video restoration was tested, but the legacy serializer omits audio history
+and sample phase. Other cores do not inherit that test coverage. Optional
+RetroArch clean-exit auto-resume also depends on the selected core's state
+support. See [core metadata](../package/retroarch-mips/core-info/README.md).
 
-LilSmokeOS also accepts `.7z` ROM archives for non-arcade systems. The
-launcher extracts them to `/storage/.cache/lilsmoke/archives/<system>/`
-and reuses the extracted file until the archive changes. Arcade
-`.zip`/`.7z` romsets are passed through directly to FBNeo.
+## PlayStation: PCSX4ALL And PCSX ReARMed
 
-## Launching games
+PCSX4ALL is an independent preinstalled Application with ID
+`org.lilsmoke.pcsx4all` and `open_core=psx`; select
+`app:org.lilsmoke.pcsx4all` in Settings. Its own menu opens without content;
+system-list launches pass the selected PSX game through the Applications
+helper and shared resolver. Boot seeding preserves renamed apps, user data
+and intentional uninstall rather than reinstalling at every boot.
 
-LilSmokeUI (J3) will call `/usr/lib/lilsmoke/lilsmoke-launch <system> <rom>`:
+RetroArch **PCSX ReARMed** (`ra:pcsx_rearmed`) is a separate optional provider
+when its core is installed. PSX is therefore not categorically "non-libretro".
+Owner feedback favors PCSX4ALL on the tested M8; ReARMed has performance
+concerns, and neither choice guarantees every game's accuracy, sound or speed.
+The M8 ReARMed launch profile disables GPU/SPU worker threads and NEON
+enhancements. Generic registered N64 software support likewise does not imply
+usable speed or GPU acceleration. PSP, Dreamcast and PS2 are not registered.
+
+### PCSX4ALL Build And Storage
+
+The [Buildroot package](../package/pcsx4all/pcsx4all.mk) links the reconstructed
+MIPS dynarec core to the C++ SDL2 frontend, native menu and shared Input code.
+It uses a hash-checked qualified core archive if the configured local artifact
+exists; otherwise it rebuilds `Makefile.rkgame` with the target toolchain.
+The frontend is linked non-PIE at `0x40000000` for the engine's memory layout.
+This replaces the obsolete J2 description of an always-prebuilt SDL1 library
+and tiny C-only launcher. Neither source provenance nor a dynarec is a speed
+guarantee.
+
+The package builds a `.lilpck` and installs it under
+`/usr/share/lilsmoke/builtin-apps`; `S08applications` seeds it into
+`/storage/independent-apps`. The OS app metadata uses internal version 1.0.6;
+the separate public PCSX4ALL-LilSmoke 0.0.1 artifact has its own evidence and
+must not be confused with that installed build.
+
+| Default path | Purpose |
+|---|---|
+| `/persist/config/pcsx4all/pcsx4all.cfg` | Persistent native configuration, initialized from app defaults |
+| `/persist/saves/pcsx4all/mcd001.mcr`, `mcd002.mcr` | Default memory cards, not one invented card filename per game |
+| `/persist/states/pcsx4all/<content-key>/slot-0.state` through `slot-9.state` | Ten frontend state slots per logical content identity |
+| `/persist/bios/scph1001.bin` | User-supplied 524,288-byte BIOS recognized by the default setup |
+
+Without that valid BIOS the engine defaults to HLE; HLE is not equivalent to
+full BIOS/game compatibility. Existing user configuration can override defaults.
+No BIOS is bundled. The native pause menu exposes slot selection, save/load,
+resume and exit independently of RetroArch's Quick Menu. Start+X opens that
+menu; Start+Select exits. `/etc/pcsx4all.cfg` is a default, not the live user
+configuration. Its setting syntax is `FrameSkip 0`, not `frame_skip = 1`.
+
+## ZIP, 7z And Multi-File Content
+
+[lilsmoke-rom](../package/lilsmoke-scripts/src/lilsmoke-rom.cpp) is the shared
+storage-backed resolver for launchers and adapted in-engine browsers, including
+the RetroArch content-load hook. Recognized wrappers include ZIP, 7z, RAR,
+TAR and supported gzip/bzip2/xz variants. Libarchive support, decoder memory
+and the destination filesystem still limit what can be opened.
+
+Non-arcade archives extract to
+`/storage/.cache/lilsmoke/archives/<system>/<archive-sha256>/`; completed caches
+are reused until archive contents change. The resolver keeps companion files
+but returns one primary file by system extension priority and sorted path.
+It is not a multi-game selection dialog: prefer one game/project per archive.
+Arcade ZIP sets pass through unchanged; other arcade containers, including
+7z, are extracted and normalized to an uncompressed ZIP for the engine.
+This does not convert one emulator's ROM-set version into another's.
+
+The helper rejects traversal, links and special files, bounds extraction to
+20,000 entries / 2 GiB expanded data, and requests a 96 MiB address-space
+ceiling. These are limits, not a promise that every archive fits the M8.
+Extraction and arcade normalization need free storage; use modest compression
+dictionaries and preserve originals.
+
+CUE files need every referenced track; M3U disc lists need their referenced
+discs, and data projects need all companion assets. Preserve relative names
+and folder structure. The PCSX4ALL app prefers a sibling `.cue` when passed a
+`.bin`/`.img`. The scanner's PSX extensions, including CHD/M3U, are not proof
+that every PSX provider can decode or switch those discs. In particular, the
+archive resolver's PSX primary-file list does not select M3U; use an intact
+uncompressed playlist/set when the chosen engine supports it. The resolver
+does not repair missing tracks or validate a complete multi-disc workflow.
+
+## Launch And Build Integration
+
+LilSmokeUI hands content to `/usr/lib/lilsmoke/lilsmoke-launch SYSTEM ROM`.
+The registry resolves global/per-system policy and executes the selected
+RetroArch, native or Application provider. Emulator Applications receive the
+original system-relative logical filename and resolve archives in their own
+launcher; non-app routes resolve before engine handoff. Launches are blocked
+while LILDRIVE is exported. Metadata is not shell-evaluated.
 
 ```sh
-# NES
-lilsmoke-launch nes /storage/roms/nes/SuperMarioBros.nes
-
-# SNES
-lilsmoke-launch snes /storage/roms/snes/ChronoTrigger.sfc
-lilsmoke-launch snes /storage/roms/snes/ChronoTrigger.7z
-
-# PS1
-lilsmoke-launch psx /storage/roms/psx/CrashBandicoot.bin
-
-# Arcade
-lilsmoke-launch arcade /storage/roms/arcade/sf2.zip
-lilsmoke-launch arcade /storage/roms/arcade/mslug.7z
+/usr/lib/lilsmoke/lilsmoke-launch snes '/storage/roms/snes/Game.7z'
+/usr/lib/lilsmoke/lilsmoke-launch psx '/storage/roms/psx/Game.cue'
+/usr/lib/lilsmoke/lilsmoke-launch arcade '/storage/roms/arcade/set.zip'
 ```
 
-The launch script auto-routes PS1 to `pcsx4all-launch` and everything
-else to `retroarch -L <core>`.
+The base `retroarch-mips` recipe builds five curated cores (FCEUmm, Gambatte,
+mGBA, Snes9x 2005, Genesis Plus GX), adding FBNeo, Mednafen PCE Fast and Handy
+outside `BR2_PACKAGE_LILSMOKE_LITE`. Those eight build choices are not the
+24-system registry or the optional-provider inventory. Native/expansion
+builds and separately installed Applications are additional delivery paths.
 
-## Performance tuning
+To add a core, pin its six-field source/build/output entry in
+`package/retroarch-mips/cores.lock`, include it in `LILSMOKE_CORES`, and vendor
+matching info metadata with provenance. Update registry/routing and shared
+system/content definitions as needed, then use the matching Buildroot target
+toolchain. The helper `build-cores.sh` builds pinned sources and records build
+info; merely naming a core does not install it. Validate ELF/ABI, API loading,
+real content, input, audio, states and whole-device memory before delivery.
 
-For 128 MB RAM SKUs (LILSMOKE_LITE preset):
-- Drop FBNeo, Handy, Beetle PCE Fast cores
-- Reduce `ASSET_CACHE_MB` from 16 to 8
-- Disable Dropbear by default
-- Validate PCSX4ALL's working set with the actual game and BSP; do not assume it fits
-
-For very heavy PS1 games (e.g. Gran Turismo):
-- Enable frame skip in `/etc/pcsx4all.cfg`: `frame_skip = 1`
-- Disable rewind if enabled
-- Close other background processes
-
-## What's NOT in J2 (deferred)
-
-- **Online core updates** — would require RetroArch's network updater, which we explicitly disable (we ship a curated set)
-- **Netplay** — would require upstream network code, not useful on a handheld
-- **Achievements** — RetroArch cheevos require SSL + more memory, disabled
-- **PS1 PGXP** (perspective-correct textures) — not in the rkgame reconstruction
-- **N64, PSP** — out of reach for 1.2 GHz MIPS + 256 MB RAM
-
-## Adding a new core (future)
-
-To add a new libretro core:
-
-1. Add a six-field entry to `package/retroarch-mips/cores.lock` with an exact
-   40-character source commit, build file and built/installed filenames.
-   Add the core name to `LILSMOKE_CORES` and vendor its info file with provenance.
-2. Add the backend routing case to `lilsmoke-retroarch`, then test target ELF,
-   API loading, ROM execution, inputs, saves and working-set memory.
-3. Rebuild: `./scripts/build.sh qemu-mipsel`
-
-The build script clones the repo, builds the core with the right MIPS
-CFLAGS, and installs the `.so` to `/usr/lib/libretro/`.
+Historical J2 "full speed", fixed thirteen-system, stock-SDL1 and Ingenic
+assumptions are not Alpha acceptance evidence. Preserve working providers and
+saves when testing alternatives. See [Applications](lilsmoke-applications.md)
+and [performance evidence and limits](performance.md); older VM timings are
+not physical M8 benchmarks.

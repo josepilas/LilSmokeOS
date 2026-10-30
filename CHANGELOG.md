@@ -1,18 +1,74 @@
 # Changelog
 
-## Alpha-0.0.1
+## Alpha-0.0.1 - 2026-10-30
 
-- Entire authored external-tree source, C++ UI, shell services, board adapters,
-  Buildroot integration and SDK/API are public under MPL-2.0.
-- Retain upstream licenses and legacy grants; exclude custom Daedalus-LilSmoke
-  and Mupen-LilSmoke experiments, private data and unreviewed assets.
-- Deterministic source staging includes inventories, exclusions and audit.
-- Image assembly/verification is separate; a new physical cold boot is pending.
+This is the updated SEGAM-M8-V6.0 runtime, not only a source/license release.
+See the [complete changes since Pre-Alpha](docs/alpha-0.0.1/RELEASE-NOTES.md)
+and [current user guide](docs/alpha-0.0.1/USER-GUIDE.md). The list below covers
+additions and fixes; existing Applications/Explorer features are not all new.
 
-## Pre-Alpha-0.0.1 - Draft, Unreleased
+### Interface, Themes And Loading
 
-Prepared on 2026-10-12 as the intended first public release documentation.
-No GitHub release, sanitized public image or release checksum is declared here.
+- Expanded EmuELEC/ArkOS theme rendering: system carousels and wheels, slide,
+  fade and instant transitions, bounded storyboards, layered extras, metadata,
+  ratings and themed help prompts.
+- Fixed shared backgrounds moving with carousel pages, themed Power Off
+  returning to the menu, and theme layout/layering regressions.
+- Improved animation pacing, text/image/layout caches, idle-frame reuse,
+  native damage presentation and pointer-event handling. These are software
+  optimizations, not a guarantee of 60 FPS on every theme.
+- Added the branded boot logo with a six-second minimum and loading hold,
+  stage-based progress bar/percentage; positioned the logo above the bar.
+- Added Y-to-search with the on-screen keyboard and held-R2 fast navigation.
+  Added Favorites, Recently Played and the Start in Recents setting.
+- Improved cached game discovery, manual Scan games now and warm return from
+  applications so unchanged libraries/playlists are not rebuilt needlessly.
+
+### Emulation, Input And Safety
+
+- Fixed RetroArch menu sizing, quarter-screen presentation, native-frame
+  restoration and menu-performance regressions; restored affected core speed.
+- Restored save/load availability using core capability information. Fixed
+  PCSX4ALL save-state write/load failures, including persistence after reboot.
+  Save-state support still depends on the chosen engine and content.
+- Improved RK707 D-Input/PS-Input/X-Input handling, analog-axis mapping,
+  reconnect/mode-change recovery and controller diagnostics. Added/refined raw
+  gamepad remapping and avoided mouse-emulation leakage in adapted engines.
+- Retained global/per-system emulator selection, adapted native OpenDingux
+  engines, emulator Applications and shared compressed-ROM resolution; refined
+  their launch, scaling, audio and return paths. PCSX4ALL is an independent app.
+- Hardened safe shutdown with a RAM-resident guard, storage checks and the
+  ten-second success indication; warnings must not be treated as success.
+- Added Settings -> Shell Terminal for a connected keyboard and FFmpeg/ffprobe.
+- Improved media startup, PCM pacing, native-worker error handling and bounded
+  software video fallback. High-resolution video remains CPU-limited.
+
+### TreeFrog And Developer Ecosystem
+
+- Added a separate TreeFrog Ports compatibility catalogue for unchanged port
+  scripts/folders in LILROMS/treefrog-ports; it is not LilSmoke Applications.
+- Fixed file-backed namespace mounts, return/relaunch cleanup and native-port
+  controller profiles, including ClassiCube/Chocolate Doom refinements and
+  Start+Select exit. ABI, libraries, assets and per-port limits still apply.
+- Published the browser-local Port Converter 0.2.0, with independent Libretro
+  runtime support, source/dist branches and GitHub Pages. Conversion is optional.
+- Published SDK/API 0.3.0-dev with starters, host preview, MIPS builds, package
+  validation, lifecycle/input helpers, documentation and SDK Studio.
+
+### Distribution
+
+- Published the full authored external tree under MPL-2.0 while retaining
+  upstream licenses. Included source inventory/exclusion/audit reports.
+- Published a clean SEGAM-M8-V6.0 image with LILOS 1 GiB/FAT32 and an initial
+  LILROMS 768 MiB/FAT32, expanded at first boot. No user ROMs, saves or BIOS
+  collection; Daedalus-LilSmoke and custom Mupen-LilSmoke are excluded.
+- Fifty Linux release tests and the 128 MiB MIPS UI/SNES smoke test passed.
+  This exact image still has no new physical-device cold-boot acceptance test.
+
+## Pre-Alpha-0.0.1 - 2026-10-12
+
+Published as the initial experimental image. The notes below were prepared
+for that release; their former "Draft, Unreleased" label was stale.
 Older version/J entries below are preserved historical development notes; their
 "shipped" language, board assumptions and measurements are not certified public
 release history. Current evidence is summarized in the new release guides.
@@ -50,9 +106,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 for its release tags. Internal milestones are numbered `J0` through `J11`
 (see `worklog.md` for the full chronological record).
 
-Each `J` job is shipped as a point release (`0.1.0` = J0, `0.2.0` = J1+J2,
-etc.). The "Unreleased" section at the top collects changes that will land
-in the next tagged release.
+The older numeric/J-job headings below are archived planning/milestone notes,
+not the public release-tag sequence. They do not establish current board
+support, shipped functionality or measured performance. Current public tags
+are Pre-Alpha-0.0.1 and Alpha-0.0.1; use their release-specific guides.
 
 ## [Unreleased]
 
