@@ -272,7 +272,23 @@ Overclocking, ZRAM, Wi-Fi, Bluetooth and USB gadget services remain subject
 to the actual kernel/hardware. Their settings are not proof that a board
 implements them. No GPU/GL/GLES/Vulkan capability is added by this release.
 
-## Documentation Correction
+## Source Build Correction - November 1, 2026
+
+- Restored the five missing QEMU/SF3000/GB350/VirtualBox defconfigs; the initial
+  exporter recognized `.defconfig` but not Buildroot's `_defconfig` names.
+- Fixed export retention without weakening content/security checks, and added
+  export/wrapper regressions plus real pinned-Buildroot configuration checks.
+- Added `--list-targets`, `--configure-only` and separate Buildroot/output
+  overrides. Unknown targets fail before cloning; hardware-image gates remain.
+- Added separately named source-r1/documentation-r1 archives for the corrected
+  source/guides. See the [build guide](../build.md). No image/card write or retag.
+
+Validation: 11 wrapper and 22 export tests pass; all five real Buildroot
+2024.02.3 configurations and package graphs pass. Package compilation/booting
+was not performed by these checks. Existing DirectFB/musl warnings remain
+visible and require separate full-build validation.
+
+## Documentation Snapshot Note
 
 This expanded documentation was published after the initial Alpha upload.
 The release tag, source ZIP snapshot, image bytes and original checksums are

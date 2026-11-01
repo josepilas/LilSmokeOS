@@ -16,13 +16,21 @@ Get the image, source and checksums from
 | --- | --- |
 | `LilSmokeOS-Alpha-0.0.1.img` | Raw flashable SEGAM-M8-V6.0 image |
 | `LilSmokeOS-Alpha-0.0.1-source.zip` | Audited source snapshot at initial publication |
+| `LilSmokeOS-Alpha-0.0.1-source-r1.zip` | Corrected source with all five Buildroot profiles, export fix, tests and current guides; preferred for new builds |
 | `SHA256SUMS.txt` | Image/source SHA-256 checksums |
 | `LilSmokeOS-Alpha-0.0.1-documentation.zip` | Corrected Alpha documentation, published separately after the initial snapshot |
+| `LilSmokeOS-Alpha-0.0.1-documentation-r1.zip` | Documentation including the November 1 source/build correction |
 
 The documentation correction does not replace the image, change its checksum,
 move the release tag, or alter a connected card. The original source ZIP and
 its inventory describe the original publication snapshot; corrected docs are
 on the repository's `main` branch and in the documentation ZIP.
+
+The initial source ZIP accidentally omitted the Buildroot defconfigs. The
+separately named source-r1 archive fixes that omission without replacing the
+original artifact. It includes `SOURCE-INVENTORY-R1.json` and revision metadata;
+the older source reports still describe the original publication snapshot.
+See the [current build guide](../build.md) before configuring or compiling.
 
 ## Supported Device
 

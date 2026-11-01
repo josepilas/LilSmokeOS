@@ -26,6 +26,14 @@ image and source ZIP are distributed through [Alpha-0.0.1 Releases](https://gith
 See the [Alpha source inventory and limits](docs/alpha-0.0.1-source.md).
 The source archive contains no ROM, BIOS, stock firmware export or private game build.
 
+**Source build correction (November 1, 2026):** the initial source export
+omitted all five Buildroot `*_defconfig` files. Use a current `main` checkout
+or `LilSmokeOS-Alpha-0.0.1-source-r1.zip` from the same release. Target profiles,
+the export fix, regression checks and current build instructions are included.
+The original source ZIP/tag and OS image remain historical, unchanged artifacts.
+Start with `bash scripts/build.sh --list-targets` or a target followed by
+`--configure-only`; see the [build guide](docs/build.md).
+
 The Alpha image is **1,880,096,768 bytes**,
 SHA-256 `1d5c30b0635ca7577ca209c304320c35723eb5f48ad6168b71a3f9261fa16d12`.
 Both FAT filesystem checks passed. LILOS is 1 GiB and the initial LILROMS is

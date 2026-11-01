@@ -14,10 +14,24 @@ jobs:
           python-version: '3.12'
       - name: Release gate unit tests
         run: python -m unittest discover -s tools/release -v
+      - name: Build wrapper regression tests
+        run: python -m unittest discover -s tools/build-config -p test_build_wrapper.py -v
       - name: Version and license
         run: |
           test "$(cat VERSION)" = "Alpha-0.0.1"
           cmp LICENSE LICENSES/MPL-2.0.txt
           python tools/release/check_license_text.py
           python tools/release/check_license_scope.py
-      # No create-release/upload step: image and private-port clearance is pending.
+      # Verification only: this workflow never publishes or flashes artifacts.
+  build-configurations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Get pinned Buildroot sources
+        run: git clone --branch 2024.02.3 --depth 1 https://github.com/buildroot/buildroot.git "$RUNNER_TEMP/buildroot"
+      - name: Configure all five profiles and evaluate recipe graphs
+        run: python tools/build-config/check_defconfigs.py --buildroot "$RUNNER_TEMP/buildroot" --report tools/build-config/_build/defconfigs.json

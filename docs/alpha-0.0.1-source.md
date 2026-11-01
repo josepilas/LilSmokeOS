@@ -10,6 +10,26 @@ are a frozen publication snapshot. Later documentation-only corrections on
 `main` do not silently replace that archive or change its hashes. Corrected
 documentation is also published as a separate release asset.
 
+## Source Build Correction R1
+
+On November 1, 2026 the missing `configs/lilsmoke_*_defconfig` files were
+restored for QEMU, SF3000, GB350 and both VirtualBox profiles. The source export
+now accepts Buildroot's `_defconfig` naming convention, with binary/credential
+checks unchanged. The wrapper has target listing, configure-only mode and
+separate Buildroot/output overrides; focused regressions protect the workflow.
+
+Use current `main` or `LilSmokeOS-Alpha-0.0.1-source-r1.zip` for new builds.
+The R1 archive is exported from the public Git revision and adds a new source
+inventory/revision record. It does not pretend that the original inventory
+described files omitted by that initial export. The original image, tag and
+source ZIP/checksum remain unchanged. See [build instructions](build.md).
+
+All five profiles were configured and their recipe graphs evaluated with
+pinned Buildroot 2024.02.3 in disposable outputs. This does not certify a
+complete clean package compile, VirtualBox ISO boot or any hardware BSP.
+SF3000/GB350 full builds remain intentionally gated; recorded upstream
+DirectFB/musl configuration warnings are not suppressed.
+
 Created and led by **José Pilas**. Original authored Alpha source is public
 under MPL-2.0. Upstream source/fork modifications retain their own terms.
 Daedalus-LilSmoke and custom Mupen-LilSmoke experiments are excluded; generic

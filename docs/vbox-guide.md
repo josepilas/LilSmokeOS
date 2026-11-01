@@ -1,5 +1,14 @@
 # LilSmokeOS — VirtualBox Setup Guide
 
+**Legacy development workflow, not a model of the physical M8.** Both x86
+defconfigs are restored in the current source. Start with
+`bash scripts/build.sh vbox-test --configure-only` or
+`bash scripts/build.sh vbox-x86_64 --configure-only`; see the
+[current build guide](build.md) for separate output directories and checks.
+The old speed/timing/full-emulator statements below are historical design
+notes, not new Alpha build or ISO boot acceptance results. No PC-emulator
+product is being revived or shipped by restoring these configuration inputs.
+
 VirtualBox is the fastest development target for LilSmokeOS. Unlike
 the QEMU-mipsel target (which emulates a MIPS CPU), the VBox target
 builds a native x86_64 image that boots in seconds and runs at near-

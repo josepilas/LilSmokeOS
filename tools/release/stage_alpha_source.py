@@ -56,7 +56,7 @@ PUBLIC_DOCS = {
     "storage-layout.md", "syspck.md", "theme-compat.md", "vbox-guide.md",
     "wifi-ota.md", "bluetooth-and-mapping.md", "treefrog-port-converter.md",
     "treefrog-ports-compatibility-20261027.md", "release-preparation.md",
-    "alpha-0.0.1-source.md",
+    "alpha-0.0.1-source.md", "alpha-0.0.1",
 }
 SOURCE_SUFFIXES = {
     ".c", ".h", ".cpp", ".hpp", ".cc", ".cxx", ".hxx", ".hh", ".ipp", ".inl",
@@ -303,7 +303,9 @@ def allowed_source(relative):
     if name.startswith(("license", "copying", "copyright", "notice", "readme",
                         "makefile.", "config.", "sconstruct", "sconscript")):
         return True
-    if name in SOURCE_NAMES or path.suffix.casefold() in SOURCE_SUFFIXES:
+    # Buildroot targets use *_defconfig, not the .defconfig suffix.
+    if (name in SOURCE_NAMES or name.endswith("_defconfig") or
+            path.suffix.casefold() in SOURCE_SUFFIXES):
         return True
     # Installed init/service/launcher scripts have no suffix.
     return not path.suffix and (relative.startswith(("board/", "package/")) or

@@ -1,95 +1,107 @@
 #!/bin/bash
-#
-# LilSmokeOS — top-level build wrapper
-#
-# Usage:
-#   ./scripts/build.sh                # build for current defconfig (qemu-mipsel)
-#   ./scripts/build.sh qemu-mipsel    # build QEMU target
-#   ./scripts/build.sh sf3000         # build SF3000 target (J4+)
-#   ./scripts/build.sh gb350          # build GB350 target (J4+)
-#   ./scripts/build.sh menuconfig     # open menuconfig
-#   ./scripts/build.sh clean          # clean build
-#
-# This script:
-#   1. Clones Buildroot to ./build/buildroot/ if missing (pinned to 2024.02.x)
-#   2. Applies LilSmokeOS as external tree
-#   3. Loads the right defconfig
-#   4. Runs make
-
+# SPDX-License-Identifier: MPL-2.0
+# Configure/build a pinned Buildroot target; never flash a physical device.
 set -euo pipefail
 
-case "$(uname -s 2>/dev/null || true)" in
-    MSYS*|MINGW*|CYGWIN*)
-        # Kernel sources contain dangling symlinks while extracting; MSYS'
-        # default native symlink mode fails on those before the target appears.
-        export MSYS="${MSYS:-winsymlinks:lnk}"
+LILSMOKE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BUILDROOT_VERSION="2024.02.3"
+BUILDROOT_DIR="${LILSMOKE_BUILDROOT_DIR:-$LILSMOKE_ROOT/build/buildroot}"
+case "$BUILDROOT_DIR" in /*) ;; *) BUILDROOT_DIR="$PWD/$BUILDROOT_DIR" ;; esac
+OUTPUT_DIR="${LILSMOKE_OUTPUT_DIR:-$BUILDROOT_DIR/output}"
+case "$OUTPUT_DIR" in /*) ;; *) OUTPUT_DIR="$PWD/$OUTPUT_DIR" ;; esac
+TARGET="${1:-qemu-mipsel}"
+CONFIGURE_ONLY=0
+
+list_targets() {
+    local file name
+    for file in "$LILSMOKE_ROOT"/configs/lilsmoke_*_defconfig; do
+        [ -f "$file" ] || continue
+        name="${file##*/lilsmoke_}"
+        name="${name%_defconfig}"
+        printf '  %s\n' "${name/_/-}"
+    done
+}
+
+usage() {
+    echo "Usage: $0 [target] [--configure-only]"
+    echo "       $0 --list-targets | menuconfig | clean"
+    echo "Default target: qemu-mipsel"
+    echo "Targets:"
+    list_targets
+    echo "Optional: LILSMOKE_BUILDROOT_DIR, LILSMOKE_OUTPUT_DIR, LILSMOKE_JOBS"
+}
+
+if [ "$#" -gt 2 ]; then usage >&2; exit 2; fi
+if [ "$#" -eq 2 ]; then
+    if [ "$2" != --configure-only ]; then usage >&2; exit 2; fi
+    CONFIGURE_ONLY=1
+fi
+case "$TARGET" in
+    --help|-h) usage; exit 0 ;;
+    --list-targets) list_targets; exit 0 ;;
+    clean|menuconfig)
+        if [ "$CONFIGURE_ONLY" -eq 1 ]; then usage >&2; exit 2; fi
+        ;;
+    *)
+        case "$TARGET" in
+            *[!a-zA-Z0-9_-]*) echo "[lilsmoke] invalid target: $TARGET" >&2; exit 2 ;;
+        esac
+        DEFCONFIG="lilsmoke_${TARGET//-/_}_defconfig"
+        if [ ! -f "$LILSMOKE_ROOT/configs/$DEFCONFIG" ]; then
+            echo "[lilsmoke] unknown or missing target: $TARGET" >&2
+            echo "[lilsmoke] available targets:" >&2
+            list_targets >&2
+            exit 1
+        fi
         ;;
 esac
 
-# --- Paths ---
-LILSMOKE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BUILDROOT_DIR="$LILSMOKE_ROOT/build/buildroot"
-BUILDROOT_VERSION="2024.02.3"
-TARGET="${1:-qemu-mipsel}"
+# Loading a userspace profile is safe; building a hardware image remains gated.
+if [ "$CONFIGURE_ONLY" -eq 0 ]; then
+    case "$TARGET" in
+        sf3000|gb350)
+            if [ "${LILSMOKE_ALLOW_UNVERIFIED_BSP:-0}" != 1 ]; then
+                sh "$LILSMOKE_ROOT/scripts/check-real-hardware-bsp.sh" "$TARGET"
+            else
+                echo "[lilsmoke] WARNING: bypassing the real-hardware BSP safety gate"
+            fi
+            ;;
+    esac
+fi
 
-cd "$LILSMOKE_ROOT"
-
-# --- Clone Buildroot if needed ---
 if [ ! -d "$BUILDROOT_DIR" ]; then
     echo "[lilsmoke] cloning Buildroot $BUILDROOT_VERSION..."
     mkdir -p "$(dirname "$BUILDROOT_DIR")"
     git clone --branch "$BUILDROOT_VERSION" --depth 1 \
         https://github.com/buildroot/buildroot.git "$BUILDROOT_DIR"
 fi
-
-cd "$BUILDROOT_DIR"
-
-# --- Handle non-build subcommands ---
-case "$TARGET" in
-    clean)
-        echo "[lilsmoke] cleaning buildroot"
-        make clean
-        exit 0
-        ;;
-    menuconfig)
-        make BR2_EXTERNAL="$LILSMOKE_ROOT" menuconfig
-        exit 0
-        ;;
-esac
-
-# --- Load defconfig ---
-DEFCONFIG="lilsmoke_${TARGET//-/_}_defconfig"
-if [ ! -f "$LILSMOKE_ROOT/configs/$DEFCONFIG" ]; then
-    echo "[lilsmoke] unknown target: $TARGET"
-    echo "[lilsmoke] available targets:"
-    ls "$LILSMOKE_ROOT/configs/" | sed 's/lilsmoke_//;s/_defconfig//'
+if [ ! -f "$BUILDROOT_DIR/Makefile" ]; then
+    echo "[lilsmoke] Buildroot Makefile missing: $BUILDROOT_DIR" >&2
     exit 1
 fi
-
-echo "[lilsmoke] loading defconfig: $DEFCONFIG"
+MAKE_ARGS=(BR2_EXTERNAL="$LILSMOKE_ROOT" O="$OUTPUT_DIR")
 
 case "$TARGET" in
-    sf3000|gb350)
-        if [ "${LILSMOKE_ALLOW_UNVERIFIED_BSP:-0}" != "1" ]; then
-            sh "$LILSMOKE_ROOT/scripts/check-real-hardware-bsp.sh" "$TARGET"
-        else
-            echo "[lilsmoke] WARNING: bypassing the real-hardware BSP safety gate"
-        fi
+    clean|menuconfig)
+        make -C "$BUILDROOT_DIR" "${MAKE_ARGS[@]}" "$TARGET"
+        exit 0
         ;;
 esac
 
-make BR2_EXTERNAL="$LILSMOKE_ROOT" "$DEFCONFIG"
+echo "[lilsmoke] loading defconfig: $DEFCONFIG"
+make -C "$BUILDROOT_DIR" "${MAKE_ARGS[@]}" "$DEFCONFIG"
+if [ "$CONFIGURE_ONLY" -eq 1 ]; then
+    echo "[lilsmoke] configured only: $OUTPUT_DIR/.config (no packages/images built)"
+    exit 0
+fi
 
-# --- Build ---
-echo "[lilsmoke] building (this takes ~45 min on a fast machine)..."
 JOBS="${LILSMOKE_JOBS:-$(nproc)}"
-make BR2_EXTERNAL="$LILSMOKE_ROOT" -j"$JOBS"
+if [[ ! "$JOBS" =~ ^[1-9][0-9]*$ ]]; then
+    echo "[lilsmoke] LILSMOKE_JOBS must be a positive integer" >&2
+    exit 2
+fi
+echo "[lilsmoke] building target $TARGET with $JOBS jobs..."
+make -C "$BUILDROOT_DIR" "${MAKE_ARGS[@]}" -j"$JOBS"
 
-# --- Done ---
-echo ""
-echo "[lilsmoke] build complete!"
-echo "[lilsmoke] artifacts in: $BUILDROOT_DIR/output/images/"
-ls -lh "$BUILDROOT_DIR/output/images/" 2>/dev/null | head -20
-echo ""
-echo "[lilsmoke] to run in QEMU:"
-echo "  $LILSMOKE_ROOT/scripts/run-qemu.sh $BUILDROOT_DIR/output/images"
+echo "[lilsmoke] build complete; artifacts: $OUTPUT_DIR/images/"
+ls -lh "$OUTPUT_DIR/images/" 2>/dev/null | head -20 || true

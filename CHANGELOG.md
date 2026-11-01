@@ -1,5 +1,16 @@
 # Changelog
 
+## Alpha Source Build Correction - 2026-11-01
+
+- Restored the five missing QEMU/SF3000/GB350/VirtualBox Buildroot defconfigs.
+- Fixed the source-export filename policy to preserve `*_defconfig` files
+  while retaining binary, path and credential checks; added regressions.
+- Added wrapper target listing, configure-only mode and explicit Buildroot/
+  output directory overrides. Unknown targets fail before network access.
+- Added isolated wrapper tests and real pinned-Buildroot configuration/recipe
+  graph checks for all five profiles. This is not a full OS compile/boot test.
+- Kept the SF3000/GB350 image BSP gate. No image/card changes or release retag.
+
 ## Alpha-0.0.1 - 2026-10-30
 
 This is the updated SEGAM-M8-V6.0 runtime, not only a source/license release.

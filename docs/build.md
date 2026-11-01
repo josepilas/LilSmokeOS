@@ -1,121 +1,152 @@
-# LilSmokeOS — Build Guide
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+# LilSmokeOS Build Guide
 
-## Prerequisites (host machine)
+The wrapper pins **Buildroot 2024.02.3**. Use a Linux build host; Windows can
+use WSL2 and macOS can use a Linux VM/container. Build on a case-sensitive
+Linux filesystem in a path without spaces. These are development profiles,
+not a way to reproduce every vendor boot blob in the published M8 image.
 
-You need a Linux build host (Ubuntu 22.04+ recommended). macOS / Windows
-are not supported by Buildroot without WSL2/Docker.
+## Host Requirements
 
-```bash
-# Ubuntu / Debian
-sudo apt install -y \
-    build-essential git wget cpio unzip rsync bc \
-    libncurses-dev libssl-dev \
-    qemu-system-mips \
-    bison flex \
-    python3
+For Ubuntu/Debian:
 
-# Fedora / RHEL
-sudo dnf install -y \
-    gcc gcc-c++ git wget cpio unzip rsync bc \
-    ncurses-devel openssl-devel \
-    qemu-system-mips \
-    bison flex python3
+```sh
+sudo apt install build-essential git wget cpio unzip rsync bc file \
+  libncurses-dev libssl-dev bison flex python3 qemu-system-mips
+git clone https://github.com/josepilas/LilSmokeOS.git
+cd LilSmokeOS
 ```
 
-## First build (QEMU target)
+A complete compile needs substantially more space than configuration checks.
+Allow space for downloaded sources, toolchains and each output tree. Neither
+a universal build duration nor a ten-gigabyte maximum is guaranteed.
 
-```bash
-git clone <lilsmoke-os repo url>
-cd lilsmoke-os
+## Target Profiles
 
-# Build (downloads Buildroot + cross-toolchain + kernel + userland)
-./scripts/build.sh qemu-mipsel
-
-# Run in QEMU
-./scripts/run-qemu.sh
+```sh
+bash scripts/build.sh --list-targets
 ```
 
-Expected output in QEMU:
-```
-[lilsmoke] S01: mounting pseudo-fs
-[lilsmoke] S02: starting mdev
-[lilsmoke] S03: ...
-[lilsmoke] S90: pre-flight for LilSmokeUI
-[lilsmoke-ui] J0 placeholder — TTY1 will respawn here
-```
+| Wrapper target | Checked-in Buildroot defconfig | Boundary |
+| --- | --- | --- |
+| `qemu-mipsel` | `configs/lilsmoke_qemu_mipsel_defconfig` | Malta/MIPS/musl development |
+| `sf3000` | `configs/lilsmoke_sf3000_defconfig` | HC16xx userspace profile; hardware image remains BSP-gated |
+| `gb350` | `configs/lilsmoke_gb350_defconfig` | Unverified board userspace profile; hardware image remains BSP-gated |
+| `vbox-x86_64` | `configs/lilsmoke_vbox_x86_64_defconfig` | Legacy x86_64/glibc development profile |
+| `vbox-test` | `configs/lilsmoke_vbox_test_defconfig` | Legacy x86_64/musl test profile |
 
-Press `Ctrl-A X` to exit QEMU.
+`configs/lilsmoke_media.fragment` is an optional fragment, **not a complete
+target defconfig**. Target listing no longer presents it as a buildable board.
 
-## Build targets
+The initial Alpha source export accidentally omitted the five
+`*_defconfig` files. They are restored on `main`, and the source-export
+filter/tests now preserve Buildroot's filename convention. The original
+Alpha source ZIP remains a historical snapshot; use a current checkout or
+the separately named source-r1 archive when provided with the release.
+The OS image and original release tag are not changed by this source fix.
 
-| Target | Board | Use |
-|---|---|---|
-| `qemu-mipsel` | QEMU malta | J0–J3 development |
-| `sf3000` | SF3000 (4.5″ IPS) | real hardware (J4+) |
-| `gb350` | GB350 (3.5″ IPS) | real hardware (J4+) |
+## Configure Without Building Packages
 
-## Customizing the build
-
-```bash
-# Open menuconfig (kernel + userspace + packages)
-./scripts/build.sh menuconfig
-
-# After changes, save back to defconfig:
-cd build/buildroot
-make BR2_EXTERNAL=../../ savedefconfig
-cp defconfig ../../configs/lilsmoke_qemu_mipsel_defconfig
+```sh
+bash scripts/build.sh qemu-mipsel --configure-only
+bash scripts/build.sh sf3000 --configure-only
+bash scripts/build.sh gb350 --configure-only
+bash scripts/build.sh vbox-x86_64 --configure-only
+bash scripts/build.sh vbox-test --configure-only
 ```
 
-## Build artifacts
+The first command clones the pinned Buildroot if needed and creates its Kconfig
+host helper. It then writes the selected output's `.config`. It does not
+compile target packages/kernel, assemble an image, access a card or certify a
+hardware profile. Configuration-only therefore does not need to bypass the
+SF3000/GB350 image safety gate.
 
-After `./scripts/build.sh qemu-mipsel`, look in `build/buildroot/output/images/`:
+## Build QEMU
 
-| File | Purpose |
-|---|---|
-| `vmlinux` | Kernel ELF image (loaded by QEMU `-kernel`) |
-| `rootfs.cpio.gz` | Initramfs (loaded by QEMU `-initrd`) |
-| `rootfs.squashfs` | Optional compressed rootfs artifact |
-| `lilsmoke.itb` | Real-hardware FIT image installed as `/lilsmoke.itb` in the active slot |
-| `lilsmoke-version.txt` | Build manifest |
-
-## Rebuild speed tips
-
-Buildroot caches aggressively. After the first full build (~45 min):
-
-```bash
-# Rebuild just the kernel after editing linux.config
-cd build/buildroot
-make linux-reconfigure
-
-# Rebuild just lilsmoke-ui after editing its source
-make lilsmoke-ui-reconfigure
-
-# Rebuild rootfs image after post-build.sh changes
-make target-finalize
+```sh
+LILSMOKE_JOBS=1 bash scripts/build.sh qemu-mipsel
+bash scripts/run-qemu.sh build/buildroot/output/images
 ```
 
-## Troubleshooting
+Without arguments the wrapper selects `qemu-mipsel`. A normal build loads
+the target defconfig and then invokes Buildroot's build. Existing output
+configuration can be overwritten: use distinct output directories for
+different targets. The development guest uses substitute Malta hardware;
+it is not an exact HCSEMI peripheral/timing model.
 
-### "qemu-system-mipsel: command not found"
-Install the QEMU MIPS package (see Prerequisites).
+## Separate Outputs Or An Existing Buildroot Checkout
 
-### Kernel boots but no shell prompt
-The serial console is on `ttyS0`. Make sure your terminal is 115200 8N1.
-On the host, run `./scripts/run-qemu.sh` — it pipes serial to stdout.
-
-### Build fails on toolchain step
-Try a clean rebuild:
-```bash
-./scripts/build.sh clean
-./scripts/build.sh qemu-mipsel
+```sh
+export LILSMOKE_BUILDROOT_DIR=/path/to/buildroot-2024.02.3
+export LILSMOKE_OUTPUT_DIR=/path/to/outputs/lilsmoke-qemu
+bash scripts/build.sh qemu-mipsel --configure-only
+LILSMOKE_JOBS=1 bash scripts/build.sh qemu-mipsel
 ```
 
-### Out of disk space
-A full build needs ~10 GB. Buildroot caches downloads in `~/.buildroot-dl/`
-— you can move this by setting `BR2_DL_DIR` in `build/buildroot/.config`.
+The override must point to a matching Buildroot source checkout; it does not
+download a new SDK or use its existing output directory automatically.
+The default source is `build/buildroot`, default output its `output` folder.
+`LILSMOKE_OUTPUT_DIR` is passed through Buildroot's `O=` mechanism. Preserve
+working SDKs and private build outputs when testing a fresh configuration.
 
-## Next steps
+```sh
+bash scripts/build.sh menuconfig
+bash scripts/build.sh clean
+```
 
-- J1 adds SDL2 + DirectFB + ALSA packages → see `docs/media-stack.md` (J1)
-- J2 adds RetroArch + cores → see `docs/cores.md` (J2)
-- J3 adds LilSmokeUI → see `docs/frontend.md` (J3)
+These commands use the same selected Buildroot/output overrides. `clean`
+removes build results in that output; it is not required to test a defconfig.
+
+To save a reviewed configuration, invoke `savedefconfig` in the chosen output
+and copy the resulting minimal defconfig to the corresponding repository file.
+Do not commit generated `.config`, toolchains, downloads, ROMs or private BSPs.
+
+## Direct Buildroot Use
+
+```sh
+make -C /path/to/buildroot-2024.02.3 O=/path/to/output \
+  BR2_EXTERNAL=/path/to/LilSmokeOS lilsmoke_qemu_mipsel_defconfig
+make -C /path/to/buildroot-2024.02.3 O=/path/to/output \
+  BR2_EXTERNAL=/path/to/LilSmokeOS
+```
+
+The wrapper's SF3000/GB350 guard is not a claim that direct `make` produces a
+safe flashable image. Those profiles are intentionally userspace-only while
+their BSP status remains incomplete. Do not flash them to the tested M8 or
+another board based on a shared marketing name.
+
+## Regression Checks
+
+No network, SDK or real compilation is needed for wrapper/source-export tests:
+
+```sh
+python3 -B -m unittest discover -s tools/build-config -p test_build_wrapper.py -v
+python3 -B -m unittest discover -s tools/release -p test_alpha_source.py -v
+```
+
+With a local pinned Buildroot checkout, test all five real configurations and
+their package recipe graphs using disposable output directories:
+
+```sh
+python3 -B tools/build-config/check_defconfigs.py \
+  --buildroot /path/to/buildroot-2024.02.3 \
+  --report tools/build-config/_build/defconfigs.json
+```
+
+This uses the actual wrapper, requires the expected target/architecture/libc
+settings, checks referenced support paths, then evaluates `make show-info`.
+It does not compile all packages or boot QEMU/VirtualBox/hardware. Existing
+upstream DirectFB/musl dependency warnings are recorded rather than hidden;
+full toolchain/library validation remains a separate step.
+
+## Artifacts And Limits
+
+QEMU expects `vmlinux` and `rootfs.cpio.gz` in the selected output's
+`images/` directory. Other rootfs artifacts depend on the profile. Legacy
+VirtualBox profiles/hooks expect an x86 kernel/initramfs and host ISO tools;
+see [VirtualBox development](vbox-guide.md), not a physical-M8 guarantee.
+
+For production M8 dependencies and licensing/build limits, read
+[Source and build](developer/SOURCE-AND-BUILD.md) and
+[Alpha source distribution](alpha-0.0.1-source.md). Configuration success is
+not evidence of a complete binary rebuild, legal clearance or safe flashing.

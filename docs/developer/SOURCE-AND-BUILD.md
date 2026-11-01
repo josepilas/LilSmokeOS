@@ -46,9 +46,17 @@ mixing. Do not destroy an existing private SDK to try a fresh configuration.
 From an approved clean source checkout in Linux:
 
 ```sh
+bash scripts/build.sh --list-targets
+bash scripts/build.sh qemu-mipsel --configure-only
 LILSMOKE_JOBS=1 bash scripts/build.sh qemu-mipsel
 bash scripts/run-qemu.sh
 ```
+
+All five checked-in target defconfigs are restored after the initial Alpha
+source-export omission. See the [build guide](../build.md) for profile names,
+separate Buildroot/output overrides and the real configuration regression
+check. Configuration-only does not build packages/images or bypass a hardware
+image safety gate; full SF3000/GB350 builds remain intentionally BSP-gated.
 
 These are the existing development wrapper/runner, not a certified production
 M8 image recipe. The runner requires the generated images and framebuffer

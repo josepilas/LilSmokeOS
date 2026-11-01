@@ -9,6 +9,15 @@ import zipfile
 import stage_alpha_source as stage
 
 
+DEFCONFIG_NAMES = (
+    "lilsmoke_gb350_defconfig",
+    "lilsmoke_qemu_mipsel_defconfig",
+    "lilsmoke_sf3000_defconfig",
+    "lilsmoke_vbox_test_defconfig",
+    "lilsmoke_vbox_x86_64_defconfig",
+)
+
+
 class AlphaSourceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -53,6 +62,87 @@ class AlphaSourceTests(unittest.TestCase):
         self.assertTrue((output / "SOURCE-INVENTORY.json").is_file())
         meta = json.loads((output / "release.json").read_text())
         self.assertEqual(meta["source_publication_status"], "published")
+
+    def test_buildroot_defconfigs_survive_sanitization(self):
+        data = b"# Buildroot target\nBR2_PACKAGE_LILSMOKE_OS=y\n"
+        for name in DEFCONFIG_NAMES:
+            self.put("configs/" + name, data)
+        result = stage.stage(self.root)
+        self.assertTrue(result["passed"])
+        inventory = {r["path"]: r for r in
+                     self.report("alpha-source-inventory.json")["files"]}
+        excluded = {r["path"] for r in self.report("alpha-source-exclusions.json")["paths"]}
+        build = self.root / "tools/release/_build"
+        with zipfile.ZipFile(build / result["archive"]) as archive:
+            for name in DEFCONFIG_NAMES:
+                rel = "configs/" + name
+                with self.subTest(name=name):
+                    self.assertIn(rel, inventory)
+                    self.assertNotIn(rel, excluded)
+                    self.assertEqual(inventory[rel]["source_sha256"], stage.digest(data))
+                    self.assertEqual(inventory[rel]["sha256"], stage.digest(data))
+                    self.assertEqual((build / "alpha-source" / rel).read_bytes(), data)
+                    self.assertEqual(archive.read(rel), data)
+
+    def test_current_build_checks_and_release_guides_are_retained(self):
+        names = ("tools/build-config/test_build_wrapper.py",
+                 "tools/build-config/check_defconfigs.py",
+                 "docs/alpha-0.0.1/README.md",
+                 "docs/alpha-0.0.1/RELEASE-NOTES.md")
+        for name in names:
+            self.put(name, "# Public build/source correction fixture\n")
+        selected, excluded = stage.collect(self.root)
+        paths = {row[0] for row in selected}
+        for name in names:
+            self.assertIn(name, paths)
+        self.assertFalse(any(row["path"] == "docs/alpha-0.0.1/" for row in excluded))
+
+    def test_defconfig_filename_rule_is_exact(self):
+        self.assertTrue(stage.allowed_source("configs/legacy.defconfig"))
+        for name in ("defconfig", "notdefconfig", "target", "target_defconfigs",
+                     "target_defconfig.bak", "target_defconfig_private"):
+            with self.subTest(name=name):
+                self.assertFalse(stage.allowed_source("configs/" + name))
+
+    def test_buildroot_defconfigs_reject_binary_headers_and_nul_bytes(self):
+        payloads = [magic + b"disguised binary\n" for magic in stage.MAGICS]
+        payloads.append(b'CONFIG_BROKEN="before\0after"\n')
+        paths = []
+        for index, data in enumerate(payloads):
+            for name in DEFCONFIG_NAMES:
+                rel = "configs/payload-%d/%s" % (index, name)
+                self.put(rel, data)
+                paths.append(rel)
+        result = stage.stage(self.root)
+        self.assertTrue(result["passed"])
+        excluded = {r["path"]: r["reason"] for r in
+                    self.report("alpha-source-exclusions.json")["paths"]}
+        inventory = {r["path"] for r in self.report("alpha-source-inventory.json")["files"]}
+        build = self.root / "tools/release/_build"
+        with zipfile.ZipFile(build / result["archive"]) as archive:
+            archived = set(archive.namelist())
+            for rel in paths:
+                with self.subTest(path=rel):
+                    self.assertEqual(excluded[rel],
+                                     "binary/ROM/container signature or NUL bytes")
+                    self.assertNotIn(rel, inventory)
+                    self.assertNotIn(rel, archived)
+                    self.assertFalse((build / "alpha-source" / rel).exists())
+
+    def test_buildroot_defconfigs_still_scanned_for_credentials(self):
+        token = "gh" + "p_" + "D" * 36
+        data = ('CONFIG_FIXTURE="' + token + '"\n').encode()
+        paths = {"configs/" + name for name in DEFCONFIG_NAMES}
+        for rel in paths:
+            self.put(rel, data)
+        result = stage.stage(self.root)
+        self.assertFalse(result["passed"])
+        self.assertFalse((self.root / "tools/release/_build/alpha-source").exists())
+        findings = self.report("alpha-source-audit.json")["findings"]
+        self.assertEqual({r["path"] for r in findings if r["status"] == "blocked"}, paths)
+        self.assertTrue(all(r["rule"] == "github-token" for r in findings))
+        for rel in paths:
+            self.assertEqual((self.root / rel).read_bytes(), data)
 
     def test_outputs_private_checkpoints_and_sourcekits_pruned(self):
         for name in ("build/private.c", "tools/x/_build/cached.c",
